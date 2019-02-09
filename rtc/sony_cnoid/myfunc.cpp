@@ -2,7 +2,8 @@
 #include<fstream>
 #include<math.h>
 #include "myfunc.h"
-//std::ofstream ofs("/home/grxuser/users/wu/hrp2rtc/myfun.log");
+// static std::ofstream ofs("/home/player/tsml/log/tar.log");
+// static std::ofstream ofs2("/home/player/tsml/log/tarq.log");
 /*
 void ShowMatrix(Matrix33& M,int k,int l)
 {
@@ -15,6 +16,7 @@ void ShowMatrix(Matrix33& M,int k,int l)
     }
 }
 */
+
 double* CalcInterplation1(double xs,double xf,double tf)
 {
  double* tmp;
@@ -165,14 +167,8 @@ void setModelPosture( BodyPtr body,  MatrixXd body_q, FootType FT, string *end_l
 
 }
 
-Matrix3 rotationZ(double theta){
-  Matrix3 R;
-  double c = cos(theta);
-  double s = sin(theta);
-  R <<  c,  -s,  0.0,
-    s,   c,  0.0,
-    0.0, 0.0, 1.0;
-  return R;
+Matrix3 rotationZ(double theta){ 
+  return Matrix3(AngleAxisd(theta, Vector3d::UnitZ()));
 }
 
 Matrix3 rotationY(double theta){
@@ -185,20 +181,6 @@ Matrix3 rotationY(double theta){
   return R;
 }
 
-Matrix3 yowRotate(double& q)
-{
-  Matrix3 Rmatrix;
-  double theta=deg2rad(q);
-  for(int i=0;i<3;i++)
-    {
-      Rmatrix(i,2)=Rmatrix(2,i)=0;
-    }
-  Rmatrix(2,2)=1;
-  Rmatrix(0,0)=Rmatrix(1,1)=cos(theta);
-  Rmatrix(1,0)=sin(theta);
-  Rmatrix(0,1)=-sin(theta);
-  return Rmatrix;
-}
 
 /*
 void RenewModel(BodyPtr body,Vector3  *p_now, Matrix3 *R_now)
@@ -241,6 +223,14 @@ void RenewModel(BodyPtr body,Vector3  *p_now, Matrix3 *R_now, string *end_link)
   R_now[4]=body->link(end_link[WAIST])->R();
 }
 
+void get_end_link_pose(BodyPtr body, Position* pose, string *end_link)
+{
+  //RLEG, LLEG, RARM, LARM, WAIST,
+  for(int i=0; i<LINKNUM; i++) {
+    pose[i].linear() = body->link(end_link[i])->R();
+    pose[i].translation() = body->link(end_link[i])->p();
+  }
+}
 
 /*
 Vector3 calcZMP(BodyPtr body, TimedDoubleSeq &m_rfsensor, TimedDoubleSeq &m_lfsensor)
@@ -483,11 +473,24 @@ matrix22 RfromMatrix3(Matrix3 Rin)//bimyou
 
 Matrix3 extractYow(Matrix3 Rin)
 {
-  //Vector3 rpy=rpyFromRot(Rin);
-  //Matrix3 R=rotationZ(rpy(2));
+  Vector3 rpy = rpyFromRot(Rin);
+  Matrix3 R = rotationZ(rpy(2));
+  // Eigen::AngleAxisd aa(Rin);
+  // // if ( fabs(aa.angle()) < 1e-2) {  
+  // //   return MatrixXd::Identity(3,3);
+  // // } 
+  
+  // Vector3 euler = Rin.eulerAngles(2,1,0);
+  // if ( fabs(euler(0)) - 3.1 > 0 &&
+  //      fabs(euler(1)) - 3.1 > 0 &&
+  //      fabs(euler(2)) - 3.1 > 0 &&
+  //      fabs(aa.angle()) < 1e-2) {
+  //   euler(0) -= M_PI;
+  //   euler(1) = M_PI - euler(1);
+  //   euler(2) -= M_PI;
+  // } 
 
-  Vector3 euler = Rin.eulerAngles(2,1,0);
-  Matrix3 R=rotationZ(euler(0));
+  // Matrix3 R=rotationZ(euler(0));
 
   return R;
 }
@@ -545,6 +548,14 @@ void updateInit(Vector3 *p_now, Vector3 *p_Init, Matrix3 *R_now, Matrix3 *R_Init
      p_Init[i]=p_now[i];
      R_Init[i]=R_now[i];
    }
+}
+
+void copy_poses(Position* pose_copy, const Position* const pose)
+{
+  for(int i=0; i<LINKNUM; i++) {
+    pose_copy[i].linear() =  pose[i].linear();
+    pose_copy[i].translation() = pose[i].translation();
+  }
 }
 
 bool walkJudge(BodyPtr body,  FootType FT, Vector3 RLEG_ref_p, Vector3 LLEG_ref_p, Matrix3  LEG_ref_R, string *end_link)
@@ -1067,6 +1078,18 @@ bool CalcIVK_biped_toe(BodyPtr body, Vector3& CM_p, Vector3 *p_ref, Matrix3 *R_r
   const int n = 12;//leg only
   
   //Link* target = jpp->endLink();
+
+  // if (1) {
+  //   ofs << cnt << endl;
+  //   ofs << "CM:\n" << CM_p << endl;
+  //   ofs << "W\n" << R_ref[WAIST] << endl;
+  //   ofs << "p\n" << p_ref[swingLegId] << endl;
+  //   ofs << "SW_R\n" << R_ref[swingLegId] << "\n"<< endl;
+  //   // ofs << CM_p[0] << " " << CM_p[1] << " " << CM_p[2] << " " <<
+  //   //  p_ref[swingLegId][0] << " " <<  p_ref[swingLegId][1] << " " <<  p_ref[swingLegId][2] << endl;
+  //   pd = 0;
+  //   cnt ++;
+  // }
   
   std::vector<double> qorg(n);
     for(int i=0; i < 12; ++i){
@@ -1091,7 +1114,7 @@ bool CalcIVK_biped_toe(BodyPtr body, Vector3& CM_p, Vector3 *p_ref, Matrix3 *R_r
       Vector3 W_omega=W_R* omegaFromRot(W_R.transpose() * R_ref[WAIST]);
       Vector3 SW_dp =p_ref[swingLegId] - SwLeg_p;  
       Vector3 SW_omega = SwLeg_R* omegaFromRot(SwLeg_R.transpose() * R_ref[swingLegId]);
-     
+      
       //v<< CM_dp, W_omega, SW_dp, SW_omega;
       v.head<3>()=CM_dp;
       v.segment<3>(3)=W_omega;
@@ -1134,6 +1157,13 @@ bool CalcIVK_biped_toe(BodyPtr body, Vector3& CM_p, Vector3 *p_ref, Matrix3 *R_r
       SupLeg2SwLeg->calcForwardKinematics();
       body->calcForwardKinematics();
     }
+
+
+    // for(int j=0; j < n; ++j){
+    //   ofs2 <<  body->joint(j)->q() << " ";
+    // }
+    // ofs2 << endl;
+    
     
     return converged;          
 }

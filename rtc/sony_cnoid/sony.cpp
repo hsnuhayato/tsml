@@ -6,7 +6,7 @@
  */
 #include "sony.h"
 //std::ofstream ofs("/home/wu/src/HRP3.1x/sony_cnoid/sony.log");
-//std::ofstream ofs("/home/player/tsml/log/sony.log");
+//std::ofstream ofswu("/home/player/tsml/log/sony.log");
 // Module specification
 // <rtc-template block="module_spec">
 static const char* sony_spec[] =
@@ -92,7 +92,14 @@ RTC::ReturnCode_t sony::onInitialize()
 
   //for ps3 controller
   m_axes.data.length(29);
+  for (int i=0; i<29; i++) {
+    m_axes.data[i] = 0;
+  }
   m_buttons.data.length(17);
+  for (int i=0; i<17; i++) {
+    m_buttons.data[i] = 0;
+  }
+  
   // Set OutPort buffer
   // Set service provider to Ports
   m_sonyServicePort.registerProvider("service0", "sonyService", m_service0);
@@ -223,7 +230,8 @@ RTC::ReturnCode_t sony::onExecute(RTC::UniqueId ec_id)
 
 
   //gamepad
-  if(m_axesIn.isNew()){
+  //if(m_axesIn.isNew()){
+  if (0) { //for using blutooth keyboad
     m_axesIn.read();
 
     velobj(0)=m_axes.data[1]*-20;
@@ -253,6 +261,7 @@ RTC::ReturnCode_t sony::onExecute(RTC::UniqueId ec_id)
       }
     }
     else{
+      //todo すべてニュートラル状態accept trueにする
       if(m_axes.data[16]==0)
 	buttom_accept=true;
     }
@@ -279,9 +288,8 @@ RTC::ReturnCode_t sony::onExecute(RTC::UniqueId ec_id)
 
   //_/_/_/_/_/_/_/_/_/_/_/_/main algorithm_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   if(playflag){
-
     if(omniWalk){
-      object_operate();   
+      object_operate();
       prmGenerator( flagcalczmp);//stopflag off here
       //getnextcom->pop_front CP
       walkingMotion(m_robot, FT, cm_ref, absZMP, p_Init, p_ref, R_ref, rfzmp, zmpP);
@@ -296,7 +304,7 @@ RTC::ReturnCode_t sony::onExecute(RTC::UniqueId ec_id)
       ifChangeSupLeg2(m_robot, FT,  zmpP, stopflag, CommandIn, 
 		      p_ref, p_Init, R_ref, R_Init, flagcalczmp);
     }
-    
+   
     calcWholeIVK(); //write in refq
     zmpHandler();
 
@@ -319,22 +327,28 @@ RTC::ReturnCode_t sony::onExecute(RTC::UniqueId ec_id)
     m_baseRpyOut.write();
     m_lightOut.write();
 
+    // Vector3 tmprf(m_rfsensor.data[0],m_rfsensor.data[1], m_rfsensor.data[2]);
+    // Vector3 tmplf(m_lfsensor.data[0],m_lfsensor.data[1], m_lfsensor.data[2]);
+    // Vector3 rf_w = m_robot->link(end_link[RLEG])->R() * tmprf;
+    // Vector3 lf_w = m_robot->link(end_link[LLEG])->R() * tmplf;
+    // ofswu<< rf_w[2] << " " << lf_w[2] <<" " << m_rfsensor.data[2] << 
+    //   " " << m_lfsensor.data[2]<<endl;
     // ogawa
-    if( ofs.is_open() ) {
-      cnoid::Vector3 rpyR, rpyL;
-      rpyR = R_ref[RLEG].eulerAngles(2,1,0);
-      rpyL = R_ref[LLEG].eulerAngles(2,1,0);
-      //ofs << absZMP(0) << " " << absZMP(1) << " " << absZMP(2) << " " << cm_ref(0) << " " << cm_ref(1) << " " << com_ref(2) << std::endl;
+    // if( ofs.is_open() ) {
+    //   cnoid::Vector3 rpyR, rpyL;
+    //   rpyR = R_ref[RLEG].eulerAngles(2,1,0);
+    //   rpyL = R_ref[LLEG].eulerAngles(2,1,0);
+    //   //ofs << absZMP(0) << " " << absZMP(1) << " " << absZMP(2) << " " << cm_ref(0) << " " << cm_ref(1) << " " << com_ref(2) << std::endl;
 
-      ofs << toSec(m_mc.tm);
-      for(int i=0; i<3; i++)  ofs << " " << absZMP(i);
-      for(int i=0; i<3; i++)  ofs << " " << cm_ref(i);
-      for(int i=0; i<3; i++)  ofs << " " << p_ref[RLEG](i);
-      for(int i=0; i<3; i++)  ofs << " " << p_ref[LLEG](i);
-      ofs << " " << rpyR(2) << " " << rpyR(1) << " " << rpyR(0);
-      ofs << " " << rpyL(2) << " " << rpyL(1) << " " << rpyL(0);
-      ofs << std::endl;
-    }
+    //   ofs << toSec(m_mc.tm);
+    //   for(int i=0; i<3; i++)  ofs << " " << absZMP(i);
+    //   for(int i=0; i<3; i++)  ofs << " " << cm_ref(i);
+    //   for(int i=0; i<3; i++)  ofs << " " << p_ref[RLEG](i);
+    //   for(int i=0; i<3; i++)  ofs << " " << p_ref[LLEG](i);
+    //   ofs << " " << rpyR(2) << " " << rpyR(1) << " " << rpyR(0);
+    //   ofs << " " << rpyL(2) << " " << rpyL(1) << " " << rpyL(0);
+    //   ofs << std::endl;
+    // }
 
     //m_localEEposOut.write();
   }//playflag
@@ -581,7 +595,6 @@ void sony::walkingMotion(BodyPtr m_robot, FootType FT, Vector3 &cm_ref, Vector3 
     //zmpP->calcWaistR(FT,  R_ref); 
     R_ref[WAIST]=zmpP->calcWaistR(FT, m_robot, end_link); 
     cm_ref(2) = zmpP->cm_z_deque.at(0);
-
     //cout<<  FT<<" "<< p_ref[swingLeg](2)<<endl;
     /////////toe mode////////////
     if(usePivot){
@@ -753,8 +766,9 @@ void sony::start()
   }
   //R_ref[WAIST]=Eigen::MatrixXd::Identity(3,3);
   R_ref[WAIST]=extractYow(m_robot->rootLink()->R());  // ogawa
- 
- 
+  cout << "oga\n" << R_ref[WAIST] << "\n" <<
+      m_robot->rootLink()->R() << endl;
+
   //tvmet::identity<hrp::Matrix3>();
   //object_ref->R()= Eigen::MatrixXd::Identity(3,3);
   //object_ref->p()= (p_Init[RLEG] +  p_Init[LLEG] )/2;
@@ -879,8 +893,9 @@ void sony::stepping()
 
 void sony::setFootPosR()
 {
-  if(omniWalk)
+  if(omniWalk) {
     omniWalkSwitch();
+  }
 
   // ogawa
   if( !playflag ) {
@@ -914,8 +929,7 @@ void sony::setFootPosR()
   }
 
   playflag=1;
-
-
+ 
   // CommandIn=0;//start to walk
   // start2walk(m_robot, zmpP, stopflag);//stopflag off
   // prm2Planzmp(FT, p_ref, R_ref, RLEG_ref_p, LLEG_ref_p, LEG_ref_R, rfzmp, zmpP);
@@ -1197,7 +1211,7 @@ Interplation5(body_cur,  zero,  zero, body_ref,  zero,  zero, 5, bodyDeque);
   */
 
   //Interplation5(body_cur,  zero,  zero, body_ref,  zero,  zero, 3, bodyDeque);
-  Interplation5(body_cur,  zero,  zero, body_ref,  zero,  zero, 8, bodyDeque);
+  Interplation5(body_cur,  zero,  zero, body_ref,  zero,  zero, 2, bodyDeque);
 
   /*
   //

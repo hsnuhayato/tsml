@@ -9,7 +9,7 @@ cd `dirname $0`
 ln -sfv rtc.conf rtc.conf.choreonoid
 #TASK_DIR=/home/player/tsml/model/tasks
 TASK_DIR=/home/player/tsml/model.org/tasks
-
+export CNOID_USE_GLSL=1 
 #/usr/bin/choreonoid $@ #--start-simulation
 #/usr/bin/choreonoid $@ 2>&1 | tee log.dat
 
@@ -29,5 +29,7 @@ TASK_DIR=/home/player/tsml/model.org/tasks
 #/usr/bin/choreonoid ../etc/RobotState.cnoid
 #/usr/bin/choreonoid ../etc/QrCodeTest.cnoid
 #/usr/bin/choreonoid ../etc/WalkTest.cnoid
-/usr/bin/choreonoid ../etc/WalkTestBush.cnoid --start-simulation
+/usr/local/bin/choreonoid ../etc/WalkTestBush.cnoid --start-simulation
+#/usr/local/bin/choreonoid ../etc/WalkTestBush.cnoid
+
 #/usr/bin/choreonoid ${TASK_DIR}/R2AB/R2AB_test.cnoid

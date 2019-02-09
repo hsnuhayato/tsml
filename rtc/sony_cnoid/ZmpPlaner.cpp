@@ -4,8 +4,8 @@
 
 #include "ZmpPlaner.h"
 
-
-//std::ofstream ofszmp("/home/wu/src/HRP3.1x/sony_cnoid/zmp.log");
+//static std::ofstream ofs("/home/player/tsml/log/zmpp.log");
+//static int cnt = 0;
 
 ZmpPlaner::ZmpPlaner()
 {
@@ -391,7 +391,14 @@ Matrix3 ZmpPlaner::calcWaistR( FootType FT,  BodyPtr m_robot, string *end_link)
   Vector3 omega( omegaFromRot(Rmid));
   //R_ref[WAIST]= sup_R*rodrigues(omega, 0.5);
   Matrix3 R_ref_WAIST= sup_R*rodoriges(omega, 0.5);
-  
+
+  // ofs << cnt << endl;
+  // ofs << "sup_R\n" << sup_R <<endl;
+  // ofs << "sw_R\n" << sw_R << "\n" <<SwLeg->R() <<endl;
+  // ofs << "Rmid\n" << Rmid << endl;
+  // ofs << "omega\n" << omega << endl;
+  // ofs << "R_waist\n" << R_ref_WAIST << endl;
+  // cnt ++;
   return R_ref_WAIST;
 }
 
@@ -728,12 +735,11 @@ void ZmpPlaner::calcSwingLegCP( BodyPtr m_robot, FootType FT, Vector3 swLegRef_p
 
 void ZmpPlaner::NaturalZmp(BodyPtr m_robot, Vector3 &absZMP, string *end_link)
 {
-  Link* rleg;Link* lleg;
-  rleg = m_robot->link(end_link[RLEG]);
-  lleg = m_robot->link(end_link[LLEG]);
   Vector3 rleg_cur_p, lleg_cur_p;
-  rleg_cur_p = rleg->p() + rleg->R() * offsetZMPr;
-  lleg_cur_p = lleg->p() + lleg->R() * offsetZMPl;
+  rleg_cur_p = m_robot->link(end_link[RLEG])->p() + 
+               m_robot->link(end_link[RLEG]) ->R() * offsetZMPr;
+  lleg_cur_p = m_robot->link(end_link[LLEG]) ->p() +
+               m_robot->link(end_link[LLEG])->R() * offsetZMPl;
   absZMP = (rleg_cur_p + lleg_cur_p)/2;
 }
 /*

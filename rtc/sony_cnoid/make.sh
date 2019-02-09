@@ -24,7 +24,7 @@ DATE=`/bin/date '+%Y%m%d%H%M'`
 mkdir -p log
 
 # cmake
-cmake . ${CMAKE_OPT} 2>&1 | tee log/build_${DATE}.log
+cmake . -DCMAKE_EXPORT_COMPILE_COMMANDS=1 ${CMAKE_OPT} 2>&1 | tee log/build_${DATE}.log
 
 # make
 make ${MAKE_OPT} 2>&1 | tee -a log/build_${DATE}.log

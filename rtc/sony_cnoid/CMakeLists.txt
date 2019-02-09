@@ -7,11 +7,13 @@ if (NOT CMAKE_MODULE_PATH)
 endif (NOT CMAKE_MODULE_PATH)
 
 add_definitions(-std=c++11)
+set (NO_COMP 1)
 ####
 ## settings for OpenRTM and Choreonoid
 ##
 include(FindPkgConfig)
 include(CheckIncludeFiles)
+set(ENV{PKG_CONFIG_PATH} "/usr/lib/x86_64-linux-gnu/pkgconfig/:$ENV{PKG_CONFIG_PATH}")
 
 pkg_check_modules(OPENRTM REQUIRED openrtm-aist)
 include_directories(${OPENRTM_INCLUDE_DIRS})

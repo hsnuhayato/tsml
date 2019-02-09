@@ -109,7 +109,7 @@ RTC::ReturnCode_t hrp2Base::onInitialize()
   */
 
   cnoid::BodyLoader bl;
-  m_robot=bl.load( prop["model"].c_str());
+  m_robot = bl.load( prop["model"].c_str());
   dof = m_robot->numJoints();
   std::cout<<"sony dof robot "<<m_robot->numJoints()<<std::endl;
 
@@ -120,33 +120,32 @@ RTC::ReturnCode_t hrp2Base::onInitialize()
   coil::stringTo(tmp, prop["initBasePos"].c_str());
   m_robot->rootLink()->p() << tmp[0], tmp[1], tmp[2];
   std::cout << "sony : init base pos = " << tmp[0] << ", " << tmp[1] << ", " << tmp[2] << std::endl;
-
   
   tmp.clear();
   coil::stringTo(tmp, prop["initBaseRpy"].c_str());
   m_robot->rootLink()->R() = cnoid::rotFromRpy(tmp[0], tmp[1], tmp[2]);
-  std::cout << "sony : init base rpy = " << tmp[0] << ", " << tmp[1] << ", " << tmp[2] << std::endl;
+  std::cout << "sony : init base rpy = " << tmp[0] << ", " << tmp[1] << ", " << tmp[2] <<"R\n" << m_robot->rootLink()->R() << std::endl;
 
 
-
-  for(unsigned int i=0;i<dof;i++)
-    m_robot->joint(i)->q()=0; 
+  for(unsigned int i=0;i<dof;i++) {
+    m_robot -> joint(i) -> q() = 0; 
+  }
   //m_robot->rootLink()->p()(0)=0.0;
   //m_robot->rootLink()->p()=Vector3(0, 0 ,0);
   //std::cout<<"R "<<m_robot->rootLink()->name()<<std::endl;
-  m_robot->calcForwardKinematics();
-  Vector3 cm=m_robot->calcCenterOfMass();
+  m_robot -> calcForwardKinematics();
+  Vector3 cm = m_robot -> calcCenterOfMass();
   std::cout<<"sony centerof mass "<<cm<<endl;//m_robot->mass()
 
-  mass=m_robot->mass();
+  mass = m_robot->mass();
 
-  end_link[RLEG]=prop["RLEG_END"];
-  end_link[LLEG]=prop["LLEG_END"];
-  end_link[RARM]=prop["RARM_END"];
-  end_link[LARM]=prop["LARM_END"];
-  end_link[WAIST]=prop["BASE_LINK"];
-  HEAD_P=prop["HEAD_P"];
-  HEAD_Y=prop["HEAD_Y"];
+  end_link[RLEG] = prop["RLEG_END"];
+  end_link[LLEG] = prop["LLEG_END"];
+  end_link[RARM] = prop["RARM_END"];
+  end_link[LARM] = prop["LARM_END"];
+  end_link[WAIST] =prop["BASE_LINK"];
+  HEAD_P = prop["HEAD_P"];
+  HEAD_Y = prop["HEAD_Y"];
   std::cout<<"sony rleg end "<<m_robot->link(end_link[RLEG])->p()<<std::endl;
   /*
   if( m_robot->numJoints()==32){

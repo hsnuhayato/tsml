@@ -135,6 +135,8 @@ double sum(double* Array1st,int n);
 
 void RenewModel(BodyPtr body,Vector3  *p_now, Matrix3 *R_now, string *end_link);
 
+void get_end_link_pose(BodyPtr body, Position* pose, string *end_link);
+
 void setModelPosture( BodyPtr body,  TimedDoubleSeq &m_q, FootType FT, string *end_link);
 
 void setModelPosture( BodyPtr body,  MatrixXd body_q, FootType FT, string *end_link, int dof);
@@ -172,6 +174,7 @@ vector2 pfromVector3(Vector3 p);
 void NaturalZmp(BodyPtr body, Vector3 &absZMP, double offset_x, string *end_link);
 
 void updateInit(Vector3 *p_now, Vector3 *p_Init, Matrix3 *R_now, Matrix3 *R_Init);
+void copy_poses(Position* pose_copy, const Position* const pose);
 
 bool walkJudge( BodyPtr body, FootType FT, Vector3 RLEG_ref_p, Vector3 LLEG_ref_p, Matrix3  LEG_ref_R, string *end_link);
 

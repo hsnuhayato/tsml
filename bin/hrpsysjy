@@ -12,4 +12,4 @@ for j in $(ls $HRPSYSJAR/*.jar); do
     export CLASSPATH=$j:$CLASSPATH
 done
 
-jython -DNS_OPT="$NS_OPT" -Dpython.path=/home/player/tsml/share/jython $@
+jython -DNS_OPT="$NS_OPT" -Dpython.path=/usr/lib/site-python:/usr/share/jython/Lib:/home/player/tsml/share/jython $@
