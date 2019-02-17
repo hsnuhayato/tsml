@@ -126,9 +126,9 @@ void getModelPosture( BodyPtr body,  TimedDoubleSeq &m_refq)
 //old
 
 //new
-void setModelPosture( BodyPtr body,  TimedDoubleSeq &m_q, FootType FT, string *end_link)
+void update_model( BodyPtr body, const TimedDoubleSeq &m_q, const FootType FT, const string *end_link)
 {
-  int dof=body->numJoints();
+  int dof = body -> numJoints();
   for(unsigned int i=0;i<dof;i++)
     body->joint(i)->q()=m_q.data[i];
 
@@ -148,24 +148,6 @@ void setModelPosture( BodyPtr body,  TimedDoubleSeq &m_q, FootType FT, string *e
   body->calcForwardKinematics();
 }
 
-void setModelPosture( BodyPtr body,  MatrixXd body_q, FootType FT, string *end_link, int dof)
-{
-
-  for(unsigned int i=0;i<dof;i++)
-    body->joint(i)->q() = body_q(i);
-
-  JointPathPtr Lf2Rf = getCustomJointPath(body, body->link(end_link[LLEG]),body->link(end_link[RLEG]));
-  JointPathPtr Rf2Lf = getCustomJointPath(body, body->link(end_link[RLEG]),body->link(end_link[LLEG]));
-  
-  if((FT==FSRFsw)||FT==RFsw){
-    Lf2Rf->calcForwardKinematics();
-  }
-  else if((FT==FSLFsw)||FT==LFsw){
-    Rf2Lf->calcForwardKinematics();
-  }
-  body->calcForwardKinematics();
-
-}
 
 Matrix3 rotationZ(double theta){ 
   return Matrix3(AngleAxisd(theta, Vector3d::UnitZ()));

@@ -155,7 +155,6 @@ class sony  : public hrp2Base
  private:
   bool playflag;
   bool stopflag;
-  int m_nStep;
   int step_counter;
 
   bool flagcalczmp;

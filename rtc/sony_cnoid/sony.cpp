@@ -39,7 +39,6 @@ sony::sony(RTC::Manager* manager):
   m_lightOut("light", m_light),
   m_localEEposOut("localEEpos",m_localEEpos),
   m_sonyServicePort("sonyService")
-
     // </rtc-template>
 {
   m_service0.setComponent(this);
@@ -48,7 +47,6 @@ sony::sony(RTC::Manager* manager):
 sony::~sony()
 {
 }
-
 
 RTC::ReturnCode_t sony::onInitialize()
 {
@@ -109,22 +107,21 @@ RTC::ReturnCode_t sony::onInitialize()
   addPort(m_sonyServicePort);
   //ini base
   hrp2Base::onInitialize();
-  coil::stringTo(m_nStep, prop["wutest.nStep"].c_str());
-  cerr<<"start sony nstep "<<m_nStep<<endl;
+ 
   //pini
-  playflag=0;
-  stopflag=1;
-  step_counter=0;
+  playflag = 0;
+  stopflag = 1;
+  step_counter = 0;
   //cm_offset_x=0.015;
   coil::stringTo(cm_offset_x, prop["cm_offset_x"].c_str());
 
   absZMP<<cm_offset_x, 0.0, 0.0;
   relZMP<<cm_offset_x, 0.0, 0.0;
-  step=0;
+  step = 0;
   //cout<<cm_offset_x<<endl;
-  flagcalczmp=0;
-  FT =FSRFsw;
-  CommandIn=5;
+  flagcalczmp = 0;
+  FT = FSRFsw;
+  CommandIn = 5;
  
   //wpgParam
   coil::stringTo(param.Tsup, prop["Tsup"].c_str());
@@ -142,7 +139,7 @@ RTC::ReturnCode_t sony::onInitialize()
   coil::stringTo(param.dt, prop["wpg.dt"].c_str());
   coil::stringTo(param.ankle_height, prop["ankle_height"].c_str());
 
-  usePivot=1;
+  usePivot = 1;
   stepNum= -1;
   neutralTime = 0;
   omniWalk = 1;
@@ -150,7 +147,7 @@ RTC::ReturnCode_t sony::onInitialize()
   //test paraini
   velobj=Eigen::MatrixXd::Zero(6,1);
   yawTotal=0;
-  object_ref= new Link();
+  object_ref= new Link(); //to be change to Position
   pt= new Link();
   pt_L= new Link();
   pt_R= new Link();
@@ -163,8 +160,9 @@ RTC::ReturnCode_t sony::onInitialize()
   m_baseRpy.data.p=0.0;
   m_baseRpy.data.y=0.0;
   
-  cout<<"R "<< m_robot->link(end_link[RLEG])->R()<<endl;
-  cout<<"L "<< m_robot->link(end_link[LLEG])->R()<<endl;  
+  cout<<"R\n"<< m_robot->link(end_link[RLEG])->R() << " " <<
+    m_robot -> link(end_link[RLEG])->name()<< endl;
+  cout<<"L\n"<< m_robot->link(end_link[LLEG])->R()<<endl;  
   
   //Link* TLink=forceSensors[0]->link();
   //Link* TLink=m_robot->link("LLEG_JOINT5");
@@ -376,13 +374,14 @@ inline void sony::rzmp2st()
 {
   //std::cout << "abs 2 rel zmp" << std::endl;
   //std::cout << "abs zmp = " << absZMP.format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
+  // std::cout << "waist p = " << m_robot->link(end_link[WAIST])->p().format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
 
   relZMP = R_ref[WAIST].transpose()*(absZMP - m_robot->link(end_link[WAIST])->p());
   //for(int i=0;i< m_rzmp.data.length();i++)
   //  m_rzmp.data[i]=relZMP[i];    
-  m_rzmp.data.x=relZMP[0];
-  m_rzmp.data.y=relZMP[1];     
-  m_rzmp.data.z=relZMP[2];
+  m_rzmp.data.x = relZMP[0];
+  m_rzmp.data.y = relZMP[1];
+  m_rzmp.data.z = relZMP[2];
   m_rzmpOut.write();  
 }
 
@@ -747,15 +746,23 @@ void sony::start()
     //m_refq.data[i]=body_cur(i)=halfpos[i];
     m_refq.data[i]=body_cur(i)=m_mc.data[i];
   }
-  setModelPosture(m_robot, m_mc, FT, end_link);
+  update_model(m_robot, m_mc, FT, end_link);
+  
+  get_end_link_pose(m_robot, pose_now, end_link);
+  //to be depricated
   RenewModel(m_robot, p_now, R_now, end_link);
 
-  cm_ref=m_robot->calcCenterOfMass();// 
-  //cout<<"cm "<<cm_ref<<endl;
+  cm_ref = m_robot -> calcCenterOfMass();// 
+  cout<<"sony: cm "<<cm_ref<<endl;
+  cout<<"RLEG_p\n "<< m_robot->link(end_link[RLEG])->p()<<endl;
   //cout<<"inipos"<<'\n'<<m_robot->link("RLEG_JOINT5")->R()<<'\n'<<m_robot->link("LLEG_JOINT5")->R()<<endl;
   std::cout << "sony : robot pos = " << m_robot->rootLink()->p().format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
 
   //for expos
+  copy_poses(pose_init, pose_now);
+  copy_poses(pose_ref, pose_now);
+
+  //to be deprecate
   for(int i=0;i<LINKNUM;i++){
     p_Init[i]=p_now[i];
     R_Init[i]=R_now[i];
@@ -803,10 +810,11 @@ void sony::start()
     Position T;
     T.linear() = Eigen::MatrixXd::Identity(3,3);
     //foot cm offset
-    double ankle_height;
-    RTC::Properties& prop = getProperties();
-    coil::stringTo(ankle_height, prop["ankle_height"].c_str());
-    T.translation() = Vector3(cm_offset_x, 0.0, -ankle_height);
+    // double ankle_height;
+    // RTC::Properties& prop = getProperties();
+    // coil::stringTo(ankle_height, prop["ankle_height"].c_str());
+    // T.translation() = Vector3(cm_offset_x, 0.0, -ankle_height);
+    T.translation() = Vector3(cm_offset_x, 0.0, -param.ankle_height);
     pt_R -> setOffsetPosition(T);
     pt_L -> setOffsetPosition(T);
     pt_R -> setName("pivot_R");
@@ -817,10 +825,15 @@ void sony::start()
     m_robot -> link(end_link[LLEG])->appendChild(pt_L);
     m_robot -> updateLinkTree();
     m_robot -> calcForwardKinematics();
+
+    pose_ref[RLEG] = m_robot -> link("pivot_R") -> T();
+    pose_ref[LLEG] = m_robot -> link("pivot_L") -> T();
+
+    //to be deprecated
     p_ref[RLEG] = m_robot -> link("pivot_R") -> p();
     p_ref[LLEG] = m_robot -> link("pivot_L") -> p();
     R_ref[RLEG] = m_robot -> link("pivot_R") -> R();
-    R_ref[LLEG] = m_robot -> link("pivot_L") ->R();
+    R_ref[LLEG] = m_robot -> link("pivot_L") -> R();
   }
   //cout<<m_profile.instance_name<<":pivot "<<m_robot->link("pivot_R")->p()<<endl;
   //cout<<m_robot->link("RLEG_JOINT5")->p()<<endl;
@@ -846,8 +859,8 @@ void sony::start()
   cout<<"startQ "<<cm_ref(2)<<endl;
   
   //no good when climb stair
-  double w=sqrt(9.806/cm_ref(2));
-  //zmpP->setw(w);
+  // double w=sqrt(9.806/cm_ref(2));
+  // zmpP->setw(w);
   zmpP->setw(cm_ref(2), object_ref->p()(2));  // ogawa
   zmpP->setZmpOffsetX(cm_offset_x);
  
@@ -878,7 +891,7 @@ void sony::stepping()
       for(int i=0;i<dof;i++) {
     	m_refq.data[i]=body_cur(i)=m_mc.data[i];
       }
-      setModelPosture(m_robot, m_mc, FT, end_link);
+      update_model(m_robot, m_mc, FT, end_link);
       setCurrentData();
     }
 
@@ -903,7 +916,7 @@ void sony::setFootPosR()
     for(int i=0;i<dof;i++) {
       m_refq.data[i]=body_cur(i)=m_mc.data[i];
     }
-    setModelPosture(m_robot, m_mc, FT, end_link);
+    update_model(m_robot, m_mc, FT, end_link);
     setCurrentData();
     std::cout << "setFootPosR : set current data" << std::endl;
   }
@@ -968,7 +981,7 @@ void sony::setFootPosR(double x, double y, double z, double r, double p, double 
     for(int i=0;i<dof;i++) {
       m_refq.data[i]=body_cur(i)=m_mc.data[i];
     }
-    setModelPosture(m_robot, m_mc, FT, end_link);
+    update_model(m_robot, m_mc, FT, end_link);
     setCurrentData();
     std::cout << "setFootPosR : set current data" << std::endl;
   }
@@ -1016,7 +1029,7 @@ void sony::setFootPosL(double x, double y, double z, double r, double p, double 
     for(int i=0;i<dof;i++) {
       m_refq.data[i]=body_cur(i)=m_mc.data[i];
     }
-    setModelPosture(m_robot, m_mc, FT, end_link);
+    update_model(m_robot, m_mc, FT, end_link);
     setCurrentData();
     std::cout << "setFootPosR : set current data" << std::endl;
   }
@@ -1088,7 +1101,7 @@ void sony::testMove()
   */
 
   
-  body_ref=MatrixXd::Zero(dof,1);
+  body_ref = MatrixXd::Zero(dof,1);
   for(int i=0;i<dof;i++) {
     //m_mc.data[i]=body_ref(i)=halfpos[i];
     body_ref(i)=halfpos[i];
@@ -1096,13 +1109,13 @@ void sony::testMove()
   
   /*
   //for new halfpos
-  setModelPosture(m_robot, body_ref, FT, end_link, dof);
+  update_model(m_robot, body_ref, FT, end_link, dof);
   RenewModel(m_robot, p_now, R_now, end_link);
   cm_ref=m_robot->calcCenterOfMass(); 
  
   body_ref(21) =  deg2rad(-97.2);
   body_ref(34) =  deg2rad(-97.2);
-  setModelPosture(m_robot, body_ref, FT, end_link, dof);
+  update_model(m_robot, body_ref, FT, end_link, dof);
   RenewModel(m_robot, p_now, R_now, end_link);
 
   cout<< R_now[RARM] <<'\n'<<endl;
@@ -1166,7 +1179,7 @@ void sony::testMove()
     /*
 ////////////////////////////////////////
 m_robot->calcForwardKinematics();
-setModelPosture(m_robot, m_mc, FT, end_link);
+update_model(m_robot, m_mc, FT, end_link);
 RenewModel(m_robot, p_now, R_now, end_link);
 cm_ref=m_robot->calcCenterOfMass(); 
 //for expos
@@ -1199,7 +1212,7 @@ Interplation5(body_cur,  zero,  zero, body_ref,  zero,  zero, 5, bodyDeque);
   //Interplation3(body_cur, zero, body_ref, zero, 5, bodyDeque);
  
   m_robot->calcForwardKinematics();
-  setModelPosture(m_robot, m_mc, FT, end_link);
+  update_model(m_robot, m_mc, FT, end_link);
   RenewModel(m_robot, p_now, R_now, end_link);
   //for expos
   for(int i=0;i<LINKNUM;i++){
@@ -1211,6 +1224,34 @@ Interplation5(body_cur,  zero,  zero, body_ref,  zero,  zero, 5, bodyDeque);
   */
 
   //Interplation5(body_cur,  zero,  zero, body_ref,  zero,  zero, 3, bodyDeque);
+
+  // for(int i=0; i<dof; i++) {
+  //   m_mc.data[i] = halfpos[i];
+  // }
+  // update_model(m_robot, m_mc, FT, end_link);
+  // RenewModel(m_robot, p_ref, R_ref, end_link);
+  // m_robot->calcForwardKinematics();
+  // cm_ref = m_robot->calcCenterOfMass(); 
+  // R_ref[WAIST]=Eigen::MatrixXd::Identity(3,3);
+  // //cm_ref(0)+=0.03;
+
+  // cm_ref(0)=m_robot->link(end_link[RLEG])->p()(0)+0.015;
+  // //cm_ref(0)=m_robot->link(end_link[RLEG])->p()(0)+0.03;  // JVRC
+
+  // //cm_ref(0)=m_robot->link(end_link[RLEG])->p()(0)+cm_offset_x;
+
+  // if(CalcIVK_biped(m_robot, cm_ref, p_ref, R_ref, FT, end_link)){
+  //   cout<<"okok"<<endl;
+  //   for(unsigned int i=0;i<dof;i++){
+  //     body_ref(i)=m_robot->joint(i)->q();
+  //     cout<<body_ref(i)<<", ";
+  //   }
+  //   cout<<endl;
+  // }
+  // else
+  //   cout<<"ivk error"<<endl;
+  
+  
   Interplation5(body_cur,  zero,  zero, body_ref,  zero,  zero, 2, bodyDeque);
 
   /*
@@ -1225,7 +1266,7 @@ Interplation5(body_cur,  zero,  zero, body_ref,  zero,  zero, 5, bodyDeque);
   /*
  for(int i=0;i<32;i++)
    m_mc.data[i]=body_ref(i);
- setModelPosture(m_robot, m_mc, FT);
+ update_model(m_robot, m_mc, FT);
  RenewModel(m_robot, p_now, R_now);
  cm_ref=m_robot->calcCenterOfMass();// 
  cout<<"cm "<<cm_ref<<endl;
@@ -1439,7 +1480,7 @@ void sony::omniWalkSwitch()
     for(int i=0;i<dof;i++) {
       m_refq.data[i]=body_cur(i)=m_mc.data[i];
     }
-    setModelPosture(m_robot, m_mc, FT, end_link);
+    update_model(m_robot, m_mc, FT, end_link);
     setCurrentData();
 
 
@@ -1522,7 +1563,7 @@ void sony::basePosUpdate()
   m_basePos.data.x=m_robot->rootLink()->p()(0);
   m_basePos.data.y=m_robot->rootLink()->p()(1);
   m_basePos.data.z=m_robot->rootLink()->p()(2);
-  Vector3 rpy=R_ref[WAIST].eulerAngles(2, 1, 0);
+  Vector3 rpy = R_ref[WAIST].eulerAngles(2, 1, 0);
   //m_baseRpy.data.r=rpy(2);
   //m_baseRpy.data.p=rpy(1);
   m_baseRpy.data.r=0.0;

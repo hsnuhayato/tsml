@@ -137,8 +137,9 @@ void RenewModel(BodyPtr body,Vector3  *p_now, Matrix3 *R_now, string *end_link);
 
 void get_end_link_pose(BodyPtr body, Position* pose, string *end_link);
 
-void setModelPosture( BodyPtr body,  TimedDoubleSeq &m_q, FootType FT, string *end_link);
+void update_model( BodyPtr body, const TimedDoubleSeq &m_q, const FootType FT, const string *end_link);
 
+//deprecate
 void setModelPosture( BodyPtr body,  MatrixXd body_q, FootType FT, string *end_link, int dof);
 
 void getModelPosture( BodyPtr body,  TimedDoubleSeq &m_refq);

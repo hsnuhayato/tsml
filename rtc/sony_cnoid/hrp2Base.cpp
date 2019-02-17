@@ -111,20 +111,20 @@ RTC::ReturnCode_t hrp2Base::onInitialize()
   cnoid::BodyLoader bl;
   m_robot = bl.load( prop["model"].c_str());
   dof = m_robot->numJoints();
-  std::cout<<"sony dof robot "<<m_robot->numJoints()<<std::endl;
+  std::cout << m_profile.instance_name << " :dof robot " << m_robot -> numJoints() << std::endl;
 
   //coil::stringTo(m_waist_height, prop["waist_height"].c_str());
   //std::cout<<"sony waist_height "<<m_waist_height<<std::endl;
   //m_robot->rootLink()->p()<<0.0, 0.0, m_waist_height;
   std::vector<double> tmp;
   coil::stringTo(tmp, prop["initBasePos"].c_str());
-  m_robot->rootLink()->p() << tmp[0], tmp[1], tmp[2];
-  std::cout << "sony : init base pos = " << tmp[0] << ", " << tmp[1] << ", " << tmp[2] << std::endl;
+  m_robot -> rootLink() -> p() << tmp[0], tmp[1], tmp[2];
+  std::cout << m_profile.instance_name << " :init base pos = " << tmp[0] << ", " << tmp[1] << ", " << tmp[2] << std::endl;
   
   tmp.clear();
   coil::stringTo(tmp, prop["initBaseRpy"].c_str());
-  m_robot->rootLink()->R() = cnoid::rotFromRpy(tmp[0], tmp[1], tmp[2]);
-  std::cout << "sony : init base rpy = " << tmp[0] << ", " << tmp[1] << ", " << tmp[2] <<"R\n" << m_robot->rootLink()->R() << std::endl;
+  m_robot -> rootLink() -> R() = cnoid::rotFromRpy(tmp[0], tmp[1], tmp[2]);
+  std::cout <<  m_profile.instance_name << " :init base rpy = " << tmp[0] << ", " << tmp[1] << ", " << tmp[2] <<"R\n" << m_robot -> rootLink() -> R() << std::endl;
 
 
   for(unsigned int i=0;i<dof;i++) {
@@ -135,7 +135,7 @@ RTC::ReturnCode_t hrp2Base::onInitialize()
   //std::cout<<"R "<<m_robot->rootLink()->name()<<std::endl;
   m_robot -> calcForwardKinematics();
   Vector3 cm = m_robot -> calcCenterOfMass();
-  std::cout<<"sony centerof mass "<<cm<<endl;//m_robot->mass()
+  std::cout<< m_profile.instance_name <<" :centerof mass "<<cm<<endl;//m_robot->mass()
 
   mass = m_robot->mass();
 
@@ -146,7 +146,7 @@ RTC::ReturnCode_t hrp2Base::onInitialize()
   end_link[WAIST] =prop["BASE_LINK"];
   HEAD_P = prop["HEAD_P"];
   HEAD_Y = prop["HEAD_Y"];
-  std::cout<<"sony rleg end "<<m_robot->link(end_link[RLEG])->p()<<std::endl;
+  std::cout << m_profile.instance_name << " :rleg end "<< m_robot -> link(end_link[RLEG]) ->p() << std::endl;
   /*
   if( m_robot->numJoints()==32){
     armDof=7;
@@ -158,17 +158,24 @@ RTC::ReturnCode_t hrp2Base::onInitialize()
   //old for preview control
   //prop["kgain"]>>kgain;
   //prop["fgain"]>>fgain;
- 
+
+  get_end_link_pose(m_robot, pose_now, end_link);
+  get_end_link_pose(m_robot, pose_init, end_link);
+  //copy_poses(pose_init, pose_now);
+  
+  //to be depricated
   RenewModel(m_robot, p_now, R_now, end_link);
   updateInit(p_now, p_Init, R_now, R_Init);
-  m_robot->calcCenterOfMass();
+  //////////
+  
+  m_robot -> calcCenterOfMass();
 
   //sensor set
   //fsensorRLEG = m_robot->sensor<cnoid::ForceSensor>(0);
   //fsensorLLEG = m_robot->sensor<cnoid::ForceSensor>(1);
   forceSensors = m_robot->devices();
   AccelSensors = m_robot->devices();
-  RateGyroSensors= m_robot->devices();
+  RateGyroSensors = m_robot->devices();
   //cout<<"forcesener localp "<<'\n'<<forceSensors[0]->p_local()<<endl;
   //cout<<"forcesener absp "<<'\n'<<m_robot->link(end_link[RLEG])->p() + m_robot->link(end_link[RLEG])->R() * forceSensors[0]->p_local()<<endl;
   //cout<<"forcesener localR "<<'\n'<<forceSensors[0]->R_local()<<endl;
@@ -179,23 +186,23 @@ RTC::ReturnCode_t hrp2Base::onInitialize()
   cout<<"name "<<AccelSensors[0]->name()<<endl;
   //Link* TLink=forceSensors[0]->link();
   //Link* TLink=m_robot->link("LLEG_JOINT5");
-  RateGyroSensor* sen=RateGyroSensors[0];
-  cout<<"GG "<<sen->link()->name()<<endl;
+  RateGyroSensor* sen = RateGyroSensors[0];
+  cout << "GG "<< sen->link()->name() << endl;
 
   Isometry3 local;
-  local.linear()=AccelSensors[0]->R_local();
-  local.translation()=AccelSensors[0]->p_local();
+  local.linear() = AccelSensors[0] -> R_local();
+  local.translation() = AccelSensors[0] -> p_local();
   //cout<<  local.translation()<<'\n'<<  local.linear()<<endl;
   //cout<<"forcesener f "<<'\n'<<forceSensors[0]->f()<<endl;
   //cout<<"forcesener tau "<<'\n'<<forceSensors[0]->tau()<<endl;
   //Matrix3 testR= forceSensors[0]->link()->R()* forceSensors[0]->R_local();
-  ForceSensor* sensor=forceSensors[0];
-  Matrix3 testR=sensor->link()->R()* sensor->R_local();
+  ForceSensor* sensor = forceSensors[0];
+  Matrix3 testR = sensor->link()->R()* sensor->R_local();
   Vector3 sep = sensor->link()->p() + testR * sensor->p_local();
   cout<<"test R"<<'\n'<< sensor->R_local() << '\n' << sensor->p_local() <<endl;
   cout<<sensor->link()->name()<<endl;
 
-  ForceSensor* sensor1=forceSensors[1];
+  ForceSensor* sensor1 = forceSensors[1];
   testR=sensor1->link()->R()* sensor1->R_local();
   sep = sensor1->link()->p() + testR * sensor1->p_local();
   cout<<"test R2"<<'\n'<< sensor1->R_local()<< '\n' << sensor1->p_local() <<endl;
