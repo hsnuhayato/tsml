@@ -7,7 +7,6 @@ if (NOT CMAKE_MODULE_PATH)
 endif (NOT CMAKE_MODULE_PATH)
 
 add_definitions(-std=c++11)
-set (NO_COMP 1)
 ####
 ## settings for OpenRTM and Choreonoid
 ##
@@ -24,7 +23,7 @@ execute_process(
   OUTPUT_VARIABLE OPENRTM_IDL_DIR
   RESULT_VARIABLE RESULT
   OUTPUT_STRIP_TRAILING_WHITESPACE)
-include(GenerateStubSkel)
+include(GenerateStubSkelPy)
 
 
 #pkg_check_modules(CHOREONOID REQUIRED choreonoid-body-plugin) 12.04

@@ -24,7 +24,7 @@ execute_process(
   OUTPUT_VARIABLE OPENRTM_IDL_DIR
   RESULT_VARIABLE RESULT
   OUTPUT_STRIP_TRAILING_WHITESPACE)
-include(GenerateStubSkel)
+include(GenerateStubSkelPy)
 
 
 ###
