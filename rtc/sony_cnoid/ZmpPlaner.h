@@ -17,7 +17,7 @@
 #include "spline.h"
 #include "wuNewType.h"
 //use preview control operater
-#include "preview_control/PreviewControl.h"
+//#include "preview_control/PreviewControl.h"
 class ZmpPlaner {
   
  public:
