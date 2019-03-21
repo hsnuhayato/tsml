@@ -22,6 +22,7 @@
 using namespace qpOASES;
 #endif
 
+#include <Eigen/QR>
 class FootSupportPolygon
 {
     std::vector<std::vector<Eigen::Vector2d> > foot_vertices; // RLEG, LLEG
@@ -768,6 +769,10 @@ public:
         // hrp::calcPseudoInverse(Aw, Aw_inv);
         // ret = W2 * Aw_inv * b;
         // //rett = W2 * Aw.colPivHouseholderQr().solve(b);
+
+        //// need eigen 3.3.7
+        //Eigen::CompleteOrthogonalDecomposition<Eigen::MatrixXd> cqr(Aw);
+        //Aw_inv = cqr.pseudoInverse();
         Eigen::ColPivHouseholderQR<MatrixXd> QR;
         MatrixXd JJ;
         double dampingConstantSqr=1e-12;
@@ -794,7 +799,7 @@ public:
         }
 
         // ref_foot_force and ref_foot_moment should be set
-        double norm_weight = 1e-7;
+        //double norm_weight = 1e-7;
         double norm_moment_weight = 1e2;
         size_t total_wrench_dim = 5;
         size_t state_dim = 6*ee_num;
@@ -803,8 +808,8 @@ public:
         {
             size_t total_wrench_dim = 5;
             //size_t total_wrench_dim = 3;
-            Eigen::MatrixXd Wmat = Eigen::MatrixXd::Identity(state_dim/2, state_dim/2);
-            Eigen::MatrixXd Gmat = Eigen::MatrixXd::Zero(total_wrench_dim, state_dim/2);
+            Eigen::MatrixXd Wmat = Eigen::MatrixXd::Identity(state_dim/2, state_dim/2);//6,6
+            Eigen::MatrixXd Gmat = Eigen::MatrixXd::Zero(total_wrench_dim, state_dim/2);//5,6
             for (size_t j = 0; j < ee_num; j++) {
                 if (total_wrench_dim == 3) {
                     Gmat(0,3*j+2) = 1.0;

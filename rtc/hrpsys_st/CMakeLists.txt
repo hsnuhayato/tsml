@@ -51,7 +51,7 @@ set(comp_sources ${comp_sources} ${comp_name}Service_impl.cpp ${comp_name}Servic
 set(comp_sources ${comp_sources} ${CMAKE_CURRENT_SOURCE_DIR}/ImpedanceController/RatsMatrix.cpp)
 set(comp_sources ${comp_sources} ${CMAKE_CURRENT_SOURCE_DIR}/ImpedanceController/JointPathEx.cpp)
 # set(comp_sources ${comp_sources} IVK.cpp)
-set(comp_sources ${comp_sources} Integrator.cpp TwoDofController.cpp IIRFilter.h ZMPDistributor.h)
+set(comp_sources ${comp_sources} Integrator.cpp TwoDofController.cpp IIRFilter.h ZMPDistributor.hpp)
 
 add_library(${comp_name} SHARED ${comp_sources})
 target_link_libraries(${comp_name} ${CHOREONOID_LIBRARIES})

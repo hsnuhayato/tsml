@@ -24,7 +24,7 @@
 // <rtc-template block="service_impl_h">
 #include "StabilizerService_impl.h"
 #include "TwoDofController.h"
-#include "ZMPDistributor.h"
+#include "ZMPDistributor.hpp"
 #include "../ImpedanceController/JointPathEx.h"
 #include "../ImpedanceController/RatsMatrix.h"
 #include "IIRFilter.h"
