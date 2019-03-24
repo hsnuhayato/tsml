@@ -229,6 +229,18 @@ RTC::ReturnCode_t Stabilizer::onInitialize()
       m_limbCOPOffsetIn[i] = new RTC::InPort<RTC::TimedPoint3D>(nm.c_str(), m_limbCOPOffset[i]);
       registerInPort(nm.c_str(), *m_limbCOPOffsetIn[i]);
       std::cerr << "[" << m_profile.instance_name << "]   name = " << nm << std::endl;
+
+      // initialize from prop
+      if (prop["cop_offset"] != "")  {
+        coil::vstring prop_cop_offset_str = coil::split(prop["cop_offset"], ",");
+        coil::stringTo(m_limbCOPOffset[i].data.x, prop_cop_offset_str[0].c_str());
+        coil::stringTo(m_limbCOPOffset[i].data.y, prop_cop_offset_str[1].c_str());
+        coil::stringTo(m_limbCOPOffset[i].data.z, prop_cop_offset_str[2].c_str());
+        std::cerr << "[" << m_profile.instance_name << "]   cop[" << i << "]= " <<
+          m_limbCOPOffset[i].data.x << ", " <<
+          m_limbCOPOffset[i].data.y << ", " <<
+          m_limbCOPOffset[i].data.z << std::endl;
+      }
   }
 
   // setting from conf file
