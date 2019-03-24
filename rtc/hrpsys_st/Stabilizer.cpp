@@ -326,6 +326,7 @@ RTC::ReturnCode_t Stabilizer::onInitialize()
     m_contactStates.data.length(num);
     m_toeheelRatio.data.length(num);
     m_will_fall_counter.resize(num);
+    m_controlSwingSupportTime.data.length(num);
   }
 
   std::vector<std::pair<cnoid::Link*, cnoid::Link*> > interlocking_joints;
@@ -385,6 +386,7 @@ RTC::ReturnCode_t Stabilizer::onInitialize()
       }
       ikp.limb_length_margin = 0.13;
       ikp.support_time = 0.0;
+      m_controlSwingSupportTime.data[i] = 1.0;
   }
   eefm_swing_rot_damping_gain = cnoid::Vector3(20*5, 20*5, 1e5);
   eefm_swing_pos_damping_gain = cnoid::Vector3(33600, 33600, 7000);

@@ -1,18 +1,21 @@
 #!/home/player/tsml/bin/rtm_python
 
-try:
-    from hrpsys_config import *
-    import OpenHRP
-    rtm.nsport=2809
-except:
-    print "import without hrpsys"
-    import rtm
-    from rtm import *
-    from OpenHRP import *
-    import waitInput
-    from waitInput import *
-    import socket
-    import time
+from hrpsys_config import *
+import OpenHRP
+rtm.nsport=2809
+# try:
+#     from hrpsys_config import *
+#     import OpenHRP
+#     rtm.nsport=2809
+# except:
+#     print "import without hrpsys"
+#     import rtm
+#     from rtm import *
+#     from OpenHRP import *
+#     import waitInput
+#     from waitInput import *
+#     import socket
+#     import time
 
 class JVRC(HrpsysConfigurator):
     # additional rtc
@@ -167,20 +170,67 @@ class JVRC(HrpsysConfigurator):
         self.createComps()
         self.connectComps()
         self.activateComps()
+
+    def set_st_parameter(self):
+        print >> sys.stderr, "2. setParameter"
+        stp_org = self.st_svc.getParameter()
+        # for eefm
+        tmp_leg_inside_margin = 0.055
+        tmp_leg_outside_margin= 0.075
+        tmp_leg_front_margin  = 0.13
+        tmp_leg_rear_margin   = 0.1
+        rleg_vertices = [OpenHRP.StabilizerService.TwoDimensionVertex(pos=[tmp_leg_front_margin, tmp_leg_inside_margin]),
+                         OpenHRP.StabilizerService.TwoDimensionVertex(pos=[tmp_leg_front_margin, -1*tmp_leg_outside_margin]),
+                         OpenHRP.StabilizerService.TwoDimensionVertex(pos=[-1*tmp_leg_rear_margin, -1*tmp_leg_outside_margin]),
+                         OpenHRP.StabilizerService.TwoDimensionVertex(pos=[-1*tmp_leg_rear_margin, tmp_leg_inside_margin])]
+        lleg_vertices = [OpenHRP.StabilizerService.TwoDimensionVertex(pos=[tmp_leg_front_margin, tmp_leg_outside_margin]),
+                         OpenHRP.StabilizerService.TwoDimensionVertex(pos=[tmp_leg_front_margin, -1*tmp_leg_inside_margin]),
+                         OpenHRP.StabilizerService.TwoDimensionVertex(pos=[-1*tmp_leg_rear_margin, -1*tmp_leg_inside_margin]),
+                         OpenHRP.StabilizerService.TwoDimensionVertex(pos=[-1*tmp_leg_rear_margin, tmp_leg_outside_margin])]
+        rarm_vertices = rleg_vertices
+        larm_vertices = lleg_vertices
+        stp_org.eefm_support_polygon_vertices_sequence = map (lambda x : OpenHRP.StabilizerService.SupportPolygonVertices(vertices=x), [lleg_vertices, rleg_vertices, larm_vertices, rarm_vertices])
+        stp_org.eefm_leg_inside_margin=tmp_leg_inside_margin
+        stp_org.eefm_leg_outside_margin=tmp_leg_outside_margin
+        stp_org.eefm_leg_front_margin=tmp_leg_front_margin
+        stp_org.eefm_leg_rear_margin=tmp_leg_rear_margin
+        stp_org.eefm_k1=[-1.2301343, -1.2301343]
+        stp_org.eefm_k2=[-0.3565158, -0.3565158]
+        stp_org.eefm_k3=[-0.2219826, -0.2219826]
+        stp_org.eefm_rot_damping_gain = [[20*1.6*1.5, 20*1.6*1.5, 1e5]]*4
+        stp_org.eefm_pos_damping_gain = [[3500*50, 3500*50, 3500*1.0*1.5]]*4
+        stp_org.eefm_swing_rot_damping_gain = stp_org.eefm_rot_damping_gain[0]
+        stp_org.eefm_swing_pos_damping_gain = stp_org.eefm_pos_damping_gain[0]
+        stp_org.eefm_use_swing_damping=True
+        stp_org.st_algorithm = OpenHRP.StabilizerService.EEFMQPCOP
+        self.st_svc.setParameter(stp_org)
+        print >> sys.stderr, "2. setParameter finish"
+
+    def go_halfsit(self):
         raw_input('>>halfsitting? ')
         self.wpg_svc.testMove()
+        raw_input('>>ini wpg? ')
+        self.wpg_svc.start()
+
+    def stepping(self):
+        raw_input('>>stepping? ')
+        self.wpg_svc.stepping()
 
 #############################################    
 def main():
     global hcf
     print "start"
     hcf = JVRC()
-    hcf.init ("JVRC-TSML")
+    hcf.init("JVRC-TSML")
+    hcf.set_st_parameter()
+    hcf.go_halfsit()
+    raw_input('>>start ST? ')
+    hcf.st_svc.startStabilizer()
+    #hcf.stepping()
     
-
 if __name__ == '__main__':
     main()
-    raw_input('>>end? ')
+    #raw_input('>>end? ')
 
 
 
