@@ -845,8 +845,16 @@ public:
                 }
                 std::cerr << "]" << std::endl;
             }
-            Eigen::VectorXd ret(state_dim/2);
-            Eigen::VectorXd total_wrench = Eigen::VectorXd::Zero(total_wrench_dim);
+            // G =   1        0         0        1       0       0
+            //       0        1         0        0       1       0
+            //       0        0         1        0       0       1 
+            //       0  -(CzR - Pz)  (CyR - Py)  0  -(CzL-Pz) (CyL-Py)
+            //   (CzR - Pz)   0     -(CxR - Px) (CzL-Pz)  0  -(CxL-Px)
+            // W = diag(0, 0, limbgainR, 0, 0, limbgainL)
+            // total_wrench = (0, 0, mg, 0, 0)
+            // ret = (FxR, FyR, FzR, FxL, FyL, FzL)
+            Eigen::VectorXd ret(state_dim/2); //6
+            Eigen::VectorXd total_wrench = Eigen::VectorXd::Zero(total_wrench_dim);// 5
             total_wrench(total_wrench_dim-3) = total_fz;
             calcWeightedLinearEquation(ret, Gmat, Wmat, total_wrench);
             for (size_t fidx = 0; fidx < ee_num; fidx++) {
@@ -873,21 +881,23 @@ public:
         //   1. Calculate F (total_wrench)
         Eigen::VectorXd total_wrench = Eigen::VectorXd::Zero(total_wrench_dim);
         cnoid::Vector3 ref_total_force = cnoid::Vector3::Zero();
+        // ref_foot_force[fidx](0) = ref_foot_moment[fidx](1) = 0 here
         for (size_t fidx = 0; fidx < ee_num; fidx++) {
-            double tmp_tau_x = -(cop_pos[fidx](2)-ref_zmp(2)) * ref_foot_force[fidx](1)
+            double tmp_tau_x = -(cop_pos[fidx](2)-ref_zmp(2)) * ref_foot_force[fidx](1) //0
                 + (cop_pos[fidx](1)-ref_zmp(1)) * ref_foot_force[fidx](2)
-                + ref_foot_moment[fidx](0);
+              + ref_foot_moment[fidx](0); // ref_foot_moment[fidx](0) == 0 here
             total_wrench(3) -= tmp_tau_x;
-            double tmp_tau_y = (cop_pos[fidx](2)-ref_zmp(2)) * ref_foot_force[fidx](0)
+
+            double tmp_tau_y = (cop_pos[fidx](2)-ref_zmp(2)) * ref_foot_force[fidx](0) // 0
                 - (cop_pos[fidx](0)-ref_zmp(0)) * ref_foot_force[fidx](2)
-                + ref_foot_moment[fidx](1);
+                + ref_foot_moment[fidx](1); // ref_foot_moment[fidx](1) == 0 here
             total_wrench(4) -= tmp_tau_y;
             ref_total_force += ref_foot_force[fidx];
         }
-        total_wrench(3) -= -(ref_zmp(2) - new_refzmp(2)) * ref_total_force(1) + (ref_zmp(1) - new_refzmp(1)) * ref_total_force(2);
-        total_wrench(4) -= (ref_zmp(2) - new_refzmp(2)) * ref_total_force(0) - (ref_zmp(0) - new_refzmp(0)) * ref_total_force(2);
+        total_wrench(3) -= -(ref_zmp(2) - new_refzmp(2)) * ref_total_force(1) + (ref_zmp(1) - new_refzmp(1)) * ref_total_force(2);//Nx
+        total_wrench(4) -= (ref_zmp(2) - new_refzmp(2)) * ref_total_force(0) - (ref_zmp(0) - new_refzmp(0)) * ref_total_force(2);//Ny
         //   2. Calculate G (Gmat)
-        Eigen::MatrixXd Gmat = Eigen::MatrixXd::Zero(total_wrench_dim, state_dim);
+        Eigen::MatrixXd Gmat = Eigen::MatrixXd::Zero(total_wrench_dim, state_dim);//5,12
         for (size_t j = 0; j < ee_num; j++) {
             for (size_t k = 0; k < total_wrench_dim; k++) Gmat(k,6*j+k) = 1.0;
         }
@@ -907,7 +917,7 @@ public:
         //   R = diag[tmpR_0,    tmpR_1,    ...]
         //   f = R f_l
         //   f : absolute, f_l : local
-        //   G f = G R f_l
+        //   G f = G R f_l (== total_wrench??)
         //   G R = [tmpsubG_0 tmpR_0, tmpsubG_1 tmpR_1, ...] -> inserted to Gmat
         Eigen::MatrixXd tmpsubG = Eigen::MatrixXd::Zero(total_wrench_dim, 6);
         Eigen::MatrixXd tmpR = Eigen::MatrixXd::Zero(6,6);
@@ -931,7 +941,7 @@ public:
         }
 
         // Calc weighting matrix
-        Eigen::MatrixXd Wmat = Eigen::MatrixXd::Zero(state_dim, state_dim);
+        Eigen::MatrixXd Wmat = Eigen::MatrixXd::Zero(state_dim, state_dim);//12x12
         for (size_t j = 0; j < ee_num; j++) {
             for (size_t i = 0; i < 3; i++) {
                 Wmat(i+j*6, i+j*6) = fz_alpha_vector[j] * limb_gains[j];

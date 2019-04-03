@@ -189,6 +189,9 @@ RTC::ReturnCode_t Stabilizer::onInitialize()
   int npforce = forceSensors.size();
   for (unsigned int i=0; i<npforce; ++i) {
     force_sensor_names.push_back(forceSensors[i]->name());
+    std::cerr << "[" << m_profile.instance_name << " ] force sensor local R\n " <<
+      forceSensors[i]->link()->R() << " force sensor local p\n  " <<
+      forceSensors[i]->p_local() << std::endl;
   }
 
   // load virtual force sensors
@@ -996,7 +999,7 @@ void Stabilizer::getActualParameters ()
                                              DEBUGP, std::string(m_profile.instance_name),
                                              (st_algorithm == OpenHRP::StabilizerService::EEFMQPCOP));
       } else if (st_algorithm == OpenHRP::StabilizerService::EEFMQPCOP) {
-        // arg: ref wrench in foot frame, ee in world frame,  limb_gains= 0.5, tmp_toeheel_ratio =1
+        // arg: ref wrench in foot frame, ee in world frame,  limb_gains= 1, tmp_toeheel_ratio =1
         // new_refzmp in world frame(calculate with actual state) , ref_zmp(calculate with reference state) 
           szd->distributeZMPToForceMomentsPseudoInverse(tmp_ref_force, tmp_ref_moment,
                                              ee_pos, cop_pos, ee_rot, ee_name, limb_gains, tmp_toeheel_ratio,
@@ -1250,7 +1253,7 @@ void Stabilizer::getTargetParameters ()
     // ref_total_moment += (target_ee_p[i]-ref_zmp).cross(cnoid::Vector3(m_ref_wrenches[i].data[0], m_ref_wrenches[i].data[1], m_ref_wrenches[i].data[2]))
     //     + cnoid::Vector3(m_ref_wrenches[i].data[3], m_ref_wrenches[i].data[4], m_ref_wrenches[i].data[5]);
     if (is_feedback_control_enable[i]) {
-        ref_total_foot_origin_moment += (target_ee_p[i]-foot_origin_pos).cross(ref_force[i]) + ref_moment[i];
+      ref_total_foot_origin_moment += (target_ee_p[i]-foot_origin_pos).cross(ref_force[i]) + ref_moment[i];//moment around foot origin 
     }
   }
   // <= Reference world frame
@@ -1264,14 +1267,15 @@ void Stabilizer::getTargetParameters ()
   if (st_algorithm != OpenHRP::StabilizerService::TPCC) {
     // Reference foot_origin frame =>
     // initialize for new_refzmp
-    new_refzmp = ref_zmp;
+    // new_refzmp = ref_zmp;
     // base to ref_cog in base frame
     rel_cog = m_robot->rootLink()->R().transpose() * (ref_cog-m_robot->rootLink()->p());
     // convert world (current-tmp) => local (foot_origin)
     zmp_origin_off = ref_zmp(2) - foot_origin_pos(2);
     ref_zmp = foot_origin_rot.transpose() * (ref_zmp - foot_origin_pos);  //same calculation below
     ref_cog = foot_origin_rot.transpose() * (ref_cog - foot_origin_pos);
-    new_refzmp = foot_origin_rot.transpose() * (new_refzmp - foot_origin_pos); // same calculation upup line
+    //new_refzmp = foot_origin_rot.transpose() * (new_refzmp - foot_origin_pos); // same calculation upup line
+    new_refzmp = ref_zmp;
     if (ref_contact_states != prev_ref_contact_states) {
       // convert cogvel from prev_ref_foot_coord to cur_ref_foot_coord
       ref_cogvel = (foot_origin_rot.transpose() * prev_ref_foot_origin_rot) * ref_cogvel;
@@ -1287,10 +1291,11 @@ void Stabilizer::getTargetParameters ()
       ref_force[i] = foot_origin_rot.transpose() * ref_force[i];
       ref_moment[i] = foot_origin_rot.transpose() * ref_moment[i];
     }
+    // convert to foot frame
     ref_total_foot_origin_moment = foot_origin_rot.transpose() * ref_total_foot_origin_moment;
     ref_total_force = foot_origin_rot.transpose() * ref_total_force;
     ref_total_moment = foot_origin_rot.transpose() * ref_total_moment;
-    target_foot_origin_rot = foot_origin_rot;
+    target_foot_origin_rot = foot_origin_rot; //unused
     // capture point
     ref_cp = ref_cog + ref_cogvel / std::sqrt(eefm_gravitational_acceleration / (ref_cog - ref_zmp)(2));
     rel_ref_cp = cnoid::Vector3(ref_cp(0), ref_cp(1), ref_zmp(2));
@@ -1508,12 +1513,13 @@ void Stabilizer::calcSwingSupportLimbGain ()
             // In some PC, does not work because the first line is optimized out.
             // ikp.support_time += dt;
             // ikp.support_time = std::min(3600.0, ikp.support_time);
+
             if (ikp.support_time > eefm_pos_transition_time) { //eefm_pos_transition_time:default 0.01
                 ikp.swing_support_gain = (m_controlSwingSupportTime.data[i] / eefm_pos_transition_time);
             } else {
                 ikp.swing_support_gain = (ikp.support_time / eefm_pos_transition_time);
             }
-            // default is dt/0.01 = 0.5
+            // default is (m_controlSwingSupportTime.data[i] /0.01
             ikp.swing_support_gain = std::max(0.0, std::min(1.0, ikp.swing_support_gain));
         } else { // Swing
             ikp.swing_support_gain = 0.0;
@@ -1580,8 +1586,7 @@ void Stabilizer::calcTPCC() {
 
 
 void Stabilizer::calcEEForceMomentControl() {
-
-    // stabilizer loop
+      // stabilizer loop
       // return to referencea
       m_robot->rootLink()->R() = target_root_R;
       m_robot->rootLink()->p() = target_root_p;
@@ -1676,7 +1681,7 @@ void Stabilizer::calcEEForceMomentControl() {
 
       limbStretchAvoidanceControl(tmpp ,tmpR);
 
-      // IK
+      // IK for modify
       for (size_t i = 0; i < stikp.size(); i++) {
         if (is_ik_enable[i]) {
           for (size_t jj = 0; jj < stikp[i].ik_loop_count; jj++) {

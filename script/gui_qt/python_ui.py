@@ -190,32 +190,59 @@ class JVRC(HrpsysConfigurator):
         rarm_vertices = rleg_vertices
         larm_vertices = lleg_vertices
         stp_org.eefm_support_polygon_vertices_sequence = map (lambda x : OpenHRP.StabilizerService.SupportPolygonVertices(vertices=x), [lleg_vertices, rleg_vertices, larm_vertices, rarm_vertices])
-        stp_org.eefm_leg_inside_margin=tmp_leg_inside_margin
-        stp_org.eefm_leg_outside_margin=tmp_leg_outside_margin
-        stp_org.eefm_leg_front_margin=tmp_leg_front_margin
+        stp_org.eefm_leg_inside_margin = tmp_leg_inside_margin
+        stp_org.eefm_leg_outside_margin = tmp_leg_outside_margin
+        stp_org.eefm_leg_front_margin = tmp_leg_front_margin
         stp_org.eefm_leg_rear_margin=tmp_leg_rear_margin
-        stp_org.eefm_k1=[-1.2301343, -1.2301343]
-        stp_org.eefm_k2=[-0.3565158, -0.3565158]
-        stp_org.eefm_k3=[-0.2219826, -0.2219826]
+        stp_org.eefm_k1 = [-1.2301343, -1.2301343]
+        stp_org.eefm_k2 = [-0.3565158, -0.3565158]
+        stp_org.eefm_k3 = [-0.2219826, -0.2219826]
         stp_org.eefm_rot_damping_gain = [[20*1.6*1.5, 20*1.6*1.5, 1e5]]*4
         stp_org.eefm_pos_damping_gain = [[3500*50, 3500*50, 3500*1.0*1.5]]*4
         stp_org.eefm_swing_rot_damping_gain = stp_org.eefm_rot_damping_gain[0]
         stp_org.eefm_swing_pos_damping_gain = stp_org.eefm_pos_damping_gain[0]
-        stp_org.eefm_use_swing_damping=True
+        stp_org.eefm_use_swing_damping = True
+        #stp_org.foot_origin_offset = [[0.0,0.0,-0.1]]*2
         stp_org.st_algorithm = OpenHRP.StabilizerService.EEFMQPCOP
+        #stp_org.st_algorithm = OpenHRP.StabilizerService.EEFM
+        #stp_org.st_algorithm = OpenHRP.StabilizerService.EEFMQP
         self.st_svc.setParameter(stp_org)
         print >> sys.stderr, "2. setParameter finish"
 
     def go_halfsit(self):
-        raw_input('>>halfsitting? ')
+        #raw_input('>>halfsitting? ')
         self.wpg_svc.testMove()
-        raw_input('>>ini wpg? ')
         self.wpg_svc.start()
 
     def stepping(self):
         raw_input('>>stepping? ')
         self.wpg_svc.stepping()
 
+    def set_pos_damping_gain(self, x, y, z):
+        stp = self.st_svc.getParameter()
+        stp.eefm_pos_damping_gain = [[3500*50*x, 3500*50*y, 3500*1.0*1.5*z]]*4
+        self.st_svc.setParameter(stp)
+
+    def set_pos_time_const_support(self, x):
+        stp = self.st_svc.getParameter()
+        stp.eefm_pos_time_const_support = [[x, x, x]]*4
+        self.st_svc.setParameter(stp)
+
+    def set_rot_time_const(self, x):
+        stp = self.st_svc.getParameter()
+        stp.eefm_rot_time_const = [[x, x, x]]*4
+        self.st_svc.setParameter(stp)
+
+    def set_rot_damping_gain(self, rgain, pgain, ygain):
+        stp = self.st_svc.getParameter()
+        stp.eefm_rot_damping_gain = [[rgain, pgain, 1e5*ygain]]*4
+        self.st_svc.setParameter(stp)
+
+    def set_eefm_body_params(self, gain, time_const):
+        stp = self.st_svc.getParameter()
+        stp.eefm_body_attitude_control_gain = [gain, gain]
+        stp.eefm_body_attitude_control_time_const = [time_const, time_const]
+        self.st_svc.setParameter(stp)
 #############################################    
 def main():
     global hcf
@@ -224,7 +251,15 @@ def main():
     hcf.init("JVRC-TSML")
     hcf.set_st_parameter()
     hcf.go_halfsit()
-    raw_input('>>start ST? ')
+    hcf.set_pos_damping_gain(1,1,7)
+    hcf.set_pos_time_const_support(0.02)
+    #bush
+    # hcf.set_rot_damping_gain(25, 25, 1)
+    # hcf.set_rot_time_const(0.02)
+    hcf.set_rot_damping_gain(100, 100, 1)
+    hcf.set_rot_time_const(0.01)
+    hcf.set_eefm_body_params(0, 1e5)
+    #raw_input('>>start ST? ')
     hcf.st_svc.startStabilizer()
     #hcf.stepping()
     
