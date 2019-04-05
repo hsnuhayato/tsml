@@ -57,7 +57,7 @@ class sony  : public hrp2Base
 
   // The deactivated action (Active state exit action)
   // former rtc_active_exit()
-  // virtual RTC::ReturnCode_t onDeactivated(RTC::UniqueId ec_id);
+  virtual RTC::ReturnCode_t onDeactivated(RTC::UniqueId ec_id);
 
   // The execution action that is invoked periodically
   // former rtc_active_do()

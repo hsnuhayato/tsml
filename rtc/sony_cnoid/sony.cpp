@@ -115,8 +115,8 @@ RTC::ReturnCode_t sony::onInitialize()
   //cm_offset_x=0.015;
   coil::stringTo(cm_offset_x, prop["cm_offset_x"].c_str());
 
-  absZMP<<cm_offset_x, 0.0, 0.0;
-  relZMP<<cm_offset_x, 0.0, 0.0;
+  absZMP << m_robot->link(end_link[RLEG])->p()(0) + cm_offset_x, 0.0, 0.0;
+  relZMP<<  m_robot->link(end_link[RLEG])->p()(0) + cm_offset_x, 0.0, 0.0;
   step = 0;
   //cout<<cm_offset_x<<endl;
   flagcalczmp = 0;
@@ -181,18 +181,22 @@ RTC::ReturnCode_t sony::onInitialize()
   return RTC::RTC_OK;
 }
 
-//double tcount(0.0);
 RTC::ReturnCode_t sony::onActivated(RTC::UniqueId ec_id)
 {
-  //tcount = 0.0;
+  std::cerr << "[" << m_profile.instance_name<< "] onActivated(" << ec_id << ")" << std::endl;
   return RTC::RTC_OK;
 }
 
+RTC::ReturnCode_t sony::onDeactivated(RTC::UniqueId ec_id)
+{
+  std::cerr << "[" << m_profile.instance_name<< "] onDeactivated(" << ec_id << ")" << std::endl;
+  return RTC::RTC_OK;
+}
+
+
+
 RTC::ReturnCode_t sony::onExecute(RTC::UniqueId ec_id)
 {
-  //tcount += 0.00025;
-  //std::cout << "sony : time = " << tcount << std::endl;
-
   //if(!m_rhsensorIn.isNew())
   //  return RTC::RTC_OK;
 
@@ -863,7 +867,6 @@ void sony::start()
   // zmpP->setw(w);
   zmpP->setw(cm_ref(2), object_ref->p()(2));  // ogawa
   zmpP->setZmpOffsetX(cm_offset_x);
- 
   Vector3 rzmpInit;
   //NaturalZmp(m_robot, rzmpInit, cm_offset_x, end_link);
   zmpP->NaturalZmp(m_robot, rzmpInit, end_link);
@@ -1235,10 +1238,10 @@ Interplation5(body_cur,  zero,  zero, body_ref,  zero,  zero, 5, bodyDeque);
   // R_ref[WAIST]=Eigen::MatrixXd::Identity(3,3);
   // //cm_ref(0)+=0.03;
 
-  // cm_ref(0)=m_robot->link(end_link[RLEG])->p()(0)+0.015;
+  // //cm_ref(0)=m_robot->link(end_link[RLEG])->p()(0)+0.015;
   // //cm_ref(0)=m_robot->link(end_link[RLEG])->p()(0)+0.03;  // JVRC
 
-  // //cm_ref(0)=m_robot->link(end_link[RLEG])->p()(0)+cm_offset_x;
+  // cm_ref(0)=m_robot->link(end_link[RLEG])->p()(0)+cm_offset_x;
 
   // if(CalcIVK_biped(m_robot, cm_ref, p_ref, R_ref, FT, end_link)){
   //   cout<<"okok"<<endl;

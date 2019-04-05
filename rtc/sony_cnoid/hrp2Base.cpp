@@ -42,6 +42,8 @@ hrp2Base::hrp2Base(RTC::Manager* manager)
     m_refqOut("refq", m_refq),
     m_basePosInitIn("basePosInit", m_basePosInit),
     m_baseRpyInitIn("baseRpyInit", m_baseRpyInit),
+    m_toeheelRatioOut("toeheelRatio", m_toeheelRatio),
+    m_controlSwingSupportTimeOut("controlSwingSupportTime", m_controlSwingSupportTime),
     zmpP(0)
     //m_hrp2BaseServicePort("hrp2BaseService")
     // </rtc-template>
@@ -218,9 +220,17 @@ RTC::ReturnCode_t hrp2Base::onInitialize()
   m_lfsensor.data.length(6);  
   //m_rzmp.data.length(3); 
   m_refq.data.length(dof);
-  m_contactStates.data.length(2);
+  m_contactStates.data.length(4);
   m_contactStates.data[0]=m_contactStates.data[1]=1;
+  m_contactStates.data[2]=m_contactStates.data[3]=0;
+
+  m_toeheelRatio.data.length(4);
+  m_toeheelRatio.data[0]=m_toeheelRatio.data[1]=1;
+  m_toeheelRatio.data[2]=m_toeheelRatio.data[3]=1;
   
+  m_controlSwingSupportTime.data.length(4);
+  m_controlSwingSupportTime.data[0]=m_controlSwingSupportTime.data[1]=1;
+  m_controlSwingSupportTime.data[2]=m_controlSwingSupportTime.data[3]=1;
   return RTC::RTC_OK;
 }
 
