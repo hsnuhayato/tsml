@@ -145,20 +145,20 @@ RTC::ReturnCode_t sony::onInitialize()
   omniWalk = 1;
 
   //test paraini
-  velobj=Eigen::MatrixXd::Zero(6,1);
-  yawTotal=0;
-  object_ref= new Link(); //to be change to Position
-  pt= new Link();
-  pt_L= new Link();
-  pt_R= new Link();
+  velobj = Eigen::MatrixXd::Zero(6,1);
+  yawTotal =0;
+  object_ref = new Link(); //to be changed to Position
+  pt = new Link();
+  pt_L = new Link();
+  pt_R = new Link();
 
   //base
-  m_basePos.data.x=m_robot->rootLink()->p()(0);
-  m_basePos.data.y=m_robot->rootLink()->p()(1);
-  m_basePos.data.z=m_robot->rootLink()->p()(2);
-  m_baseRpy.data.r=0.0;
-  m_baseRpy.data.p=0.0;
-  m_baseRpy.data.y=0.0;
+  m_basePos.data.x = m_robot->rootLink()->p()(0);
+  m_basePos.data.y = m_robot->rootLink()->p()(1);
+  m_basePos.data.z = m_robot->rootLink()->p()(2);
+  m_baseRpy.data.r = 0.0;
+  m_baseRpy.data.p = 0.0;
+  m_baseRpy.data.y = 0.0;
   
   cout<<"R\n"<< m_robot->link(end_link[RLEG])->R() << " " <<
     m_robot -> link(end_link[RLEG])->name()<< endl;
@@ -243,11 +243,11 @@ RTC::ReturnCode_t sony::onExecute(RTC::UniqueId ec_id)
     //wireless
     if(omniWalk){
       if(m_axes.data[17]>=0.1){//o buttom
-	step=1;
-	playflag=1;
+        step=1;
+        playflag=1;
       }
       else if(m_axes.data[18]>=0.1)//x burrom
-	step=0;
+        step=0;
     }
     
     //head
@@ -292,7 +292,7 @@ RTC::ReturnCode_t sony::onExecute(RTC::UniqueId ec_id)
   if(playflag){
     if(omniWalk){
       object_operate();
-      prmGenerator( flagcalczmp);//stopflag off here
+      prmGenerator(flagcalczmp);//stopflag off here
       //getnextcom->pop_front CP
       walkingMotion(m_robot, FT, cm_ref, absZMP, p_Init, p_ref, R_ref, rfzmp, zmpP);
       
@@ -328,6 +328,7 @@ RTC::ReturnCode_t sony::onExecute(RTC::UniqueId ec_id)
     m_basePosOut.write();
     m_baseRpyOut.write();
     m_lightOut.write();
+    m_toeheelRatioOut.write();
 
     // Vector3 tmprf(m_rfsensor.data[0],m_rfsensor.data[1], m_rfsensor.data[2]);
     // Vector3 tmplf(m_lfsensor.data[0],m_lfsensor.data[1], m_lfsensor.data[2]);
@@ -611,14 +612,14 @@ void sony::walkingMotion(BodyPtr m_robot, FootType FT, Vector3 &cm_ref, Vector3 
       T.linear()= Eigen::MatrixXd::Identity(3,3);
       T.translation()=Vector3(zmpP->link_b_deque.at(0));
       if((FT==FSRFsw)||(FT==RFsw)){
-	pt_R->setOffsetPosition(T);
+        pt_R->setOffsetPosition(T);
 	
 	//for(int i=0;i<3;i++)//right end effect
 	//m_localEEpos.data[i]=T.translation()(i);
 	
       }
       else if((FT==FSLFsw)||(FT==LFsw)){
-	pt_L->setOffsetPosition(T);
+        pt_L->setOffsetPosition(T);
 	//for(int i=0;i<3;i++)//left end effect
 	//m_localEEpos.data[i+3]=T.translation()(i);
       }
@@ -639,11 +640,22 @@ void sony::walkingMotion(BodyPtr m_robot, FootType FT, Vector3 &cm_ref, Vector3 
 
     m_contactStates.data[swingLeg]=zmpP->contactState_deque.at(0);
 
+    if (FT==FSRFsw || FT==LFsw) {
+      m_toeheelRatio.data[RLEG] = 1;
+      m_toeheelRatio.data[LLEG] = m_contactStates.data[swingLeg]?1:0;
+      
+    }  else if(FT==FSLFsw || FT==RFsw) {
+      m_toeheelRatio.data[LLEG] = 1;
+      m_toeheelRatio.data[RLEG] = m_contactStates.data[swingLeg]?1:0;
+    }
+
     zmpP->swLegxy.pop_front();
     zmpP->Trajzd.pop_front();
     zmpP->swLeg_R.pop_front();  
     zmpP->cm_z_deque.pop_front();
     zmpP->contactState_deque.pop_front();
+
+      
   }//empty
 
  
@@ -752,7 +764,7 @@ void sony::start()
   }
   update_model(m_robot, m_mc, FT, end_link);
   
-  get_end_link_pose(m_robot, pose_now, end_link);
+  get_end_link_pose(pose_now, m_robot, end_link);
   //to be depricated
   RenewModel(m_robot, p_now, R_now, end_link);
 
@@ -1515,6 +1527,9 @@ void sony::omniWalkSwitchOff()
 // ogawa
 void sony::setCurrentData()
 {
+  // get_end_link_pose(pose_now, m_robot, end_link);
+  // get_end_link_pose(pose_init, m_robot, end_link);
+  // get_end_link_pose(pose_ref, m_robot, end_link);
   RenewModel(m_robot, p_now, R_now, end_link);
 
   cm_ref=m_robot->calcCenterOfMass();

@@ -188,10 +188,12 @@ class sony  : public hrp2Base
   Link* pt;
   Link* pt_L;
   Link* pt_R;
-  JointPathPtr s2sw_R;
-  JointPathPtr s2sw_L;
-  Vector3 p_ref_toe[LINKNUM];
-  Matrix3 R_ref_toe[LINKNUM];
+  // JointPathPtr s2sw_R;
+  // JointPathPtr s2sw_L;
+  // Vector3 p_ref_toe[LINKNUM];
+  // Matrix3 R_ref_toe[LINKNUM];
+  
+  Position toe_pose[LINKNUM];
  
   bool usePivot;
   double cm_offset_x;

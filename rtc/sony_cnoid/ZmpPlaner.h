@@ -80,6 +80,7 @@ class ZmpPlaner {
   double w;
   vector2 cZMP;
   vector2 cm_vel;
+  std::deque<vector2> toe_heel_ratio;
   ///
 
  private:

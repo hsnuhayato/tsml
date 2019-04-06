@@ -146,8 +146,8 @@ class hrp2Base  : public RTC::DataFlowComponentBase
   OutPort<TimedOrientation3D> m_baseRpyOut;
   TimedDoubleSeq m_toeheelRatio;
   OutPort<TimedDoubleSeq> m_toeheelRatioOut;
-  TimedDoubleSeq m_controlSwingSupportTime;
-  OutPort<TimedDoubleSeq> m_controlSwingSupportTimeOut;
+  // TimedDoubleSeq m_controlSwingSupportTime;
+  // OutPort<TimedDoubleSeq> m_controlSwingSupportTimeOut;
   // </rtc-template>
 
   // CORBA Port declaration

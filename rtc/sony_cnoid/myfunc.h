@@ -135,7 +135,7 @@ double sum(double* Array1st,int n);
 
 void RenewModel(BodyPtr body,Vector3  *p_now, Matrix3 *R_now, string *end_link);
 
-void get_end_link_pose(BodyPtr body, Position* pose, string *end_link);
+void get_end_link_pose(Position* pose, const BodyPtr body, const string *end_link);
 
 void update_model( BodyPtr body, const TimedDoubleSeq &m_q, const FootType FT, const string *end_link);
 

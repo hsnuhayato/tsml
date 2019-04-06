@@ -205,7 +205,7 @@ void RenewModel(BodyPtr body,Vector3  *p_now, Matrix3 *R_now, string *end_link)
   R_now[4]=body->link(end_link[WAIST])->R();
 }
 
-void get_end_link_pose(BodyPtr body, Position* pose, string *end_link)
+void get_end_link_pose(Position* pose, const BodyPtr body, const string *end_link)
 {
   //RLEG, LLEG, RARM, LARM, WAIST,
   for(int i=0; i<LINKNUM; i++) {

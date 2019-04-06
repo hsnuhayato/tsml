@@ -69,7 +69,7 @@ Stabilizer::Stabilizer(RTC::Manager* manager)
     m_toeheelRatioIn("toeheelRatio", m_toeheelRatio),
     m_controlSwingSupportTimeIn("controlSwingSupportTime", m_controlSwingSupportTime),
     m_qRefSeqIn("qRefSeq", m_qRefSeq),
-    m_walkingStatesIn("walkingStates", m_walkingStates),
+    m_walkingStatesIn("walkingStates", m_walkingStates),//unused
     m_sbpCogOffsetIn("sbpCogOffset", m_sbpCogOffset),
     m_qRefOut("q", m_qRef),
     m_tauOut("tau", m_tau),
@@ -510,6 +510,9 @@ RTC::ReturnCode_t Stabilizer::onInitialize()
   if (RateGyroSensors.size() == 0) {
       std::cerr << "[" << m_profile.instance_name << "] WARNING! This robot model has no GyroSensor named 'gyrometer'! " << std::endl;
   }
+
+  prev_ref_cog = prev_act_cog = cnoid::Vector3::Zero();
+  prev_ref_zmp = cnoid::Vector3::Zero();
   return RTC::RTC_OK;
 }
 
@@ -925,6 +928,7 @@ void Stabilizer::getActualParameters ()
       std::cerr << "[" << m_profile.instance_name << "]   "
                 << "new_zmp    = " << cnoid::Vector3(tmpnew_refzmp*1e3).format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]"))
                 << ", dif_zmp    = " << cnoid::Vector3((tmpnew_refzmp-ref_zmp)*1e3).format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << "[mm]" << std::endl;
+      std::cerr << "[" << m_profile.instance_name << "]   cogvel_cutoff_freq = " << act_cogvel_filter->getCutOffFreq() << "[Hz]" << std::endl;
     }
 
     std::vector<std::string> ee_name;
@@ -1130,6 +1134,7 @@ void Stabilizer::getActualParameters ()
               cnoid::Vector3 tmp_damping_gain = (1-transition_smooth_gain) * stikp[0].eefm_pos_damping_gain * 10 + transition_smooth_gain * stikp[0].eefm_pos_damping_gain;
               cnoid::Vector3 tmp_time_const = (1-tmp_ratio)*eefm_pos_time_const_swing*cnoid::Vector3::Ones()+tmp_ratio*stikp[0].eefm_pos_time_const_support;
               pos_ctrl = calcDampingControl (tmp_ratio * ref_f_diff, tmp_ratio * f_diff, pos_ctrl, tmp_damping_gain, tmp_time_const);
+              //pos_ctrl = calcDampingControl (ref_f_diff, f_diff, pos_ctrl, tmp_damping_gain, tmp_time_const);
             }
           }
           // zctrl = vlimit(zctrl, -0.02, 0.02);

@@ -723,8 +723,8 @@ void ZmpPlaner::calcSwingLegCP( BodyPtr m_robot, FootType FT, Vector3 swLegRef_p
       s.set_points(X,Y);    // currently it is required that X is already sorted
       int timeLength=(int)((Tsup+2*Tp)/dt+NEAR0);
       for(int i=0;i<timeLength;i++){
-	Matrix3 pushin(rotationY(s((i+1)*dt)));
-	rot_pitch.push_back (pushin);
+        Matrix3 pushin(rotationY(s((i+1)*dt)));
+        rot_pitch.push_back (pushin);
       }
       
       

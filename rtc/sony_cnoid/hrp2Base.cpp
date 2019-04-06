@@ -43,7 +43,7 @@ hrp2Base::hrp2Base(RTC::Manager* manager)
     m_basePosInitIn("basePosInit", m_basePosInit),
     m_baseRpyInitIn("baseRpyInit", m_baseRpyInit),
     m_toeheelRatioOut("toeheelRatio", m_toeheelRatio),
-    m_controlSwingSupportTimeOut("controlSwingSupportTime", m_controlSwingSupportTime),
+    //m_controlSwingSupportTimeOut("controlSwingSupportTime", m_controlSwingSupportTime),
     zmpP(0)
     //m_hrp2BaseServicePort("hrp2BaseService")
     // </rtc-template>
@@ -76,7 +76,7 @@ RTC::ReturnCode_t hrp2Base::onInitialize()
   addOutPort("basePosIn", m_basePosOut);
   addOutPort("baseRpyIn", m_baseRpyOut);
   addOutPort("contactStates", m_contactStatesOut);
-
+  addOutPort("toeheelRatio", m_toeheelRatioOut);
   // Set service provider to Ports
   //m_hrp2BaseServicePort.registerProvider("service0", "hrp2BaseService", m_service0);
 
@@ -161,8 +161,8 @@ RTC::ReturnCode_t hrp2Base::onInitialize()
   //prop["kgain"]>>kgain;
   //prop["fgain"]>>fgain;
 
-  get_end_link_pose(m_robot, pose_now, end_link);
-  get_end_link_pose(m_robot, pose_init, end_link);
+  get_end_link_pose(pose_now,  m_robot, end_link);
+  get_end_link_pose(pose_init, m_robot, end_link);
   //copy_poses(pose_init, pose_now);
   
   //to be depricated
@@ -191,15 +191,15 @@ RTC::ReturnCode_t hrp2Base::onInitialize()
   RateGyroSensor* sen = RateGyroSensors[0];
   cout << "GG "<< sen->link()->name() << endl;
 
-  Isometry3 local;
-  local.linear() = AccelSensors[0] -> R_local();
-  local.translation() = AccelSensors[0] -> p_local();
-  //cout<<  local.translation()<<'\n'<<  local.linear()<<endl;
-  //cout<<"forcesener f "<<'\n'<<forceSensors[0]->f()<<endl;
-  //cout<<"forcesener tau "<<'\n'<<forceSensors[0]->tau()<<endl;
-  //Matrix3 testR= forceSensors[0]->link()->R()* forceSensors[0]->R_local();
+  // Isometry3 local;
+  // local.linear() = AccelSensors[0] -> R_local();
+  // local.translation() = AccelSensors[0] -> p_local();
+  // cout<<  local.translation()<<'\n'<<  local.linear()<<endl;
+  // cout<<"forcesener f "<<'\n'<<forceSensors[0]->f()<<endl;
+  // cout<<"forcesener tau "<<'\n'<<forceSensors[0]->tau()<<endl;
+  // Matrix3 testR= forceSensors[0]->link()->R()* forceSensors[0]->R_local();
   ForceSensor* sensor = forceSensors[0];
-  Matrix3 testR = sensor->link()->R()* sensor->R_local();
+  Matrix3 testR = sensor->link()->R() * sensor->R_local();
   Vector3 sep = sensor->link()->p() + testR * sensor->p_local();
   cout<<"test R"<<'\n'<< sensor->R_local() << '\n' << sensor->p_local() <<endl;
   cout<<sensor->link()->name()<<endl;
@@ -210,8 +210,8 @@ RTC::ReturnCode_t hrp2Base::onInitialize()
   cout<<"test R2"<<'\n'<< sensor1->R_local()<< '\n' << sensor1->p_local() <<endl;
   cout<<sensor1->link()->name()<<endl;
 
-
-    //data port
+  
+  //data port
   m_q.data.length(dof);
   m_mc.data.length(dof);
   m_rhsensor.data.length(6);
@@ -228,9 +228,9 @@ RTC::ReturnCode_t hrp2Base::onInitialize()
   m_toeheelRatio.data[0]=m_toeheelRatio.data[1]=1;
   m_toeheelRatio.data[2]=m_toeheelRatio.data[3]=1;
   
-  m_controlSwingSupportTime.data.length(4);
-  m_controlSwingSupportTime.data[0]=m_controlSwingSupportTime.data[1]=1;
-  m_controlSwingSupportTime.data[2]=m_controlSwingSupportTime.data[3]=1;
+  // m_controlSwingSupportTime.data.length(4);
+  // m_controlSwingSupportTime.data[0]=m_controlSwingSupportTime.data[1]=1;
+  // m_controlSwingSupportTime.data[2]=m_controlSwingSupportTime.data[3]=1;
   return RTC::RTC_OK;
 }
 

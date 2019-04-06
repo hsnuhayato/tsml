@@ -121,6 +121,7 @@ class JVRC(HrpsysConfigurator):
             rtm.connectPorts(self.sh.port("basePosOut"), self.st.port("basePosIn"))
             rtm.connectPorts(self.sh.port("baseRpyOut"), self.st.port("baseRpyIn"))
             rtm.connectPorts(self.wpg.port("contactStates"), self.st.port("contactStates"))
+            #rtm.connectPorts(self.wpg.port("toeheelRatio"), self.st.port("toeheelRatio"))
             #rtm.connectPorts(wpg.port("localEEpos"), st.port("localEEpos"))
             rtm.connectPorts(self.st.port("q"),  self.pdc.port("qRef"))
             rtm.connectPorts(self.st.port("q"),  self.wpg.port("mc"))
@@ -202,6 +203,7 @@ class JVRC(HrpsysConfigurator):
         stp_org.eefm_swing_rot_damping_gain = stp_org.eefm_rot_damping_gain[0]
         stp_org.eefm_swing_pos_damping_gain = stp_org.eefm_pos_damping_gain[0]
         stp_org.eefm_use_swing_damping = True
+        #stp_org.eefm_cogvel_cutoff_freq = 5
         #stp_org.foot_origin_offset = [[0.0,0.0,-0.1]]*2
         stp_org.st_algorithm = OpenHRP.StabilizerService.EEFMQPCOP
         #stp_org.st_algorithm = OpenHRP.StabilizerService.EEFM
@@ -226,6 +228,7 @@ class JVRC(HrpsysConfigurator):
     def set_pos_time_const_support(self, x):
         stp = self.st_svc.getParameter()
         stp.eefm_pos_time_const_support = [[x, x, x]]*4
+        #stp.eefm_pos_time_const_swing = x
         self.st_svc.setParameter(stp)
 
     def set_rot_time_const(self, x):
@@ -259,9 +262,9 @@ def main():
     hcf.set_rot_damping_gain(100, 100, 1)
     hcf.set_rot_time_const(0.01)
     hcf.set_eefm_body_params(0, 1e5)
-    #raw_input('>>start ST? ')
+    raw_input('>>start ST? ')
     hcf.st_svc.startStabilizer()
-    #hcf.stepping()
+    hcf.stepping()
     
 if __name__ == '__main__':
     main()
