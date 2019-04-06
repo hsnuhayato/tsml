@@ -64,8 +64,38 @@ items:
                 instanceName: "JVRC-TSML"
                 bodyPeriodicRate: 0.005
                 baseDirectory: "RTC directory"
+            - 
+              id: 4
+              name: "SensorVisualizer"
+              plugin: Body
+              class: SensorVisualizer
+              data: 
+                subItems: 
+                  - 
+                    class: ForceSensorVisualizer
+                    name: ForceSensor
+                    visualRatio: 0.002
+                  - 
+                    class: RangeSensorVisualizer
+                    name: ranger
+                    renderingMode: Point
+                    pointSize: 0
+                    voxelSize: 0.01
+                    isEditable: false
+                  - 
+                    class: CameraImageVisualizer
+                    name: rcamera
+                  - 
+                    class: CameraImageVisualizer
+                    name: lcamera
+                  - 
+                    class: CameraImageVisualizer
+                    name: rhcamera
+                  - 
+                    class: CameraImageVisualizer
+                    name: lhcamera
         - 
-          id: 4
+          id: 5
           name: "Floor"
           plugin: Body
           class: BodyItem
@@ -88,12 +118,12 @@ items:
             selfCollisionDetection: false
             isEditable: false
         - 
-          id: 5
+          id: 6
           name: "AISTSimulator"
           plugin: Body
           class: AISTSimulatorItem
           data: 
-            realtimeSync: false
+            realtimeSync: true
             recording: "tail"
             timeRangeMode: "Unlimited"
             timeLength: 180
@@ -115,7 +145,7 @@ items:
             contactCorrectionVelocityRatio: 1
             kinematicWalking: false
             2Dmode: false
-            oldAccelSensorMode: false
+            oldAccelSensorMode: true
 views: 
   - 
     id: 0
@@ -128,9 +158,9 @@ views:
     class: ItemTreeView
     mounted: true
     state: 
-      selected: [ 5 ]
-      checked: [ 2 ]
-      expanded: [ 1, 2, 5 ]
+      selected: [ 2 ]
+      checked: [ 2, [ 4, "ForceSensor" ] ]
+      expanded: [ 1, 2, 4, 6 ]
   - 
     id: 2
     plugin: Base
@@ -203,6 +233,12 @@ views:
       showRotationMatrix: false
   - 
     id: 5
+    name: "ボディ状態"
+    plugin: Body
+    class: BodyStateView
+    mounted: true
+  - 
+    id: 6
     plugin: Body
     class: JointSliderView
     mounted: true
@@ -213,18 +249,19 @@ views:
       numColumns: 1
       spinBox: true
       slider: true
+      dial: false
       labelOnLeft: true
-      currentBodyItem: 4
+      currentBodyItem: 2
   - 
-    id: 6
+    id: 7
     plugin: Body
     class: LinkSelectionView
     mounted: true
     state: 
       listingMode: "Link List"
-      currentBodyItem: 4
+      currentBodyItem: 2
   - 
-    id: 7
+    id: 8
     plugin: OpenRTM
     class: RTSNameServerView
     mounted: true
@@ -235,7 +272,7 @@ views:
           host: "localhost"
           port: 2809
   - 
-    id: 8
+    id: 9
     plugin: Python
     class: PythonConsoleView
     mounted: true
@@ -250,8 +287,8 @@ toolbars:
     speedScale: 1
     syncToOngoingUpdates: true
     autoExpansion: true
-  "LeggedBodyBar": 
-    stanceWidth: 0.15
+  "BodyBar": 
+    current: 2
   "KinematicsBar": 
     mode: AUTO
     enablePositionDragger: true
@@ -260,8 +297,8 @@ toolbars:
     snapDistance: 0.025
     penetrationBlockDepth: 0.0005
     lazyCollisionDetectionMode: true
-  "BodyBar": 
-    current: 4
+  "LeggedBodyBar": 
+    stanceWidth: 0.15
   "BodyMotionGenerationBar": 
     autoGenerationForNewBody: true
     balancer: false
@@ -306,7 +343,7 @@ Body:
         showPpcom: false
         showZmp: false
       - 
-        bodyItem: 4
+        bodyItem: 5
         showCenterOfMass: false
         showPpcom: false
         showZmp: false
@@ -347,7 +384,7 @@ viewAreas:
               current: 1
             - 
               type: pane
-              views: [ 0, 6, 7 ]
+              views: [ 0, 7, 8 ]
               current: 0
         - 
           type: splitter
@@ -361,7 +398,7 @@ viewAreas:
               children: 
                 - 
                   type: pane
-                  views: [ 4, 5 ]
+                  views: [ 4, 6 ]
                   current: 4
                 - 
                   type: pane
@@ -369,8 +406,8 @@ viewAreas:
                   current: 3
             - 
               type: pane
-              views: [ 2, 8 ]
-              current: 2
+              views: [ 2, 9, 5 ]
+              current: 5
 layoutOfToolBars: 
   rows: 
     - 

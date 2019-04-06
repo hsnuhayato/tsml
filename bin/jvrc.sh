@@ -29,7 +29,9 @@ export CNOID_USE_GLSL=1
 #/usr/bin/choreonoid ../etc/RobotState.cnoid
 #/usr/bin/choreonoid ../etc/QrCodeTest.cnoid
 #/usr/bin/choreonoid ../etc/WalkTest.cnoid
-/usr/local/bin/choreonoid ../etc/WalkTestBush.cnoid --start-simulation
+/usr/local/bin/choreonoid ../etc/WalkTest.cnoid --start-simulation
+#/usr/local/bin/choreonoid ../etc/WalkTest.cnoid
+#/usr/local/bin/choreonoid ../etc/WalkTestBush.cnoid --start-simulation
 #/usr/local/bin/choreonoid ../etc/WalkTestBush.cnoid
 
 #/usr/bin/choreonoid ${TASK_DIR}/R2AB/R2AB_test.cnoid
