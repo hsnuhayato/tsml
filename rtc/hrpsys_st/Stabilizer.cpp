@@ -511,8 +511,8 @@ RTC::ReturnCode_t Stabilizer::onInitialize()
       std::cerr << "[" << m_profile.instance_name << "] WARNING! This robot model has no GyroSensor named 'gyrometer'! " << std::endl;
   }
 
-  prev_ref_cog = prev_act_cog = cnoid::Vector3::Zero();
-  prev_ref_zmp = cnoid::Vector3::Zero();
+  prev_act_cog = cnoid::Vector3::Zero();
+  //prev_ref_cog = prev_ref_zmp = cnoid::Vector3::Zero();
   return RTC::RTC_OK;
 }
 
@@ -816,6 +816,7 @@ void Stabilizer::calcFootOriginCoords (cnoid::Vector3& foot_origin_pos, cnoid::M
   }
 }
 
+//output d_foot_pos d_foot_rpy
 void Stabilizer::getActualParameters ()
 {
   // Actual world frame =>
@@ -855,7 +856,7 @@ void Stabilizer::getActualParameters ()
   // zmp
   on_ground = false;
   if (st_algorithm != OpenHRP::StabilizerService::TPCC) {
-    // second arg:zmp height in world frame
+    // second arg:zmp height in world frame(root link p=[0,0,0])
     // act_zmp calculated in world frame
     on_ground = calcZMP(act_zmp, zmp_origin_off+foot_origin_pos(2));
   } else {
@@ -908,6 +909,7 @@ void Stabilizer::getActualParameters ()
     cnoid::Vector3 dzmp=foot_origin_rot * (ref_zmp - act_zmp);
     // convert new_refzmp from foot frame to world frame
     new_refzmp = foot_origin_rot * new_refzmp + foot_origin_pos;
+    //new_refzmp = ref_zmp_world
     for (size_t i = 0; i < 2; i++) {
       new_refzmp(i) += eefm_k1[i] * transition_smooth_gain * dcog(i) + eefm_k2[i] * transition_smooth_gain * dcogvel(i) + eefm_k3[i] * transition_smooth_gain * dzmp(i) + ref_zmp_aux(i);
     }
@@ -950,7 +952,7 @@ void Stabilizer::getActualParameters ()
           cop_pos.push_back(target->p() + target->R() * ikp.localCOPPos);
           ee_rot.push_back(target->R() * ikp.localR);
           ee_name.push_back(ikp.ee_name);
-          limb_gains.push_back(ikp.swing_support_gain); //default is 0.5
+          limb_gains.push_back(ikp.swing_support_gain);
           tmp_ref_force.push_back(cnoid::Vector3(foot_origin_rot * ref_force[i]));// ref_force is in foot frame
           tmp_ref_moment.push_back(cnoid::Vector3(foot_origin_rot * ref_moment[i]));
           rel_ee_pos.push_back(foot_origin_rot.transpose() * (ee_pos.back() - foot_origin_pos));
@@ -960,6 +962,7 @@ void Stabilizer::getActualParameters ()
           // std::cerr << ee_forcemoment_distribution_weight[i] << std::endl;
           ee_forcemoment_distribution_weight.push_back(cnoid::Vector6::Zero());
           for (size_t j = 0; j < 6; j++) {
+            //ikp.eefm_ee_forcemoment_distribution_weight=[1,1,1,1e-2,1e-2,1e-2]
               ee_forcemoment_distribution_weight[i][j] = ikp.eefm_ee_forcemoment_distribution_weight[j];
           }
           //ee_forcemoment_distribution_weight[i].head<6>() = ikp.eefm_ee_forcemoment_distribution_weight;
@@ -1059,7 +1062,8 @@ void Stabilizer::getActualParameters ()
             if ((!ref_contact_states[i] || !act_contact_states[i]) && fabs(ikp.ref_force(j) - sensor_force(j)) > eefm_swing_damping_force_thre[j]) large_swing_f_diff[j] = true;
             if ((!ref_contact_states[i] || !act_contact_states[i]) && (fabs(ikp.ref_moment(j) - ee_moment(j)) > eefm_swing_damping_moment_thre[j])) large_swing_m_diff[j] = true;
         }
-        // Moment limitation
+        // Moment limitation (bug? twice multipled by ee_R.transpose())
+        // maybe  ikp.ref_moment = vlimit(ikp.ref_moment, ikp.eefm_ee_moment_limit); is fine
         ikp.ref_moment = ee_R * vlimit((ee_R.transpose() * ikp.ref_moment), ikp.eefm_ee_moment_limit);
         // calcDampingControl
         // ee_d_foot_rpy and ee_d_foot_pos is (actual) end effector coords relative value because these use end effector coords relative force & moment
@@ -1073,6 +1077,7 @@ void Stabilizer::getActualParameters ()
           ikp.ee_d_foot_rpy = calcDampingControl(ikp.ref_moment, ee_moment, ikp.ee_d_foot_rpy, tmp_damping_gain, ikp.eefm_rot_time_const);
           ikp.ee_d_foot_rpy = vlimit(ikp.ee_d_foot_rpy, -1 * ikp.eefm_rot_compensation_limit, ikp.eefm_rot_compensation_limit);
         }
+
         if (!eefm_use_force_difference_control) { // Pos
             cnoid::Vector3 tmp_damping_gain = (1-transition_smooth_gain) * ikp.eefm_pos_damping_gain * 10 + transition_smooth_gain * ikp.eefm_pos_damping_gain;
             ikp.ee_d_foot_pos = calcDampingControl(ikp.ref_force, sensor_force, ikp.ee_d_foot_pos, tmp_damping_gain, ikp.eefm_pos_time_const_support);
@@ -1121,14 +1126,14 @@ void Stabilizer::getActualParameters ()
               cnoid::Vector3 tmp_damping_gain = (1-transition_smooth_gain) * stikp[0].eefm_pos_damping_gain * 10 + transition_smooth_gain * stikp[0].eefm_pos_damping_gain;
               pos_ctrl = calcDampingControl (ref_f_diff, f_diff, pos_ctrl,
                                              tmp_damping_gain, stikp[0].eefm_pos_time_const_support);
-            } else {
+            } else {// single support phase
               double remain_swing_time;
               if ( !ref_contact_states[contact_states_index_map["rleg"]] ) { // rleg swing
                   remain_swing_time = m_controlSwingSupportTime.data[contact_states_index_map["rleg"]];
               } else { // lleg swing
                   remain_swing_time = m_controlSwingSupportTime.data[contact_states_index_map["lleg"]];
               }
-              // std::cerr << "st " << remain_swing_time << " rleg " << contact_states[contact_states_index_map["rleg"]] << " lleg " << contact_states[contact_states_index_map["lleg"]] << std::endl;
+              // std::cerr << "st " << remain_swing_time << " rleg " << contact_states[contact_states_index_map["rleg"]] << " lleg " << contact_states[contact_states_index_map["lleg"]] << std::endl; eefm_pos_margin_time = 0.02
               double tmp_ratio = std::max(0.0, std::min(1.0, 1.0 - (remain_swing_time-eefm_pos_margin_time)/eefm_pos_transition_time)); // 0=>1
               // Temporarily use first pos damping gain (stikp[0])
               cnoid::Vector3 tmp_damping_gain = (1-transition_smooth_gain) * stikp[0].eefm_pos_damping_gain * 10 + transition_smooth_gain * stikp[0].eefm_pos_damping_gain;
@@ -1167,7 +1172,7 @@ void Stabilizer::getActualParameters ()
   } // st_algorithm == OpenHRP::StabilizerService::EEFM
 
   for ( int i = 0; i < m_robot->numJoints(); i++ ){
-    m_robot->joint(i)->q() = qrefv[i];
+    m_robot->joint(i)->q() = qrefv[i];// angles from refq
   }
   m_robot->rootLink()->p() = target_root_p;
   m_robot->rootLink()->R()= target_root_R;
@@ -1188,7 +1193,7 @@ void Stabilizer::getActualParameters ()
   copy (ref_contact_states.begin(), ref_contact_states.end(), prev_ref_contact_states.begin());
   if (control_mode != MODE_ST) d_pos_z_root = 0.0;
   prev_act_foot_origin_rot = foot_origin_rot;
-}
+}// stikp[i].d_foot_pos d_foot_pos, stikp[i].ee_d_foot_rpy ready for IK
 
 void Stabilizer::getTargetParameters ()
 {
@@ -1219,7 +1224,7 @@ void Stabilizer::getTargetParameters ()
     transition_count--;
   }
   for ( int i = 0; i < m_robot->numJoints(); i++ ){
-    qrefv[i] = m_robot->joint(i)->q();
+    qrefv[i] = m_robot->joint(i)->q(); // m_qRef.data[i];
   }
   // assign reference subjects into robot model
   m_robot->rootLink()->p() = cnoid::Vector3(m_basePos.data.x, m_basePos.data.y, m_basePos.data.z);
@@ -1228,6 +1233,7 @@ void Stabilizer::getTargetParameters ()
   m_robot->rootLink()->R() = target_root_R;
   m_robot->calcForwardKinematics();
   ref_zmp = m_robot->rootLink()->R() * cnoid::Vector3(m_zmpRef.data.x, m_zmpRef.data.y, m_zmpRef.data.z) + m_robot->rootLink()->p(); // base frame -> world frame
+  // ref_zmp_world = ref_zmp
   cnoid::Vector3 foot_origin_pos;
   cnoid::Matrix3 foot_origin_rot;
   calcFootOriginCoords (foot_origin_pos, foot_origin_rot);
@@ -1524,7 +1530,7 @@ void Stabilizer::calcSwingSupportLimbGain ()
             } else {
                 ikp.swing_support_gain = (ikp.support_time / eefm_pos_transition_time);
             }
-            // default is (m_controlSwingSupportTime.data[i] /0.01
+            // default is 0.5, 1, m_controlSwingSupportTime.data[i]*100,
             ikp.swing_support_gain = std::max(0.0, std::min(1.0, ikp.swing_support_gain));
         } else { // Swing
             ikp.swing_support_gain = 0.0;
@@ -1592,7 +1598,7 @@ void Stabilizer::calcTPCC() {
 
 void Stabilizer::calcEEForceMomentControl() {
       // stabilizer loop
-      // return to referencea
+      // return to reference
       m_robot->rootLink()->R() = target_root_R;
       m_robot->rootLink()->p() = target_root_p;
       for ( int i = 0; i < m_robot->numJoints(); i++ ) {
@@ -1626,7 +1632,7 @@ void Stabilizer::calcEEForceMomentControl() {
           m_robot->rootLink()->p() = target_root_p;
           m_robot->calcForwardKinematics();
           //hrp::Sensor* sen = m_robot->sensor<hrp::RateGyroSensor>("gyrometer");
-          RateGyroSensor* sen=RateGyroSensors[0];
+          RateGyroSensor* sen = RateGyroSensors[0];
           cnoid::Matrix3 senR = sen->link()->R() * sen->R_local();
           cnoid::Matrix3 act_Rs(cnoid::rotFromRpy(m_rpy.data.r, m_rpy.data.p, m_rpy.data.y));
           m_robot->rootLink()->R() = act_Rs * (senR.transpose() * m_robot->rootLink()->R());
@@ -1636,6 +1642,7 @@ void Stabilizer::calcEEForceMomentControl() {
           calcFootOriginCoords (foot_origin_pos, foot_origin_rot);
           // Calculate foot_origin_coords-relative ee pos and rot
           // Subtract them from target_ee_diff_xx
+          // target_ee_diff_xx = target_ee pose in ref_foot_coord
           for (size_t i = 0; i < stikp.size(); i++) {
               cnoid::Link* target = m_robot->link(stikp[i].target_name);
               stikp[i].target_ee_diff_p -= foot_origin_rot.transpose() * (target->p() + target->R() * stikp[i].localp - foot_origin_pos);
@@ -1647,7 +1654,8 @@ void Stabilizer::calcEEForceMomentControl() {
       //   joint angle : current control output
       //   root pos : target + keep COG against rpy control
       //   root rot : target + rpy control
-      moveBasePosRotForBodyRPYControl ();
+      // calculate current_base_rpy current_base_pos
+      moveBasePosRotForBodyRPYControl();
 
       // Convert d_foot_pos in foot origin frame => "current" world frame
       cnoid::Vector3 foot_origin_pos;

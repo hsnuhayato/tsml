@@ -852,7 +852,7 @@ public:
             //   (CzR - Pz)   0     -(CxR - Px) (CzL-Pz)  0  -(CxL-Px)
             // W = diag(0, 0, limbgainR, 0, 0, limbgainL)
             // total_wrench = (0, 0, mg, 0, 0)
-            // ret = (FxR, FyR, FzR, FxL, FyL, FzL)
+            // ret = (FxR, FyR, FzR, FxL, FyL, FzL) =(0,0,mg/2,0,0,mg/2)
             Eigen::VectorXd ret(state_dim/2); //6
             Eigen::VectorXd total_wrench = Eigen::VectorXd::Zero(total_wrench_dim);// 5
             total_wrench(total_wrench_dim-3) = total_fz;
@@ -878,8 +878,8 @@ public:
 
         // Calculate force/moment distribution matrix and vector
         //   We assume F = G f, calculate F and G. f is absolute here.
-        //   1. Calculate F (total_wrench)
-        Eigen::VectorXd total_wrench = Eigen::VectorXd::Zero(total_wrench_dim);
+        //   1. Calculate F (total_wrench about new_refzmp?)
+        Eigen::VectorXd total_wrench = Eigen::VectorXd::Zero(total_wrench_dim);//5
         cnoid::Vector3 ref_total_force = cnoid::Vector3::Zero();
         // ref_foot_force[fidx](0) = ref_foot_moment[fidx](1) = 0 here
         for (size_t fidx = 0; fidx < ee_num; fidx++) {
@@ -957,6 +957,8 @@ public:
                 }
             }
         }
+        //Wmat=diag(a*lgain, a*lgain, a*lgain, a*lgain/norm, a*lgain*toeheel/norm, a*lgain/norm)*2
+        //Wmat=diag(a*lgain=0, a*lgain=0, a*lgain=0, 0, 0, 0)*2 [if air]
         if (printp) {
             std::cerr << "[" << print_str << "]   newWmat(diag) = [";
             for (size_t j = 0; j < ee_num; j++) {
@@ -973,7 +975,7 @@ public:
         // std::cerr << "Wmat" << std::endl;
         // std::cerr << Wmat << std::endl;
 
-        // Solve
+        // Solve. ret is local wrench around COP.
         Eigen::VectorXd ret(state_dim);
         calcWeightedLinearEquation(ret, Gmat, Wmat, total_wrench);
 
