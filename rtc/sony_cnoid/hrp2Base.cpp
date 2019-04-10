@@ -43,7 +43,7 @@ hrp2Base::hrp2Base(RTC::Manager* manager)
     m_basePosInitIn("basePosInit", m_basePosInit),
     m_baseRpyInitIn("baseRpyInit", m_baseRpyInit),
     m_toeheelRatioOut("toeheelRatio", m_toeheelRatio),
-    //m_controlSwingSupportTimeOut("controlSwingSupportTime", m_controlSwingSupportTime),
+    m_controlSwingSupportTimeOut("controlSwingSupportTime", m_controlSwingSupportTime),
     zmpP(0)
     //m_hrp2BaseServicePort("hrp2BaseService")
     // </rtc-template>
@@ -77,6 +77,7 @@ RTC::ReturnCode_t hrp2Base::onInitialize()
   addOutPort("baseRpyIn", m_baseRpyOut);
   addOutPort("contactStates", m_contactStatesOut);
   addOutPort("toeheelRatio", m_toeheelRatioOut);
+  addOutPort("controlSwingSupportTimeOut", m_controlSwingSupportTimeOut);
   // Set service provider to Ports
   //m_hrp2BaseServicePort.registerProvider("service0", "hrp2BaseService", m_service0);
 
@@ -228,9 +229,9 @@ RTC::ReturnCode_t hrp2Base::onInitialize()
   m_toeheelRatio.data[0]=m_toeheelRatio.data[1]=1;
   m_toeheelRatio.data[2]=m_toeheelRatio.data[3]=1;
   
-  // m_controlSwingSupportTime.data.length(4);
-  // m_controlSwingSupportTime.data[0]=m_controlSwingSupportTime.data[1]=1;
-  // m_controlSwingSupportTime.data[2]=m_controlSwingSupportTime.data[3]=1;
+  m_controlSwingSupportTime.data.length(4);
+  m_controlSwingSupportTime.data[0]=m_controlSwingSupportTime.data[1]=1;
+  m_controlSwingSupportTime.data[2]=m_controlSwingSupportTime.data[3]=1;
   return RTC::RTC_OK;
 }
 
