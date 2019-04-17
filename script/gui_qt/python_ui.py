@@ -121,7 +121,8 @@ class JVRC(HrpsysConfigurator):
             rtm.connectPorts(self.sh.port("basePosOut"), self.st.port("basePosIn"))
             rtm.connectPorts(self.sh.port("baseRpyOut"), self.st.port("baseRpyIn"))
             rtm.connectPorts(self.wpg.port("contactStates"), self.st.port("contactStates"))
-            #rtm.connectPorts(self.wpg.port("toeheelRatio"), self.st.port("toeheelRatio"))
+            rtm.connectPorts(self.wpg.port("toeheelRatio"), self.st.port("toeheelRatio"))
+            #rtm.connectPorts(self.wpg.port("controlSwingSupportTime"), self.st.port("controlSwingSupportTime"))
             #rtm.connectPorts(wpg.port("localEEpos"), st.port("localEEpos"))
             rtm.connectPorts(self.st.port("q"),  self.pdc.port("qRef"))
             rtm.connectPorts(self.st.port("q"),  self.wpg.port("mc"))
@@ -228,7 +229,7 @@ class JVRC(HrpsysConfigurator):
     def set_pos_time_const_support(self, x):
         stp = self.st_svc.getParameter()
         stp.eefm_pos_time_const_support = [[x, x, x]]*4
-        #stp.eefm_pos_time_const_swing = x
+        stp.eefm_pos_time_const_swing = x
         self.st_svc.setParameter(stp)
 
     def set_rot_time_const(self, x):
@@ -254,12 +255,12 @@ def main():
     hcf.init("JVRC-TSML")
     hcf.set_st_parameter()
     hcf.go_halfsit()
-    hcf.set_pos_damping_gain(1,1,7)
+    hcf.set_pos_damping_gain(1,1,400)
     hcf.set_pos_time_const_support(0.02)
     #bush
     # hcf.set_rot_damping_gain(25, 25, 1)
     # hcf.set_rot_time_const(0.02)
-    hcf.set_rot_damping_gain(100, 100, 1)
+    hcf.set_rot_damping_gain(1000, 1000, 1)
     hcf.set_rot_time_const(0.01)
     hcf.set_eefm_body_params(0, 1e5)
     raw_input('>>start ST? ')

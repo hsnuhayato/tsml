@@ -438,6 +438,7 @@ Vector3 rot2rpy(Matrix3 R)
   return out;
 }
 
+// todo vecotr cross
 matrix22 RfromMatrix3(Matrix3 Rin)//bimyou
 {
   //Vector3 rpy=rpyFromRot(Rin);
@@ -450,6 +451,7 @@ matrix22 RfromMatrix3(Matrix3 Rin)//bimyou
     }
   }
 
+  //R_xy = R.block<2,2>(0,0);
   return R_xy;
 }
 
@@ -461,17 +463,6 @@ Matrix3 extractYow(Matrix3 Rin)
   // // if ( fabs(aa.angle()) < 1e-2) {  
   // //   return MatrixXd::Identity(3,3);
   // // } 
-  
-  // Vector3 euler = Rin.eulerAngles(2,1,0);
-  // if ( fabs(euler(0)) - 3.1 > 0 &&
-  //      fabs(euler(1)) - 3.1 > 0 &&
-  //      fabs(euler(2)) - 3.1 > 0 &&
-  //      fabs(aa.angle()) < 1e-2) {
-  //   euler(0) -= M_PI;
-  //   euler(1) = M_PI - euler(1);
-  //   euler(2) -= M_PI;
-  // } 
-
   // Matrix3 R=rotationZ(euler(0));
 
   return R;
@@ -488,8 +479,6 @@ Vector2 pfromVector3(Vector3 p)
 
 void NaturalZmp(BodyPtr body, Vector3 &absZMP, double offset_x, string *end_link)
 {
-  matrix22 RLeg_R(RfromMatrix3(body->link(end_link[RLEG])->R()));
-  matrix22 LLeg_R(RfromMatrix3(body->link(end_link[LLEG])->R()));
   Vector2 pfzmp;
   Vector2 zmpoffset(MatrixXd::Zero(2,1));
   zmpoffset<<offset_x, 0.0;
@@ -535,8 +524,7 @@ void updateInit(Vector3 *p_now, Vector3 *p_Init, Matrix3 *R_now, Matrix3 *R_Init
 void copy_poses(Position* pose_copy, const Position* const pose)
 {
   for(int i=0; i<LINKNUM; i++) {
-    pose_copy[i].linear() =  pose[i].linear();
-    pose_copy[i].translation() = pose[i].translation();
+    pose_copy[i] = pose[i];
   }
 }
 
@@ -968,7 +956,7 @@ void CalJo_biped_toe(BodyPtr body, FootType FT,dmatrix& Jacobian)
 */
 
 
-void SeqPlay32(vector32 body_cur,   vector32 body_ref,  std::deque<vector32>& bodyDeque, double dt)
+void SeqPlay32(vector32 body_cur, vector32 body_ref,  std::deque<vector32>& bodyDeque, double dt)
 {
   vector32 zero(MatrixXd::Zero(32,1));
   Interplation5(body_cur,  zero,  zero, body_ref,  zero,  zero, dt, bodyDeque);

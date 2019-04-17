@@ -24,8 +24,7 @@ class ZmpPlaner {
   ZmpPlaner();
   //ZmpPlaner(FootType FT, double *prm);
   ~ZmpPlaner();
-  void setInit(vector2 &Ini);
-  void setInit(double &xIni, double &yIni);
+  void setInit(const Vector3& Ini);
   //void calcWaistR( FootType FT,  Matrix3 *R_ref);
   Matrix3 calcWaistR( FootType FT,  BodyPtr m_robot, string *end_link);
   void atan2adjust(double &pre, double &cur);
@@ -33,24 +32,27 @@ class ZmpPlaner {
   //void StopZMP(FootType FT, std::deque<vector2> &rfzmp, int count);
 
   //capture point/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-  void PlanCP( BodyPtr m_robot, FootType FT, Vector3 swLegRef_p, Matrix3 input_ref_R, std::deque<vector2> &rfzmp, bool usePivot, string *end_link, bool ifLastStep = 0);
+  void PlanCP(BodyPtr m_robot, FootType FT, Vector3 swLegRef_p, Matrix3 input_ref_R, std::deque<vector2> &rfzmp,
+              bool usePivot, string *end_link, bool ifLastStep = 0);
 
   void PlanCPstop(BodyPtr m_robot ,FootType FT, Vector3 *p_ref, Matrix3 *R_ref, Vector3 swLegRef_p, Matrix3 input_ref_R, std::deque<vector2> &rfzmp, string *end_link); 
  
-  void calcSwingLegCP( BodyPtr m_robot, FootType FT, Vector3 swLegRef_p, Matrix3 tar_R, bool usePivot, string *end_link);
-  
+  void calcSwingLegCP(const BodyPtr m_robot, const FootType& FT,const Vector3& swLegRef_p, const Matrix3& tar_R,
+                      const bool usePivot, const string *end_link);
+
   void setw(double &cm_z_in, double groundHeight=0.0);  // ogawa
   void setZmpOffsetX(double &cm_offset_x);
 
   void getNextCom(Vector3 &cm_ref);
   void setWpgParam(wpgParam param);
-  void NaturalZmp(BodyPtr m_robot, Vector3 &absZMP, string *end_link);
+  void NaturalZmp(const BodyPtr m_robot, Vector3 &absZMP,const string *end_link);
 
   std::deque<Vector3> swingLegTraj;//x y theta
   std::deque<vector2> swLegxy;
   std::deque<double> Trajzd;
   std::deque<Matrix3> swLeg_R;
-  std::deque<Matrix3> rot_pitch;
+  //std::deque<Matrix3> rot_pitch;
+  std::deque<double> rot_pitch;
   std::deque<double> index;
   //for pitch
   std::deque<Vector3> link_b_deque;

@@ -155,7 +155,7 @@ class sony  : public hrp2Base
  private:
   bool playflag;
   bool stopflag;
-  int step_counter;
+  //int step_counter;
 
   bool flagcalczmp;
   int CommandIn;
@@ -168,6 +168,7 @@ class sony  : public hrp2Base
   Vector3 RLEG_ref_p,LLEG_ref_p;
   Matrix3 LEG_ref_R;
   vector6 velobj;
+  //Position dst;
   Link* object_ref;
   double yawTotal;
   Matrix3 rotRTemp;

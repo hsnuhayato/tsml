@@ -235,7 +235,7 @@ RTC::ReturnCode_t hrp2Base::onInitialize()
   return RTC::RTC_OK;
 }
 
-void hrp2Base::updates()
+void hrp2Base::updateInport()
 {
   if(m_mcIn.isNew()){
     m_mcIn.read();
