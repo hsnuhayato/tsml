@@ -32,12 +32,12 @@ class ZmpPlaner {
   //void StopZMP(FootType FT, std::deque<vector2> &rfzmp, int count);
 
   //capture point/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-  void PlanCP(BodyPtr m_robot, FootType FT, Vector3 swLegRef_p, Matrix3 input_ref_R, std::deque<vector2> &rfzmp,
+  void planCP(BodyPtr m_robot, FootType FT, Vector3 swLegRef_p, Matrix3 input_ref_R, std::deque<vector2> &rfzmp,
               bool usePivot, string *end_link, bool ifLastStep = 0);
 
-  void PlanCPstop(BodyPtr m_robot ,FootType FT, Vector3 *p_ref, Matrix3 *R_ref, Vector3 swLegRef_p, Matrix3 input_ref_R, std::deque<vector2> &rfzmp, string *end_link); 
- 
-  void calcSwingLegCP(const BodyPtr m_robot, const FootType& FT,const Vector3& swLegRef_p, const Matrix3& tar_R,
+  void planCPstop(BodyPtr m_robot ,FootType FT, Vector3 *p_ref, Matrix3 *R_ref, Vector3 swLegRef_p, Matrix3 input_ref_R, std::deque<vector2> &rfzmp, string *end_link); 
+  // plan swing leg and COM in z direction
+  void planSwingLeg(const BodyPtr m_robot, const FootType& FT,const Vector3& swLegRef_p, const Matrix3& tar_R,
                       const bool usePivot, const string *end_link);
 
   void setw(double &cm_z_in, double groundHeight=0.0);  // ogawa
@@ -50,6 +50,7 @@ class ZmpPlaner {
   std::deque<Vector3> swingLegTraj;//x y theta
   std::deque<vector2> swLegxy;
   std::deque<double> Trajzd;
+  std::deque<double> groundAirRemainTime;
   std::deque<Matrix3> swLeg_R;
   //std::deque<Matrix3> rot_pitch;
   std::deque<double> rot_pitch;

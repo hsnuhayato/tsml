@@ -97,12 +97,12 @@ void ZmpPlaner::setw(double &cm_z_in, double groundHeight)
   w=sqrt(9.806/cm_z);
   //w= wIn;
 }
-void ZmpPlaner::PlanCP(BodyPtr m_robot, FootType FT, Vector3 swLegRef_p, Matrix3 input_ref_R,
+void ZmpPlaner::planCP(BodyPtr m_robot, FootType FT, Vector3 swLegRef_p, Matrix3 input_ref_R,
                         std::deque<vector2> &rfzmp, bool usePivot, string *end_link, bool ifLastStep)
 {
   matrix22 SwLeg_R, SupLeg_R; //yow only already okla
   // calc swing foot xyz cm_z pivot_b
-  calcSwingLegCP(m_robot, FT, swLegRef_p, input_ref_R, usePivot, end_link);
+  planSwingLeg(m_robot, FT, swLegRef_p, input_ref_R, usePivot, end_link);
 
   vector2 SupLeg_p(MatrixXd::Zero(2,1));
   Vector3 offsetZMP_SupLeg,offsetZMP_SwLeg;
@@ -247,7 +247,7 @@ void ZmpPlaner::PlanCP(BodyPtr m_robot, FootType FT, Vector3 swLegRef_p, Matrix3
 }
 
 //p_ref R_ref swLegRef_p  unused
-void ZmpPlaner::PlanCPstop(BodyPtr m_robot, FootType FT, Vector3 *p_ref, Matrix3 *R_ref,  Vector3 swLegRef_p, Matrix3 input_ref_R, std::deque<vector2> &rfzmp, string *end_link)
+void ZmpPlaner::planCPstop(BodyPtr m_robot, FootType FT, Vector3 *p_ref, Matrix3 *R_ref,  Vector3 swLegRef_p, Matrix3 input_ref_R, std::deque<vector2> &rfzmp, string *end_link)
 {      
   Link* rleg;Link* lleg;
   rleg = m_robot->link(end_link[RLEG]);
@@ -379,11 +379,11 @@ void ZmpPlaner::atan2adjust(double &pre, double &cur)
     
     if(pre > cur ){
       while(fabs(pre - cur)>M_PI)
-	cur+=2*M_PI;
+        cur+=2*M_PI;
     }
     else if(pre < cur ){
       while(fabs(pre - cur)>M_PI)
-	cur-=2*M_PI;
+        cur-=2*M_PI;
     }
     
   }// if(fabs(pre - cur)>M_PI)
@@ -391,14 +391,15 @@ void ZmpPlaner::atan2adjust(double &pre, double &cur)
 }
 
 
-void ZmpPlaner::calcSwingLegCP(const BodyPtr m_robot, const FootType& FT,const Vector3& swLegRef_p, const Matrix3& tar_R,
+void ZmpPlaner::planSwingLeg(const BodyPtr m_robot, const FootType& FT,const Vector3& swLegRef_p, const Matrix3& tar_R,
                                const bool usePivot, const string *end_link)
 { 
-  double zs=0;
+  double zs = 0;
   vector2 zero(MatrixXd::Zero(2,1));
   Vector3 zerov3(MatrixXd::Zero(3,1));
   swLegxy.clear();
   Trajzd.clear();
+  groundAirRemainTime.clear();
   swLeg_R.clear();
   index.clear();
 
@@ -598,17 +599,25 @@ void ZmpPlaner::calcSwingLegCP(const BodyPtr m_robot, const FootType& FT,const V
       }
       Interplation3(swPivotRef_p(2), 0.0,  swPivotRef_p(2), 0.0, Tp, Trajzd);
       //cout<<"sw "<<swLegxy.size()<<endl;
+
+      
 	
       int TsupNum = (int)((Tsup)/dt + NEAR0);
       int TdblNum = (int)((Tdbl)/dt + NEAR0);
       int TpNum = (int)((Tp)/dt +NEAR0 );
-      for(int i=0;i<TdblNum;i++)
+      for(int i=0;i<TdblNum;i++) {
         contactState_deque.push_back(1);
-      for(int i=0;i<TsupNum;i++)
+        groundAirRemainTime.push_back(Tdbl - (i+1)*dt);
+      }
+      for(int i=0;i<TsupNum;i++) {
         contactState_deque.push_back(0);
-      for(int i=0;i<TpNum;i++)
-        contactState_deque.push_back(1);
+        groundAirRemainTime.push_back(Tsup - (i+1)*dt);
 
+      }
+      for(int i=0;i<TpNum;i++) {
+        contactState_deque.push_back(1);
+        groundAirRemainTime.push_back(Tdbl+Tp - (i+1)*dt);
+      }
       //cm_z
       //double cm_z_tgt = lower + cm_z;
       Interplation3(cm_z_cur, 0.0, cm_z_cur , 0.0, Tdbl+Tv, cm_z_deque);
