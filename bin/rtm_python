@@ -2,6 +2,6 @@
 
 #export NS_OPT="-ORBInitRef NameService=corbaloc:iiop:localhost:2809/NameService"
 
-export PYTHONPATH=/home/player/tsml/share/rtm_client:/usr/lib/python2.7/dist-packages:$PYTHONPATH
+export PYTHONPATH=/home/player/tsml/share/rtm_client:/usr/lib/python2.7/dist-packages:/opt/ros/kinetic/lib/python2.7/dist-packages/hrpsys:$PYTHONPATH
 
 python $@
