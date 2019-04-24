@@ -253,6 +253,8 @@ module OpenHRP
       DblArray2 root_rot_compensation_limit;
       /// Whether truncate zmp according to foot support polygon or not
       boolean use_zmp_truncation;
+      /// Cutoff frequency of LPF of force sensor [Hz]
+      double fsensor_cutoff_freq;
     };
 
     /**

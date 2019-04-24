@@ -2,7 +2,8 @@
 #ifndef __KALMANFILTER_SERVICE_H__
 #define __KALMANFILTER_SERVICE_H__
 
-#include "hrpsys/idl/StabilizerService.hh"
+//#include "hrpsys/idl/StabilizerService.hh"
+#include "StabilizerService.hh"
 
 class Stabilizer;
 

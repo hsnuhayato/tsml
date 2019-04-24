@@ -192,6 +192,11 @@ RTC::ReturnCode_t Stabilizer::onInitialize()
     std::cerr << "[" << m_profile.instance_name << " ] force sensor local R\n " <<
       forceSensors[i]->link()->R() << " force sensor local p\n  " <<
       forceSensors[i]->p_local() << std::endl;
+
+    boost::shared_ptr<FirstOrderLowPassFilter<cnoid::Vector6> > filter;
+    filter = boost::shared_ptr<FirstOrderLowPassFilter<cnoid::Vector6> >
+      (new FirstOrderLowPassFilter<cnoid::Vector6> (10.0, dt, cnoid::MatrixXd::Zero(6,1)));
+    sensor_filters.push_back(filter); // [Hz]
   }
 
   // load virtual force sensors
@@ -931,6 +936,9 @@ void Stabilizer::getActualParameters ()
                 << "new_zmp    = " << cnoid::Vector3(tmpnew_refzmp*1e3).format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]"))
                 << ", dif_zmp    = " << cnoid::Vector3((tmpnew_refzmp-ref_zmp)*1e3).format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << "[mm]" << std::endl;
       std::cerr << "[" << m_profile.instance_name << "]   cogvel_cutoff_freq = " << act_cogvel_filter->getCutOffFreq() << "[Hz]" << std::endl;
+      if (forceSensors.size() != 0) {
+        std::cerr << "[" << m_profile.instance_name << "]  fsensor_cutoff_freq = " << sensor_filters.at(0)->getCutOffFreq() << "[Hz]" << std::endl;
+      }
     }
 
     std::vector<std::string> ee_name;
@@ -1044,6 +1052,15 @@ void Stabilizer::getActualParameters ()
         size_t idx = contact_states_index_map[ikp.ee_name];
         ikp.ref_moment = tmp_ref_moment[idx] + ((target->R() * ikp.localCOPPos + target->p()) - (target->R() * ikp.localp + target->p())).cross(tmp_ref_force[idx]);
         ikp.ref_force = tmp_ref_force[idx];
+        cnoid::Vector6 wrench;
+        wrench << m_wrenches[i].data[0], m_wrenches[i].data[1], m_wrenches[i].data[2],m_wrenches[i].data[3], m_wrenches[i].data[4], m_wrenches[i].data[5];
+        wrench = sensor_filters.at(i)->passFilter(wrench);
+        if (i==0) {
+          //std::cout << ikp.target_name << ": " << wrench.format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "    [", "]")) << std::endl;
+        }
+        for (int j=0;j<6;j++) {
+          m_wrenches[i].data[j] = wrench[j];
+        }
         // Actual world frame =>
         cnoid::Vector3 sensor_force = (sensor->link()->R() * sensor->R_local()) * cnoid::Vector3(m_wrenches[i].data[0], m_wrenches[i].data[1], m_wrenches[i].data[2]);
         cnoid::Vector3 sensor_moment = (sensor->link()->R() * sensor->R_local()) * cnoid::Vector3(m_wrenches[i].data[3], m_wrenches[i].data[4], m_wrenches[i].data[5]);
@@ -1884,6 +1901,11 @@ void Stabilizer::sync_2_st ()
     ikp.target_ee_diff_r_filter->reset(cnoid::Vector3::Zero());
     ikp.d_foot_pos = ikp.ee_d_foot_pos = ikp.d_foot_rpy = ikp.ee_d_foot_rpy = cnoid::Vector3::Zero();
   }
+
+  // for (int i=0;i<forceSensors.size();i++) {
+  //   sensor_filters.at(i)->reset(cnoid::MatrixXd::Zero(6,1));
+  // }
+
   if (on_ground) {
     transition_count = -1 * calcMaxTransitionCount();
     control_mode = MODE_ST;
@@ -2107,7 +2129,8 @@ void Stabilizer::getParameter(OpenHRP::StabilizerService::stParam& i_stp)
   }
   for (size_t i = 0; i < stikp.size(); i++) {
       const rats::coordinates cur_ee = rats::coordinates(stikp.at(i).localp, stikp.at(i).localR);
-      OpenHRP::AutoBalancerService::Footstep ret_ee;
+      //OpenHRP::AutoBalancerService::Footstep ret_ee;
+      OpenHRP::StabilizerService::Footstep ret_ee;
       // position
       memcpy(ret_ee.pos, cur_ee.pos.data(), sizeof(double)*3);
       // rotation
@@ -2137,6 +2160,10 @@ void Stabilizer::getParameter(OpenHRP::StabilizerService::stParam& i_stp)
       ilp.reference_gain = stikp[i].reference_gain;
       ilp.manipulability_limit = jpe_v[i]->getManipulabilityLimit();
       ilp.ik_loop_count = stikp[i].ik_loop_count; // size_t -> unsigned short, value may change, but ik_loop_count is small value and value not change
+  }
+
+  if (forceSensors.size() != 0) {
+    i_stp.fsensor_cutoff_freq = sensor_filters.at(0)->getCutOffFreq();
   }
 };
 
@@ -2259,6 +2286,9 @@ void Stabilizer::setParameter(const OpenHRP::StabilizerService::stParam& i_stp)
       stikp[i].target_ee_diff_r_filter->setCutOffFreq(i_stp.eefm_ee_error_cutoff_freq);
       stikp[i].limb_length_margin = i_stp.limb_length_margin[i];
   }
+  if (forceSensors.size() != 0) {
+   sensor_filters.at(0)->setCutOffFreq(i_stp.fsensor_cutoff_freq);
+  }
   setBoolSequenceParam(is_ik_enable, i_stp.is_ik_enable, std::string("is_ik_enable"));
   setBoolSequenceParamWithCheckContact(is_feedback_control_enable, i_stp.is_feedback_control_enable, std::string("is_feedback_control_enable"));
   setBoolSequenceParam(is_zmp_calc_enable, i_stp.is_zmp_calc_enable, std::string("is_zmp_calc_enable"));
@@ -2349,6 +2379,9 @@ void Stabilizer::setParameter(const OpenHRP::StabilizerService::stParam& i_stp)
   szd->print_params(std::string(m_profile.instance_name));
   std::cerr << "[" << m_profile.instance_name << "]   eefm_gravitational_acceleration = " << eefm_gravitational_acceleration << "[m/s^2], eefm_use_force_difference_control = " << (eefm_use_force_difference_control? "true":"false") << ", eefm_use_swing_damping = " << (eefm_use_swing_damping? "true":"false") << std::endl;
   std::cerr << "[" << m_profile.instance_name << "]   eefm_ee_error_cutoff_freq = " << stikp[0].target_ee_diff_p_filter->getCutOffFreq() << "[Hz]" << std::endl;
+  if (forceSensors.size() != 0) {
+    std::cerr << "[" << m_profile.instance_name << "]   fsensor_cutoff_freq = " << sensor_filters.at(0)->getCutOffFreq() << "[Hz]" << std::endl;
+  }
   std::cerr << "[" << m_profile.instance_name << "]  COMMON" << std::endl;
   if (control_mode == MODE_IDLE) {
     st_algorithm = i_stp.st_algorithm;
