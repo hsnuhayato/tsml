@@ -65,27 +65,6 @@ RTC::ReturnCode_t sony::onInitialize()
   m_localEEpos.data.length(6);
 
   RTC::Properties& prop = getProperties();
-
-  /*
-   // setting from conf file
-  // rleg,TARGET_LINK,BASE_LINK,x,y,z,rx,ry,rz,rth #<=pos + rot (axis+angle)
-  coil::vstring end_effectors_str = coil::split(prop["end_effectors"], ",");
-  if (end_effectors_str.size() > 0) {
-    cout<<m_profile.instance_name<<" :load end effect"<<endl;
-    size_t prop_num = 10;
-    size_t num = end_effectors_str.size()/prop_num;
-    int k=0;
-    for (size_t i = 0; i < num; i++){
-      for (size_t j = 0; j < 3; j++){
-        coil::stringTo(m_localEEpos.data[k], end_effectors_str[i*prop_num+3+j].c_str());
-	k++;
-      }
-    }
-    for(int i=0;i<3;i++)
-      pivot_localposIni(i)=m_localEEpos.data[i];
-  }
-  else{cout<<m_profile.instance_name<<" :no end ee"<<endl;}
-  */
   coil::stringTo(halfpos, prop["halfpos"].c_str());
   //prop["halfpos"]>>halfpos;
 
@@ -163,7 +142,7 @@ RTC::ReturnCode_t sony::onInitialize()
   
   cout<<"R\n"<< m_robot->link(end_link[RLEG])->R() << " " <<
     m_robot -> link(end_link[RLEG])->name()<< endl;
-  cout<<"L\n"<< m_robot->link(end_link[LLEG])->R()<<endl;  
+  cout<<"L\n"<< m_robot->link(end_link[LLEG])->R()<<endl;
   
   //Link* TLink=forceSensors[0]->link();
   //Link* TLink=m_robot->link("LLEG_JOINT5");
@@ -276,7 +255,7 @@ RTC::ReturnCode_t sony::onExecute(RTC::UniqueId ec_id)
       double velsqr=pow(velobj(0),2) + pow(velobj(1),2);
       if( velsqr > 64){
       velobj(0)= velobj(0)* 8/ sqrt(velsqr);
-      velobj(1)= velobj(1)* 8/ sqrt(velsqr);    
+      velobj(1)= velobj(1)* 8/ sqrt(velsqr);
       }
     */
   }
@@ -296,19 +275,19 @@ RTC::ReturnCode_t sony::onExecute(RTC::UniqueId ec_id)
   //_/_/_/_/_/_/_/_/_/_/_/_/main algorithm_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
   if (playflag) {
     if (omniWalk) {
-      object_operate();
-      prmGenerator(flagcalczmp);//idle off here
+      calcRefPoint();
+      prmGenerator();//idle off here
       //getnextcom->pop_front CP
-      walkingMotion(m_robot, FT, cm_ref, absZMP, p_Init, p_ref, R_ref, rfzmp, zmpP);
+      getWalkingMotion(m_robot, FT, cm_ref, absZMP, p_Init, p_ref, R_ref, rfzmp, zmpP);
       
       //for next step. set p_ref to p_Init
-      //if  CP empty change leg
+      //if  CP empty change leg. calczmpflag =1 here
       ifChangeSupLeg(m_robot, FT,  zmpP, idle, CommandIn, 
-                     p_ref, p_Init, R_ref, R_Init, flagcalczmp);
+                     p_ref, p_Init, R_ref, R_Init);
     }
     //none omniWalk
     else {
-      walkingMotion(m_robot, FT, cm_ref, absZMP, p_Init, p_ref, R_ref, rfzmp, zmpP);
+      getWalkingMotion(m_robot, FT, cm_ref, absZMP, p_Init, p_ref, R_ref, rfzmp, zmpP);
       ifChangeSupLeg2(m_robot, FT,  zmpP, idle, CommandIn, 
                       p_ref, p_Init, R_ref, R_Init, flagcalczmp);
     }
@@ -394,7 +373,7 @@ inline void sony::rzmp2st()
   m_rzmp.data.x = relZMP[0];
   m_rzmp.data.y = relZMP[1];
   m_rzmp.data.z = relZMP[2];
-  m_rzmpOut.write();  
+  m_rzmpOut.write();
 }
 
 inline void sony::calcWholeIVK()
@@ -412,13 +391,13 @@ inline void sony::calcWholeIVK()
 
   if(usePivot){
     if(CalcIVK_biped_toe(m_robot, cm_ref, p_ref, R_ref, FT, end_link))
-      getInvResult();
+      getIKResult();
     //else
     //cerr<<"ivk err"<<endl;
   }
   else{
     if(CalcIVK_biped(m_robot, cm_ref, p_ref, R_ref, FT, end_link))
-      getInvResult();
+      getIKResult();
     else
       cerr<<"ivk err"<<endl;
   }
@@ -445,19 +424,19 @@ inline void sony::zmpHandler()
   }
 }
 
-inline void sony::getInvResult()
+inline void sony::getIKResult()
 {
  getModelPosture(m_robot, m_refq);
  m_refqOut.write();
 }
 
-inline void sony::object_operate()
+inline void sony::calcRefPoint()
 {
   //by operator
-  Vector3 tep;
+  Vector3 tmp;
   //translation
   //tep<<velobj(0)*0.00005,velobj(1)*0.00005, velobj(2)*0.00005;
-  tep<<velobj(0)*0.00005,velobj(1)*0.00005, 0.0;
+  tmp << velobj(0)*0.00005,velobj(1)*0.00005, 0.0;
 
   //ref////////
   yawTotal+=0.01*velobj(5)*M_PI/180;
@@ -465,20 +444,20 @@ inline void sony::object_operate()
   rotRTemp = rZ*rotRTemp ;
   
   object_ref->R() = rotRTemp;
-  //object_ref->p() = object_ref->p() + rotationZ(yawTotal)*tep; 
-  object_ref->p() = object_ref->p() + rotRTemp*tep; // ogawa
+  //object_ref->p() = object_ref->p() + rotationZ(yawTotal)*tmp;
+  object_ref->p() = object_ref->p() + rotRTemp*tmp; // ogawa
 }
 
 inline void sony::calcRefLeg()
 {
   Matrix3 Rtem_Q=extractYow(object_ref->R());
   //actually in x-y plan only
-  RLEG_ref_p = object_ref->p() + Rtem_Q * p_obj2RLEG; 
+  RLEG_ref_p = object_ref->p() + Rtem_Q * p_obj2RLEG;
   LLEG_ref_p = object_ref->p() + Rtem_Q * p_obj2LLEG;
   LEG_ref_R= Rtem_Q * R_LEG_ini;
 }
 
-inline void sony::prmGenerator(bool &calczmpflag)//this is calcrzmp flag
+inline void sony::prmGenerator()//this is calcrzmp flag
 {
   calcRefLeg();
   //////////////usually obmit when keep walking//////////////////
@@ -488,11 +467,11 @@ inline void sony::prmGenerator(bool &calczmpflag)//this is calcrzmp flag
     if (walkJudge(m_robot, FT, RLEG_ref_p, LLEG_ref_p, LEG_ref_R, end_link) || step) {
       CommandIn=0;//start to walk
       //set Initial zmp to zmpP
-      start2walk(m_robot, zmpP, idle);//idle off
+      resetZmpPlanner();//idle off
      
       //calc trajectory 
       gaitGenerate(FT, p_ref, R_ref, RLEG_ref_p, LLEG_ref_p, LEG_ref_R, rfzmp, zmpP);
-      calczmpflag=0;
+      flagcalczmp = 0;
       /*
       std::cout << "sony : ref rfoot pos = "
 		<< RLEG_ref_p.format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
@@ -505,28 +484,28 @@ inline void sony::prmGenerator(bool &calczmpflag)//this is calcrzmp flag
       */
     }
   }
-  else if(calczmpflag==1){//keep walking start from new leg
+  else if(flagcalczmp == 1){//keep walking start from new leg
     
     if( (!walkJudge(m_robot, FT, RLEG_ref_p, LLEG_ref_p, LEG_ref_R, end_link))&& zmpP->cp_deque.empty() && !step){
       CommandIn=5;
       //cout<<"should stop here"<<endl;
     }
     gaitGenerate(FT, p_ref, R_ref, RLEG_ref_p, LLEG_ref_p, LEG_ref_R, rfzmp, zmpP);
-    calczmpflag=0;
+    flagcalczmp = 0;
   }
 
 }
 
 
 
-void sony::start2walk(BodyPtr m_robot, ZmpPlaner *zmpP, bool &idle)
+void sony::resetZmpPlanner()
 {// this is for FSRF or FSLF
   Vector3 rzmpInit;
   //NaturalZmp(m_robot, rzmpInit, cm_offset_x, end_link);
   zmpP -> NaturalZmp(m_robot, rzmpInit, end_link);
   zmpP -> setInit(rzmpInit);
   
-  idle=0;//comment out when test mode
+  idle = 0;//comment out when test mode
 }
 
 //TODO:RLEG_ref_p LLEG_ref_p only one
@@ -585,7 +564,7 @@ void sony::start2walk(BodyPtr m_robot, ZmpPlaner *zmpP, bool &idle)
     //cout<<"swLegRef_p "<<swLegRef_p<<endl;
     bool ifLastStep = 1;
     zmpP -> planCP(m_robot, FT, SwLeg_p_ref, LEG_ref_R, 
-      rfzmp, usePivot, end_link, ifLastStep); 
+      rfzmp, usePivot, end_link, ifLastStep);
  }
   else {
     //cout<<"CP"<<endl;
@@ -595,7 +574,7 @@ void sony::start2walk(BodyPtr m_robot, ZmpPlaner *zmpP, bool &idle)
 }
 
 // assign all parameter for ik 
-void sony::walkingMotion(BodyPtr m_robot, FootType FT, Vector3 &cm_ref, Vector3 &absZMP,
+void sony::getWalkingMotion(BodyPtr m_robot, FootType FT, Vector3 &cm_ref, Vector3 &absZMP,
                          Vector3 *p_Init, Vector3 *p_ref, Matrix3 *R_ref, std::deque<vector2> &rfzmp, ZmpPlaner *zmpP)
 {
   //capture point 
@@ -608,7 +587,7 @@ void sony::walkingMotion(BodyPtr m_robot, FootType FT, Vector3 &cm_ref, Vector3 
     //p_ref[swingLeg](2)=p_Init[swingLeg][2]+zmpP->Trajzd.at(0);
     p_ref[swingLeg](2) = zmpP->Trajzd.at(0);
     R_ref[swingLeg] = zmpP->swLeg_R.at(0);
-    //zmpP->calcWaistR(FT,  R_ref); 
+    //zmpP->calcWaistR(FT,  R_ref);
     R_ref[WAIST] = zmpP->calcWaistR(FT, m_robot, end_link);
     cm_ref(2) = zmpP->cm_z_deque.at(0);
     //cout<<  FT<<" "<< p_ref[swingLeg](2)<<endl;
@@ -670,7 +649,7 @@ void sony::walkingMotion(BodyPtr m_robot, FootType FT, Vector3 &cm_ref, Vector3 
 
     zmpP -> swLegxy.pop_front();
     zmpP -> Trajzd.pop_front();
-    zmpP -> swLeg_R.pop_front();  
+    zmpP -> swLeg_R.pop_front();
     zmpP -> cm_z_deque.pop_front();
     zmpP -> contactState_deque.pop_front();
     zmpP -> groundAirRemainTime.pop_front();
@@ -683,17 +662,17 @@ void sony::walkingMotion(BodyPtr m_robot, FootType FT, Vector3 &cm_ref, Vector3 
 
 
 void sony::ifChangeSupLeg(BodyPtr m_robot, FootType &FT,  ZmpPlaner *zmpP, bool &idle,
-                          int &CommandIn, Vector3 *p_now, Vector3 *p_Init, Matrix3 *R_now, Matrix3 *R_Init, bool &calczmpflag)
+                          int &CommandIn, Vector3 *p_now, Vector3 *p_Init, Matrix3 *R_now, Matrix3 *R_Init)
 {
   if ((zmpP->cp_deque.empty()) && (!idle)) {
     //cp walking. FSRFsw FSLFsw no foot swing
-    if(FT==FSRFsw||FT==LFsw) FT=RFsw; 
-    else if(FT==FSLFsw||FT==RFsw) FT=LFsw; 
+    if(FT == FSRFsw || FT == LFsw) FT=RFsw;
+    else if(FT == FSLFsw || FT==RFsw) FT=LFsw;
 
     //change leg
     //move updateInit to here
     IniNewStep(m_robot, FT, zmpP, idle, CommandIn, p_ref, p_Init, R_ref, R_Init);
-    calczmpflag = 1;
+    flagcalczmp = 1;
   }
 }
 
@@ -705,9 +684,9 @@ void sony::ifChangeSupLeg2(BodyPtr m_robot, FootType &FT,  ZmpPlaner *zmpP, bool
     if(stepNum>0){
       //cp walking. FSRFsw FSLFsw no foot swing
       if(FT==FSRFsw||FT==LFsw)
-        FT=RFsw; 
+        FT=RFsw;
       else if(FT==FSLFsw||FT==RFsw)
-        FT=LFsw; 
+        FT=LFsw;
 
       //change leg
       IniNewStep(m_robot, FT, zmpP, idle, CommandIn, p_ref, p_Init, R_ref, R_Init);
@@ -750,14 +729,13 @@ void sony::IniNewStep(BodyPtr m_robot, FootType &FT,  ZmpPlaner *zmpP,  bool &id
   updateInit(p_ref, p_Init, R_ref, R_Init);
   //ifstop
   if (CommandIn==5) {
-    idle=1;
+    idle = 1;
        
     if ( FT == RFsw)
       FT = FSRFsw;
     else if(FT == LFsw)
       FT = FSLFsw;
   }
-  //zmpP->stopOper=1;//unused
 }
 
 //_/_/_/_/_/_/_/_/_service port/_//_/_/_/_/_/_/_/_/_/_/_/_/_/_/_  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_   
@@ -954,7 +932,7 @@ void sony::setFootPosR()
     if( idle ){
       std::cout << "setFootPosR : start2walk" << std::endl;
       std::cout << "setFootPosR : stepnum = " << stepNum << std::endl;
-      start2walk(m_robot, zmpP, idle);//idle off
+      resetZmpPlanner();//idle off
     }
     gaitGenerate(FT, p_ref, R_ref, RLEG_ref_p, LLEG_ref_p, LEG_ref_R, rfzmp, zmpP);
    
@@ -983,7 +961,7 @@ void sony::setFootPosL()
   LLEG_ref_p[0]+=0.35;
   LLEG_ref_p[2]=0;
   CommandIn=0;//start to walk
-  start2walk(m_robot, zmpP, idle);//idle off
+  resetZmpPlanner();//idle off
   //use LEG_ref_p as cur status.
   gaitGenerate(FT, p_ref, R_ref, RLEG_ref_p, LLEG_ref_p, LEG_ref_R, rfzmp, zmpP);
  
@@ -1026,7 +1004,7 @@ void sony::setFootPosR(double x, double y, double z, double r, double p, double 
     if( idle ){
       std::cout << "setFootPosR : start2walk" << std::endl;
       std::cout << "setFootPosR : stepnum = " << stepNum << std::endl;
-      start2walk(m_robot, zmpP, idle);//idle off
+      resetZmpPlanner();//idle off
     }
     gaitGenerate(FT, p_ref, R_ref, RLEG_ref_p, LLEG_ref_p, LEG_ref_R, rfzmp, zmpP);
     stepNum = 2;
@@ -1065,7 +1043,7 @@ void sony::setFootPosL(double x, double y, double z, double r, double p, double 
     if (idle) {
       std::cout << "setFootPosL : start2walk" << std::endl;
       std::cout << "setFootPosL : stepnum = " << stepNum << std::endl;
-      start2walk(m_robot, zmpP, idle);//idle off
+      resetZmpPlanner();//idle off
     }
     gaitGenerate(FT, p_ref, R_ref, RLEG_ref_p, LLEG_ref_p, LEG_ref_R, rfzmp, zmpP);
     stepNum = 2;
@@ -1134,7 +1112,7 @@ void sony::testMove()
   //for new halfpos
   update_model(m_robot, body_ref, FT, end_link, dof);
   RenewModel(m_robot, p_now, R_now, end_link);
-  cm_ref=m_robot->calcCenterOfMass(); 
+  cm_ref=m_robot->calcCenterOfMass();
  
   body_ref(21) =  deg2rad(-97.2);
   body_ref(34) =  deg2rad(-97.2);
@@ -1254,7 +1232,7 @@ Interplation5(body_cur,  zero,  zero, body_ref,  zero,  zero, 5, bodyDeque);
   // update_model(m_robot, m_mc, FT, end_link);
   // RenewModel(m_robot, p_ref, R_ref, end_link);
   // m_robot->calcForwardKinematics();
-  // cm_ref = m_robot->calcCenterOfMass(); 
+  // cm_ref = m_robot->calcCenterOfMass();
   // R_ref[WAIST]=Eigen::MatrixXd::Identity(3,3);
   // //cm_ref(0)+=0.03;
 

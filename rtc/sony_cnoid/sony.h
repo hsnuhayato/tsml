@@ -87,15 +87,15 @@ class sony  : public hrp2Base
   inline void rzmp2st();
   inline void calcWholeIVK();
   inline void zmpHandler();
-  inline void getInvResult();
-  inline void object_operate();
+  inline void getIKResult();
+  inline void calcRefPoint();
   inline void calcRefLeg();
-  inline void prmGenerator(bool &calczmpflag);
-  void start2walk(BodyPtr m_robot, ZmpPlaner *zmpP, bool &idle);
+  inline void prmGenerator();
+  void resetZmpPlanner();
   void gaitGenerate(FootType FT, Vector3 *p_ref, Matrix3 *R_ref, Vector3 RLEG_ref_p, Vector3 LLEG_ref_p, Matrix3 LEG_ref_R, std::deque<vector2> &rfzmp, ZmpPlaner *zmpP);
-  void walkingMotion(BodyPtr m_robot, FootType FT, Vector3 &cm_ref, Vector3 &absZMP, Vector3 *p_Init, Vector3 *p_ref, Matrix3 *R_ref, std::deque<vector2> &rfzmp,  ZmpPlaner *zmpP);  
+  void getWalkingMotion(BodyPtr m_robot, FootType FT, Vector3 &cm_ref, Vector3 &absZMP, Vector3 *p_Init, Vector3 *p_ref, Matrix3 *R_ref, std::deque<vector2> &rfzmp,  ZmpPlaner *zmpP);  
   
-  void ifChangeSupLeg(BodyPtr m_robot, FootType &FT,  ZmpPlaner *zmpP, bool &idle, int &CommandIn, Vector3 *p_now, Vector3 *p_Init, Matrix3 *R_now, Matrix3 *R_Init, bool &calczmpflag);
+  void ifChangeSupLeg(BodyPtr m_robot, FootType &FT,  ZmpPlaner *zmpP, bool &idle, int &CommandIn, Vector3 *p_now, Vector3 *p_Init, Matrix3 *R_now, Matrix3 *R_Init);
   
   void ifChangeSupLeg2(BodyPtr m_robot, FootType &FT,  ZmpPlaner *zmpP, bool &idle, int &CommandIn, Vector3 *p_now, Vector3 *p_Init, Matrix3 *R_now, Matrix3 *R_Init, bool &calczmpflag);
   

@@ -218,7 +218,7 @@ class JVRC(HrpsysConfigurator):
         self.wpg_svc.start()
 
     def stepping(self):
-        raw_input('>>stepping? ')
+        #raw_input('>>stepping? ')
         self.wpg_svc.stepping()
 
     def set_pos_damping_gain(self, x, y, z):
@@ -247,6 +247,14 @@ class JVRC(HrpsysConfigurator):
         stp.eefm_body_attitude_control_gain = [gain, gain]
         stp.eefm_body_attitude_control_time_const = [time_const, time_const]
         self.st_svc.setParameter(stp)
+
+    def set_fsensor_cutoffFreq(self, f):
+        stp = self.st_svc.getParameter()
+        stp.fsensor_cutoff_freq = f
+        self.st_svc.setParameter(stp)
+
+    def set_vel(self, x, y, th):
+        self.wpg_svc.setObjectV(x, y, 0, 0, 0, th)
 #############################################    
 def main():
     global hcf
@@ -260,10 +268,19 @@ def main():
     #bush
     # hcf.set_rot_damping_gain(25, 25, 1)
     # hcf.set_rot_time_const(0.02)
-    hcf.set_rot_damping_gain(1000, 1000, 1)
-    hcf.set_rot_time_const(0.01)
-    hcf.set_eefm_body_params(0, 1e5)
-    raw_input('>>start ST? ')
+    #hcf.set_rot_damping_gain(1000, 1000, 1)
+    # hcf.set_rot_damping_gain(100, 100, 1)
+    # hcf.set_rot_time_const(0.01)
+    # hcf.set_eefm_body_params(0, 1e5)
+
+    hcf.set_pos_damping_gain(1e9,1e9,11400)
+    hcf.set_pos_time_const_support(0.02)
+    hcf.set_rot_damping_gain(2250, 2250, 1e9)
+    hcf.set_rot_time_const(0.02)
+    hcf.set_eefm_body_params(0.07, 0.04)
+
+    hcf.set_fsensor_cutoffFreq(5)
+    #raw_input('>>start ST? ')
     hcf.st_svc.startStabilizer()
     hcf.stepping()
     

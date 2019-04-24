@@ -37,12 +37,6 @@ ZmpPlaner::ZmpPlaner()
 
   //capture point init
   cp<<0.0, 0.0;
-
-
-  std::cout<<"zmpplaner "<<std::endl;
-  stopOper=1;
-
-  
 }
  
 void ZmpPlaner::setWpgParam(wpgParam param)

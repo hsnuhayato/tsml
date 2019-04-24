@@ -64,7 +64,6 @@ class ZmpPlaner {
   double offsetZMPx;
   double offsetZMPy;
   double offsetZMPy_stepping;
-  bool stopOper;
  
   int beforeUpNum;
   double Tsup;
