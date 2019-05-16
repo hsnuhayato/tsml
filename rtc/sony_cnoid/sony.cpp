@@ -147,15 +147,14 @@ RTC::ReturnCode_t sony::onInitialize()
   //Link* TLink=forceSensors[0]->link();
   //Link* TLink=m_robot->link("LLEG_JOINT5");
   //for joystick
-  buttom_accept=true;
-
+  buttom_accept = true;
 
   Eigen::MatrixXd zero(Eigen::MatrixXd::Zero(dof,1));
-  body_cur=MatrixXd::Zero(dof,1);
-  body_ref=MatrixXd::Zero(dof,1);
+  body_cur = MatrixXd::Zero(dof,1);
+  body_ref = MatrixXd::Zero(dof,1);
 
   m_mc.data.length(dof);
-  for(int i=0;i<dof;i++)
+  for (int i=0; i<dof; i++)
     m_mc.data[i] = 0.0;
 
   return RTC::RTC_OK;
@@ -220,18 +219,19 @@ RTC::ReturnCode_t sony::onExecute(RTC::UniqueId ec_id)
   if (0) { //for using blutooth keyboad
     m_axesIn.read();
 
-    velobj(0)=m_axes.data[1]*-20;
-    velobj(1)=m_axes.data[0]*-2.5;
-    velobj(5)=m_axes.data[2]*-3;
+    velobj(0) = m_axes.data[1] * -20;
+    velobj(1) = m_axes.data[0] * -2.5;
+    velobj(5) = m_axes.data[2] * -3;
   
     //wireless
-    if(omniWalk){
-      if(m_axes.data[17]>=0.1){//o buttom
+    if (omniWalk) {
+      if(m_axes.data[17] >= 0.1) {//o buttom
         step=1;
         playflag=1;
       }
-      else if(m_axes.data[18]>=0.1)//x burrom
+      else if(m_axes.data[18] >= 0.1) {//x burrom
         step=0;
+      }
     }
     
     //head
@@ -260,7 +260,7 @@ RTC::ReturnCode_t sony::onExecute(RTC::UniqueId ec_id)
     */
   }
   
-  if(m_buttonsIn.isNew()){
+  if (m_buttonsIn.isNew()) {
     m_buttonsIn.read();
     //cout<<"buttom is new"<<endl;
     /*
@@ -281,7 +281,8 @@ RTC::ReturnCode_t sony::onExecute(RTC::UniqueId ec_id)
       getWalkingMotion(m_robot, FT, cm_ref, absZMP, p_Init, p_ref, R_ref, rfzmp, zmpP);
       
       //for next step. set p_ref to p_Init
-      //if  CP empty change leg. calczmpflag =1 here
+      //if CP empty change leg. calczmpflag =1 here
+      // if cp empty and commandIn==5 idle=1
       ifChangeSupLeg(m_robot, FT,  zmpP, idle, CommandIn, 
                      p_ref, p_Init, R_ref, R_Init);
     }
@@ -439,7 +440,7 @@ inline void sony::calcRefPoint()
   tmp << velobj(0)*0.00005,velobj(1)*0.00005, 0.0;
 
   //ref////////
-  yawTotal+=0.01*velobj(5)*M_PI/180;
+  yawTotal += 0.01 * velobj(5) * M_PI/180;
   Matrix3 rZ(rotationZ( 0.01*velobj(5)*M_PI/180));
   rotRTemp = rZ*rotRTemp ;
   
@@ -469,18 +470,18 @@ inline void sony::prmGenerator()//this is calcrzmp flag
       //set Initial zmp to zmpP
       resetZmpPlanner();//idle off
      
-      //calc trajectory 
+      //calc trajectory
       gaitGenerate(FT, p_ref, R_ref, RLEG_ref_p, LLEG_ref_p, LEG_ref_R, rfzmp, zmpP);
       flagcalczmp = 0;
       /*
       std::cout << "sony : ref rfoot pos = "
-		<< RLEG_ref_p.format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
+      << RLEG_ref_p.format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
       std::cout << "sony : ref lfoot pos = "
-		<< LLEG_ref_p.format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
+      << LLEG_ref_p.format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
       std::cout << "sony : p_ref[RLEG] = "
-		<< p_ref[RLEG].format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
+      << p_ref[RLEG].format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
       std::cout << "sony : p_ref[LLEG] = "
-		<< p_ref[LLEG].format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
+      << p_ref[LLEG].format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
       */
     }
   }
@@ -490,6 +491,7 @@ inline void sony::prmGenerator()//this is calcrzmp flag
       CommandIn=5;
       //cout<<"should stop here"<<endl;
     }
+    // if commandin==5 planstop 
     gaitGenerate(FT, p_ref, R_ref, RLEG_ref_p, LLEG_ref_p, LEG_ref_R, rfzmp, zmpP);
     flagcalczmp = 0;
   }
@@ -605,10 +607,10 @@ void sony::getWalkingMotion(BodyPtr m_robot, FootType FT, Vector3 &cm_ref, Vecto
       T.translation() = Vector3(zmpP->link_b_deque.at(0));
       if ((FT==FSRFsw) || (FT==RFsw)) {
         pt_R -> setOffsetPosition(T);
-	
+
         //for(int i=0;i<3;i++)//right end effect
         //m_localEEpos.data[i]=T.translation()(i);
-	
+
       }
       else if ((FT==FSLFsw) || (FT==LFsw)) {
         pt_L -> setOffsetPosition(T);

@@ -736,12 +736,11 @@ void ZmpPlaner::StopZMP(FootType FT,  std::deque<vector2> &rfzmp, int count)
     rfzmp.erase(itr+1,rfzmp.end());    
    
     for(int i=0;i<reInpoNum;i++)
-	rfzmp.push_back(vector2tem);
+    rfzmp.push_back(vector2tem);
     stopOper=0;
     //log
     //for(itr=rfzmp.begin();itr<rfzmp.end();itr++)
-    //  	ofszmp<< (*itr)[0]<<" "<<(*itr)[1] <<endl; 
-	
+    //  ofszmp<< (*itr)[0]<<" "<<(*itr)[1] <<endl;
     }
     
 }

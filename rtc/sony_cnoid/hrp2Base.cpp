@@ -190,7 +190,7 @@ RTC::ReturnCode_t hrp2Base::onInitialize()
   //Link* TLink=forceSensors[0]->link();
   //Link* TLink=m_robot->link("LLEG_JOINT5");
   RateGyroSensor* sen = RateGyroSensors[0];
-  cout << "GG "<< sen->link()->name() << endl;
+  cout << "Gyro in link: "<< sen->link()->name() << endl;
 
   // Isometry3 local;
   // local.linear() = AccelSensors[0] -> R_local();
