@@ -61,19 +61,19 @@ void sonyService_impl::stop()
   m_comp->stop();
 }
 
-void sonyService_impl::omniWalkSwitch()
+void sonyService_impl::freeWalkSwitch()
 {
-  m_comp->omniWalkSwitch();
+  m_comp->freeWalkSwitch();
 }
 
-void sonyService_impl::omniWalkSwitchOn()
+void sonyService_impl::freeWalkSwitchOn()
 {
-  m_comp->omniWalkSwitchOn();
+  m_comp->freeWalkSwitchOn();
 }
 
-void sonyService_impl::omniWalkSwitchOff()
+void sonyService_impl::freeWalkSwitchOff()
 {
-  m_comp->omniWalkSwitchOff();
+  m_comp->freeWalkSwitchOff();
 }
 
 void sonyService_impl::setFootPosR(double x, double y, double z, double r, double p, double w)

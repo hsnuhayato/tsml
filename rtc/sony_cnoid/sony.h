@@ -86,21 +86,21 @@ class sony  : public hrp2Base
   //function
   inline void rzmp2st();
   inline void calcWholeIVK();
-  inline void zmpHandler();
+  inline void calcRefZMP();
   inline void getIKResult();
   inline void calcRefPoint();
   inline void calcRefLeg();
   inline void prmGenerator();
   void resetZmpPlanner();
   void gaitGenerate(FootType FT, Vector3 *p_ref, Matrix3 *R_ref, Vector3 RLEG_ref_p, Vector3 LLEG_ref_p, Matrix3 LEG_ref_R, std::deque<vector2> &rfzmp, ZmpPlaner *zmpP);
-  void getWalkingMotion(BodyPtr m_robot, FootType FT, Vector3 &cm_ref, Vector3 &absZMP, Vector3 *p_Init, Vector3 *p_ref, Matrix3 *R_ref, std::deque<vector2> &rfzmp,  ZmpPlaner *zmpP);  
+  void getWalkingMotion();  
   
-  void ifChangeSupLeg(BodyPtr m_robot, FootType &FT,  ZmpPlaner *zmpP, bool &idle, int &CommandIn, Vector3 *p_now, Vector3 *p_Init, Matrix3 *R_now, Matrix3 *R_Init);
+  void ifChangeSupLeg();
   
-  void ifChangeSupLeg2(BodyPtr m_robot, FootType &FT,  ZmpPlaner *zmpP, bool &idle, int &CommandIn, Vector3 *p_now, Vector3 *p_Init, Matrix3 *R_now, Matrix3 *R_Init, bool &calczmpflag);
+  // void ifChangeSupLeg2(BodyPtr m_robot, FootType &FT,  ZmpPlaner *zmpP, bool &idle, int &CommandIn, Vector3 *p_now, Vector3 *p_Init, Matrix3 *R_now, Matrix3 *R_Init, bool &calczmpflag);
   
 
-  void IniNewStep(BodyPtr m_robot, FootType &FT, ZmpPlaner *zmpP, bool &idle, int &CommandIn, Vector3 *p_ref, Vector3 *p_Init, Matrix3 *R_ref, Matrix3 *R_Init);
+  void IniNewStep();
 
   //service port
   void start();
@@ -108,9 +108,9 @@ class sony  : public hrp2Base
   void stepping();
   void setObjectV(double x, double y, double z, double roll, double pitch, double yaw);
   void stop();
-  void omniWalkSwitch();
-  void omniWalkSwitchOn();
-  void omniWalkSwitchOff();
+  void freeWalkSwitch();
+  void freeWalkSwitchOn();
+  void freeWalkSwitchOff();
 
   void setFootPosR();
   void setFootPosL();
@@ -153,7 +153,7 @@ class sony  : public hrp2Base
   // </rtc-template>
 
  private:
-  bool playflag;
+  bool active_control_loop;
   bool idle;
   //int step_counter;
 
@@ -205,8 +205,10 @@ class sony  : public hrp2Base
   int stepNum;
   int neutralTime;
   bool initialized;
-  bool omniWalk;
+  bool freeWalk;
   bool stopSequence;
+
+  enum PatternType {NORMAL, STOP} pattern;
 
   std::ofstream ofs; // ogawa
 };
