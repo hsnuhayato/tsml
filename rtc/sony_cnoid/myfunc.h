@@ -183,9 +183,8 @@ void adjust_M_PI(double &v);
 void atan2adjust(Vector3 &pre, Vector3 &cur);
 
 
-bool CalcIVK_biped(BodyPtr body, Vector3& CM_p, Vector3 *p_ref, Matrix3 *R_ref, FootType FT, string *end_link);
-
-void CalJo_biped(BodyPtr body, FootType FT, Eigen::MatrixXd& out_J, string *end_link);
+bool CalcIVK_biped(const BodyPtr body, const Vector3& CM_p, const Position* pose_ref, const FootType& FT, const string *end_link);
+void CalJo_biped(const BodyPtr body, const FootType& FT, Eigen::MatrixXd& out_J, const string *end_link);
 
 
 bool CalcIVK_biped_toe(const BodyPtr body,const Vector3& CM_p, const Position* pose_ref, const FootType& FT, const string *end_link);

@@ -587,7 +587,7 @@ void atan2adjust(Vector3 &pre, Vector3 &cur)
 }
 
 
-bool CalcIVK_biped(BodyPtr body, Vector3& CM_p, Vector3 *p_ref, Matrix3 *R_ref, FootType FT, string *end_link)
+bool CalcIVK_biped(const BodyPtr body, const Vector3& CM_p, const Position* pose_ref, const FootType& FT, const string *end_link)
 {
   Link* SupLeg;
   Link* SwLeg;
@@ -649,9 +649,9 @@ bool CalcIVK_biped(BodyPtr body, Vector3& CM_p, Vector3 *p_ref, Matrix3 *R_ref, 
       ///
 
       Vector3 CM_dp=CM_p- body->calcCenterOfMass();// + body->link("LLEG_JOINT5")->p);
-      Vector3 W_omega=W_R* omegaFromRot(W_R.transpose() * R_ref[WAIST]);
-      Vector3 SW_dp =p_ref[swingLegId] - SwLeg_p;
-      Vector3 SW_omega = SwLeg_R* omegaFromRot(SwLeg_R.transpose() * R_ref[swingLegId]);
+      Vector3 W_omega=W_R* omegaFromRot(W_R.transpose() * pose_ref[WAIST].linear());
+      Vector3 SW_dp =pose_ref[swingLegId].translation() - SwLeg_p;
+      Vector3 SW_omega = SwLeg_R* omegaFromRot(SwLeg_R.transpose() * pose_ref[swingLegId].linear());
      
       //v<< CM_dp, W_omega, SW_dp, SW_omega;
       v.head<3>()=CM_dp;
@@ -721,7 +721,7 @@ bool CalcIVK_biped(BodyPtr body, Vector3& CM_p, Vector3 *p_ref, Matrix3 *R_ref, 
 
 
 //////ivk_jacobian/////////
-void CalJo_biped(BodyPtr body, FootType FT, Eigen::MatrixXd& out_J, string *end_link)
+void CalJo_biped(const BodyPtr body, const FootType& FT, Eigen::MatrixXd& out_J, const string *end_link)
 { 
   Link* SupLeg;
   Link* SwLeg;

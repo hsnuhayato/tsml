@@ -1102,53 +1102,40 @@ void sony::testMove()
   Interplation5(body_cur,  zero,  zero, body_ref,  zero,  zero, 3, bodyDeque_p);
   */
 
-
-    /*
-////////////////////////////////////////
-m_robot->calcForwardKinematics();
-update_model(m_robot, m_mc, FT, end_link);
-RenewModel(m_robot, p_now, R_now, end_link);
-cm_ref=m_robot->calcCenterOfMass(); 
-//for expos
-for(int i=0;i<LINKNUM;i++){
-p_ref[i]=p_now[i];
-R_ref[i]=R_now[i];
-}
-R_ref[WAIST]=Eigen::MatrixXd::Identity(3,3);
-//cm_ref(0)+=0.03;
-
-cm_ref(0)=m_robot->link(end_link[RLEG])->p()(0)+0.015;
-//cm_ref(0)=m_robot->link(end_link[RLEG])->p()(0)+0.03;  // JVRC
-
-cm_ref(0)=m_robot->link(end_link[RLEG])->p()(0)+cm_offset_x;
-
-if(CalcIVK_biped(m_robot, cm_ref, p_ref, R_ref, FT, end_link)){
-cout<<"okok"<<endl;
-for(unsigned int i=0;i<dof;i++){
-m_mc.data[i]=body_ref(i)=m_robot->joint(i)->q();
-cout<<body_ref(i)<<", ";
-}
-cout<<endl;
-}
-else
-cout<<"ivk error"<<endl;
-
-  
-  
-Interplation5(body_cur,  zero,  zero, body_ref,  zero,  zero, 5, bodyDeque);
-  //Interplation3(body_cur, zero, body_ref, zero, 5, bodyDeque);
- 
-  m_robot->calcForwardKinematics();
-  update_model(m_robot, m_mc, FT, end_link);
-  RenewModel(m_robot, p_now, R_now, end_link);
-  //for expos
-  for(int i=0;i<LINKNUM;i++){
-    p_ref[i]=p_now[i];
-    R_ref[i]=R_now[i];
+  ////////////////////////////////////////
+  for (int i=0; i<dof; i++) {
+    m_mc.data[i] = m_robot->joint(i)->q() = body_ref(i);
   }
-  R_ref[WAIST]=Eigen::MatrixXd::Identity(3,3);
+  update_model(m_robot, m_mc, FT, end_link);
+  get_end_link_pose(pose_now, m_robot, end_link);
+  cm_ref = m_robot->calcCenterOfMass(); 
+  pose_now[WAIST].linear()=Eigen::MatrixXd::Identity(3,3);
+  //cm_ref(0)=m_robot->link(end_link[RLEG])->p()(0)+0.03;  // JVRC
+  cm_ref(0) = m_robot -> link(end_link[RLEG]) -> p()(0) + cm_offset_x;
+
+  if (CalcIVK_biped(m_robot, cm_ref, pose_now, FT, end_link)) {
+    cout<<"okok"<<endl;
+    for(unsigned int i=0;i<dof;i++){
+      body_ref(i) = m_robot->joint(i)->q();
+      cout<<body_ref(i)<<", ";
+    }
+    cout<<endl;
+  }
+  else
+    cout<<"ivk error"<<endl;
+
+ 
+  // m_robot->calcForwardKinematics();
+  // update_model(m_robot, m_mc, FT, end_link);
+  // RenewModel(m_robot, p_now, R_now, end_link);
+  // //for expos
+  // for(int i=0;i<LINKNUM;i++){
+  //   p_ref[i]=p_now[i];
+  //   R_ref[i]=R_now[i];
+  // }
+  // R_ref[WAIST]=Eigen::MatrixXd::Identity(3,3);
   //////////////////////////////////////////////////
-  */
+
 
   //Interplation5(body_cur,  zero,  zero, body_ref,  zero,  zero, 3, bodyDeque);
 
