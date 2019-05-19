@@ -164,11 +164,6 @@ RTC::ReturnCode_t hrp2Base::onInitialize()
 
   get_end_link_pose(pose_now,  m_robot, end_link);
   get_end_link_pose(pose_init, m_robot, end_link);
-  //copy_poses(pose_init, pose_now);
-  
-  //to be depricated
-  RenewModel(m_robot, p_now, R_now, end_link);
-  updateInit(p_now, p_Init, R_now, R_Init);
   //////////
   
   m_robot -> calcCenterOfMass();
@@ -240,15 +235,6 @@ void hrp2Base::updateInport()
   if(m_mcIn.isNew()){
     m_mcIn.read();
   }
-  /*
-  if(m_mcIn.isNew()){
-    m_mcIn.read();
-    for(unsigned int i=0;i<m_mc.data.length();i++)
-      m_refq.data[i]=m_mc.data[i];
-    setModelPosture(m_robot, m_mc, FT, p_Init, R_Init);
-    //RenewModel(m_robot, p_now, R_now);
-  } 
-  */
   if( m_rhsensorIn.isNew() ) 
     m_rhsensorIn.read();
   if( m_lhsensorIn.isNew() ) 

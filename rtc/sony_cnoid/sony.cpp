@@ -91,8 +91,6 @@ RTC::ReturnCode_t sony::onInitialize()
   //pini
   active_control_loop = 0;
   idle = 1;
-  //step_counter = 0;
-  //cm_offset_x=0.015;
   coil::stringTo(cm_offset_x, prop["cm_offset_x"].c_str());
 
   absZMP << m_robot->link(end_link[RLEG])->p()(0) + cm_offset_x, 0.0, 0.0;
@@ -213,8 +211,7 @@ RTC::ReturnCode_t sony::onExecute(RTC::UniqueId ec_id)
       calcRefZMP();
 
       // for next step. set p_ref to p_Init
-      // if CP empty change leg. calczmpflag =1 here
-      // if cp empty and commandIn==5 idle=1
+      // if cp empty and pattern==STOP idle=1
       ifChangeSupLeg();
     }
     // //none freeWalk
@@ -228,7 +225,7 @@ RTC::ReturnCode_t sony::onExecute(RTC::UniqueId ec_id)
     m_basePos.data.x = m_robot->rootLink()->p()(0);
     m_basePos.data.y = m_robot->rootLink()->p()(1);
     m_basePos.data.z = m_robot->rootLink()->p()(2);
-    Vector3 rpy = R_ref[WAIST].eulerAngles(2, 1, 0);
+    Vector3 rpy = pose_ref[WAIST].linear().eulerAngles(2, 1, 0);
     //m_baseRpy.data.r=rpy(2);
     //m_baseRpy.data.p=rpy(1);
     m_baseRpy.data.r = 0.0;
@@ -292,7 +289,7 @@ inline void sony::rzmp2st()
   //std::cout << "abs zmp = " << absZMP.format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
   // std::cout << "waist p = " << m_robot->link(end_link[WAIST])->p().format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
 
-  relZMP = R_ref[WAIST].transpose()*(absZMP - m_robot->link(end_link[WAIST])->p());
+  relZMP = pose_ref[WAIST].linear().transpose()*(absZMP - m_robot->link(end_link[WAIST])->p());
   //for(int i=0;i< m_rzmp.data.length();i++)
   //  m_rzmp.data[i]=relZMP[i];    
   m_rzmp.data.x = relZMP[0];
@@ -303,7 +300,6 @@ inline void sony::rzmp2st()
 
 inline void sony::calcWholeIVK()
 {
-  
   // ogawa
   if((FT==FSRFsw)||(FT==RFsw)){
     //std::cout << p_ref[RLEG].format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
@@ -315,17 +311,17 @@ inline void sony::calcWholeIVK()
   
 
   if(usePivot){
-    if(CalcIVK_biped_toe(m_robot, cm_ref, p_ref, R_ref, FT, end_link))
+    if (CalcIVK_biped_toe(m_robot, cm_ref, pose_ref, FT, end_link)) {
       getIKResult();
-    //else
-    //cerr<<"ivk err"<<endl;
+    }
+    //else { cerr<<"ivk err"<<endl;}
   }
-  else{
-    if(CalcIVK_biped(m_robot, cm_ref, p_ref, R_ref, FT, end_link))
-      getIKResult();
-    else
-      cerr<<"ivk err"<<endl;
-  }
+  // else{
+  //   if(CalcIVK_biped(m_robot, cm_ref, p_ref, R_ref, FT, end_link))
+  //     getIKResult();
+  //   else
+  //     cerr<<"ivk err"<<endl;
+  // }
 
 }
 
@@ -395,7 +391,7 @@ inline void sony::prmGenerator()//this is calcrzmp flag
       resetZmpPlanner();//idle off
      
       //calc trajectory
-      gaitGenerate(FT, p_ref, R_ref, RLEG_ref_p, LLEG_ref_p, LEG_ref_R, rfzmp, zmpP);
+      gaitGenerate();
       flagcalczmp = 0;
       /*
       std::cout << "sony : ref rfoot pos = "
@@ -416,7 +412,7 @@ inline void sony::prmGenerator()//this is calcrzmp flag
       //cout<<"should stop here"<<endl;
     }
     // if pattern == STOP planstop 
-    gaitGenerate(FT, p_ref, R_ref, RLEG_ref_p, LLEG_ref_p, LEG_ref_R, rfzmp, zmpP);
+    gaitGenerate();
     flagcalczmp = 0;
   }
 
@@ -494,9 +490,7 @@ void sony::resetZmpPlanner()
 
 //TODO:RLEG_ref_p LLEG_ref_p only one
 // generate refzmp cm_z cp swingLeg trajectory pivot_b
- void sony::gaitGenerate(FootType FT, Vector3 *p_ref, Matrix3 *R_ref,
-                         Vector3 RLEG_ref_p, Vector3 LLEG_ref_p,
-                         Matrix3 LEG_ref_R, std::deque<vector2> &rfzmp, ZmpPlaner *zmpP) {
+ void sony::gaitGenerate() {
   // Vector3  swLegRef_p;
   // if((FT==FSRFsw)||(FT==RFsw)){
   //   swLegRef_p = RLEG_ref_p;
@@ -543,7 +537,7 @@ void sony::resetZmpPlanner()
   else if (pattern == STOP) {
     //cout<<FT<<" CPstop"<<endl;
     //cout<<"swLegRef_p "<<swLegRef_p<<endl;
-    zmpP -> planCPstop(m_robot, FT, p_ref, R_ref, SwLeg_p_ref, LEG_ref_R, rfzmp, end_link);
+    zmpP -> planCPstop(m_robot, FT, LEG_ref_R, rfzmp, end_link);
   }
     
   // else if(CommandIn==2){
@@ -564,13 +558,13 @@ void sony::getWalkingMotion()
   //swingLeg nomal mode
   if (!zmpP->swLegxy.empty()) {
     int swingLeg = swLeg(FT);
-    p_ref[swingLeg](0) = zmpP->swLegxy.at(0)[0];
-    p_ref[swingLeg](1) = zmpP->swLegxy.at(0)[1];
+    pose_ref[swingLeg].translation()(0) = zmpP->swLegxy.at(0)[0];
+    pose_ref[swingLeg].translation()(1) = zmpP->swLegxy.at(0)[1];
     //p_ref[swingLeg](2)=p_Init[swingLeg][2]+zmpP->Trajzd.at(0);
-    p_ref[swingLeg](2) = zmpP->Trajzd.at(0);
-    R_ref[swingLeg] = zmpP->swLeg_R.at(0);
+    pose_ref[swingLeg].translation()(2) = zmpP->Trajzd.at(0);
+    pose_ref[swingLeg].linear() = zmpP->swLeg_R.at(0);
     //zmpP->calcWaistR(FT,  R_ref);
-    R_ref[WAIST] = zmpP->calcWaistR(FT, m_robot, end_link);
+    pose_ref[WAIST].linear() = zmpP->calcWaistR(FT, m_robot, end_link);
     cm_ref(2) = zmpP->cm_z_deque.at(0);
     //cout<<  FT<<" "<< p_ref[swingLeg](2)<<endl;
     /////////toe mode////////////
@@ -601,7 +595,7 @@ void sony::getWalkingMotion()
       if (fabs(zmpP->rot_pitch.at(0)) < 1e-3) {
         pivot_rot_swLeg = 1;
       }
-      R_ref[swingLeg] = zmpP->swLeg_R.at(0) * rotationY(zmpP->rot_pitch.at(0));
+      pose_ref[swingLeg].linear() = zmpP->swLeg_R.at(0) * rotationY(zmpP->rot_pitch.at(0));
       zmpP -> link_b_deque.pop_front();
       zmpP -> rot_pitch.pop_front();
     } 
@@ -705,9 +699,9 @@ void sony::ifChangeSupLeg()
 // }
   
 void sony::IniNewStep() {
-  //copy_poses(pose_init, pose_ref);
   //p_ref >> p_Init
-  updateInit(p_ref, p_Init, R_ref, R_Init);
+  copy_poses(pose_init, pose_ref);
+
   //ifstop
   if (pattern == STOP) {
     idle = 1;
@@ -733,8 +727,6 @@ void sony::start()//todo change to initialize_wpg
   update_model(m_robot, m_mc, FT, end_link);
   
   get_end_link_pose(pose_now, m_robot, end_link);
-  //todo to be depricated
-  RenewModel(m_robot, p_now, R_now, end_link);
 
   cm_ref = m_robot -> calcCenterOfMass();// 
   cout<<"sony: cm "<<cm_ref<<endl;
@@ -745,20 +737,7 @@ void sony::start()//todo change to initialize_wpg
   //for expos
   copy_poses(pose_init, pose_now);
   copy_poses(pose_ref, pose_now);
-
-  //to be deprecate
-  for(int i=0;i<LINKNUM;i++){
-    p_Init[i]=p_now[i];
-    R_Init[i]=R_now[i];
-    p_ref[i]=p_now[i];
-    R_ref[i]=R_now[i];
-    //p_ref_toe[i]=p_now[i];
-    //R_ref_toe[i]=R_now[i];
-  }
-  //R_ref[WAIST]=Eigen::MatrixXd::Identity(3,3);
-  R_ref[WAIST] = extractYow(m_robot->rootLink()->R());  // ogawa
-  cout << "oga\n" << R_ref[WAIST] << "\n" <<
-      m_robot -> rootLink() -> R() << endl;
+  pose_ref[WAIST].linear() = extractYow(m_robot->rootLink()->R());
 
   // ogawa
   {// TODO: use Rats
@@ -768,7 +747,9 @@ void sony::start()//todo change to initialize_wpg
     Matrix3 Rmid( R_R.transpose() * L_R);
     Vector3 omega( omegaFromRot(Rmid));
     object_ref -> R() = R_R*rodoriges(omega, 0.5);
-    object_ref -> p() = (p_Init[RLEG] +  p_Init[LLEG] )/2;
+    // object_ref -> p() = (p_Init[RLEG] +  p_Init[LLEG] )/2;
+    object_ref -> p() = (pose_now[RLEG].translation() +
+                         pose_now[LLEG].translation())/2;
   }
 
 
@@ -779,8 +760,8 @@ void sony::start()//todo change to initialize_wpg
   }
   //for path planning/////////////////////////////////////////
   //ini
-  p_obj2RLEG = object_ref->R().transpose() * (p_Init[RLEG] - object_ref->p()); // ogawa
-  p_obj2LLEG = object_ref->R().transpose() * (p_Init[LLEG] - object_ref->p()); // ogawa
+  p_obj2RLEG = object_ref->R().transpose() * (pose_now[RLEG].translation() - object_ref->p()); // ogawa
+  p_obj2LLEG = object_ref->R().transpose() * (pose_now[LLEG].translation() - object_ref->p()); // ogawa
   R_LEG_ini = LEG_ref_R= Eigen::MatrixXd::Identity(3,3);
 
   //object_ref->p()(2)=0;  // comment out by ogawa
@@ -810,12 +791,6 @@ void sony::start()//todo change to initialize_wpg
 
     pose_ref[RLEG] = m_robot -> link("pivot_R") -> T();
     pose_ref[LLEG] = m_robot -> link("pivot_L") -> T();
-
-    //to be deprecated
-    p_ref[RLEG] = m_robot -> link("pivot_R") -> p();
-    p_ref[LLEG] = m_robot -> link("pivot_L") -> p();
-    R_ref[RLEG] = m_robot -> link("pivot_R") -> R();
-    R_ref[LLEG] = m_robot -> link("pivot_L") -> R();
   }
   //cout<<m_profile.instance_name<<":pivot "<<m_robot->link("pivot_R")->p()<<endl;
   //cout<<m_robot->link("RLEG_JOINT5")->p()<<endl;
@@ -915,7 +890,7 @@ void sony::setFootPosR()
       std::cout << "setFootPosR : stepnum = " << stepNum << std::endl;
       resetZmpPlanner();//idle off
     }
-    gaitGenerate(FT, p_ref, R_ref, RLEG_ref_p, LLEG_ref_p, LEG_ref_R, rfzmp, zmpP);
+    gaitGenerate();
    
     stepNum = 3;
   }  
@@ -945,7 +920,7 @@ void sony::setFootPosL()
   pattern = NORMAL;
   resetZmpPlanner();//idle off
   //use LEG_ref_p as cur status.
-  gaitGenerate(FT, p_ref, R_ref, RLEG_ref_p, LLEG_ref_p, LEG_ref_R, rfzmp, zmpP);
+  gaitGenerate();
  
   stepNum=3;
   active_control_loop=1;
@@ -989,7 +964,7 @@ void sony::setFootPosR(double x, double y, double z, double r, double p, double 
       std::cout << "setFootPosR : stepnum = " << stepNum << std::endl;
       resetZmpPlanner();//idle off
     }
-    gaitGenerate(FT, p_ref, R_ref, RLEG_ref_p, LLEG_ref_p, LEG_ref_R, rfzmp, zmpP);
+    gaitGenerate();
     stepNum = 2;
   }  
   else {
@@ -1029,7 +1004,7 @@ void sony::setFootPosL(double x, double y, double z, double r, double p, double 
       std::cout << "setFootPosL : stepnum = " << stepNum << std::endl;
       resetZmpPlanner();//idle off
     }
-    gaitGenerate(FT, p_ref, R_ref, RLEG_ref_p, LLEG_ref_p, LEG_ref_R, rfzmp, zmpP);
+    gaitGenerate();
     stepNum = 2;
   }  
   else {
@@ -1052,39 +1027,6 @@ void sony::testMove()
   for(int i=0; i<dof; i++) {
     body_cur(i) = m_mc.data[i];
   }
-  /*
-  //ver1
-  body_ref<<0, 0.00332796, -0.482666, 0.859412, -0.370882, -0.00322683,
-            0, 0.00332796, -0.482666, 0.859412, -0.370882, -0.00322683,  0,  0,  0,  0,
-            0.135465, -0.290561, 0.14261, -1.81385, 1.30413, 0.0651451, 0.202547,  0,
-            0.135465, 0.290561, -0.14261, -1.81385, -1.30413, -0.0651451, 0.202547,  0;
-  //ver2
- body_ref<<8.40779e-07, 0.00313577, -0.450571, 0.78395, -0.332793, -0.00312566, 
-           8.41168e-07, 0.00313571, -0.450557, 0.783916, -0.332772, -0.00312559, 0, 0, 0, 0,
-           0.698132, -0.122173, -0, -1.50971, -0.122173, 0, 0, 0, 
-           0.698132, 0.122173, 0, -1.50971, 0.122173, 0, 0, 0;
-  */
-
-  
-  //ver3 cm(0)==0
-  /*
-  body_ref<<7.6349e-07, 0.00326766, -0.409632, 0.787722, -0.377504, -0.00325755,
-    //7.63749e-07, 0.0032676, -0.409578, 0.787609, -0.377443, -0.00325748, 
-            7.6349e-07, 0.00326766, -0.409632, 0.787722, -0.377504, -0.00325755,
-            0, 0, 0, 0, 
-            0.698132, -0.122173, 0, -1.50971, -0.122173, 0, 0, 0,
-            0.698132,  0.122173, 0, -1.50971,  0.122173, 0, 0, 0;
-  */
-
-  /*
-  //ver4 cm(0)==0.015
-  body_ref<<7.63538e-07, 0.00326758, -0.376392, 0.784674, -0.407696, -0.00325747,
-            7.63538e-07, 0.00326758, -0.376392, 0.784674, -0.407696, -0.00325747, 
-           0, 0, 0, 0,
-           0.698132, -0.122173, 0, -1.50971, -0.122173, 0, 0, 0,
-           0.698132,  0.122173, 0, -1.50971,  0.122173, 0, 0, 0;
-  */
-
   
   body_ref = MatrixXd::Zero(dof,1);
   for(int i=0;i<dof;i++) {
@@ -1497,22 +1439,13 @@ void sony::freeWalkSwitchOff()
 // ogawa
 void sony::setCurrentData()
 {
-  // get_end_link_pose(pose_now, m_robot, end_link);
-  // get_end_link_pose(pose_init, m_robot, end_link);
-  // get_end_link_pose(pose_ref, m_robot, end_link);
-  RenewModel(m_robot, p_now, R_now, end_link);
+  get_end_link_pose(pose_now, m_robot, end_link);
+  get_end_link_pose(pose_init, m_robot, end_link);
+  get_end_link_pose(pose_ref, m_robot, end_link);
+  pose_ref[WAIST].linear() =  extractYow(m_robot->rootLink()->R());
+  cm_ref = m_robot->calcCenterOfMass();
 
-  cm_ref=m_robot->calcCenterOfMass();
-  //for expos
-  for(int i=0;i<LINKNUM;i++){
-    p_Init[i]=p_now[i];
-    R_Init[i]=R_now[i];
-    p_ref[i]=p_now[i];
-    R_ref[i]=R_now[i];
-  }
-  R_ref[WAIST]=extractYow(m_robot->rootLink()->R());
- 
-  object_ref->p()= (p_Init[RLEG] +  p_Init[LLEG] )/2;
+  object_ref->p() = (pose_now[RLEG].translation() + pose_now[LLEG].translation())/2;
   object_ref->p()(2) -= param.ankle_height;
   {
     Matrix3 R_R=extractYow(m_robot->link(end_link[RLEG])->R());
@@ -1526,10 +1459,8 @@ void sony::setCurrentData()
   
 
   if(usePivot){
-    p_ref[RLEG]=m_robot->link("pivot_R")->p();
-    p_ref[LLEG]=m_robot->link("pivot_L")->p();
-    R_ref[RLEG]=m_robot->link("pivot_R")->R();
-    R_ref[LLEG]=m_robot->link("pivot_L")->R();
+    pose_ref[RLEG] = m_robot->link("pivot_R")->T();
+    pose_ref[LLEG] = m_robot->link("pivot_L")->T();
   }
 
   zmpP->setw(cm_ref(2), object_ref->p()(2));
@@ -1551,7 +1482,7 @@ void sony::basePosUpdate()
   m_basePos.data.x=m_robot->rootLink()->p()(0);
   m_basePos.data.y=m_robot->rootLink()->p()(1);
   m_basePos.data.z=m_robot->rootLink()->p()(2);
-  Vector3 rpy = R_ref[WAIST].eulerAngles(2, 1, 0);
+  Vector3 rpy = pose_ref[WAIST].linear().eulerAngles(2, 1, 0);
   //m_baseRpy.data.r=rpy(2);
   //m_baseRpy.data.p=rpy(1);
   m_baseRpy.data.r=0.0;

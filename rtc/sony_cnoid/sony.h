@@ -94,9 +94,7 @@ class sony  : public hrp2Base
   inline void readGamepad();
 
   void resetZmpPlanner();
-  void gaitGenerate(FootType FT, Vector3 *p_ref, Matrix3 *R_ref,
-                    Vector3 RLEG_ref_p, Vector3 LLEG_ref_p, Matrix3 LEG_ref_R,
-                    std::deque<vector2> &rfzmp, ZmpPlaner *zmpP);
+  void gaitGenerate();
   void getWalkingMotion();  
   void ifChangeSupLeg();
   

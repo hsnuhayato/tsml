@@ -513,14 +513,6 @@ void clacWaistR(BodyPtr body, FootType FT,Matrix3&  R_ref_WAIST, double swLegYow
  
 }
 
-void updateInit(Vector3 *p_now, Vector3 *p_Init, Matrix3 *R_now, Matrix3 *R_Init)
-{//update footprint place leg only
-   for(int i=0;i<LINKNUM;i++){
-     p_Init[i]=p_now[i];
-     R_Init[i]=R_now[i];
-   }
-}
-
 void copy_poses(Position* pose_copy, const Position* const pose)
 {
   for(int i=0; i<LINKNUM; i++) {
@@ -658,7 +650,7 @@ bool CalcIVK_biped(BodyPtr body, Vector3& CM_p, Vector3 *p_ref, Matrix3 *R_ref, 
 
       Vector3 CM_dp=CM_p- body->calcCenterOfMass();// + body->link("LLEG_JOINT5")->p);
       Vector3 W_omega=W_R* omegaFromRot(W_R.transpose() * R_ref[WAIST]);
-      Vector3 SW_dp =p_ref[swingLegId] - SwLeg_p;  
+      Vector3 SW_dp =p_ref[swingLegId] - SwLeg_p;
       Vector3 SW_omega = SwLeg_R* omegaFromRot(SwLeg_R.transpose() * R_ref[swingLegId]);
      
       //v<< CM_dp, W_omega, SW_dp, SW_omega;
@@ -1007,7 +999,8 @@ Eigen::Matrix3d rotationMatrix = q.matrix();
  */
 
 
-bool CalcIVK_biped_toe(BodyPtr body, Vector3& CM_p, Vector3 *p_ref, Matrix3 *R_ref, FootType FT, string *end_link)
+bool CalcIVK_biped_toe(const BodyPtr body,const Vector3& CM_p, const Position* pose_ref,
+                       const FootType& FT, const string *end_link)
 {
   Link* SupLeg;
   Link* SwLeg;
@@ -1048,18 +1041,6 @@ bool CalcIVK_biped_toe(BodyPtr body, Vector3& CM_p, Vector3 *p_ref, Matrix3 *R_r
   const int n = 12;//leg only
   
   //Link* target = jpp->endLink();
-
-  // if (1) {
-  //   ofs << cnt << endl;
-  //   ofs << "CM:\n" << CM_p << endl;
-  //   ofs << "W\n" << R_ref[WAIST] << endl;
-  //   ofs << "p\n" << p_ref[swingLegId] << endl;
-  //   ofs << "SW_R\n" << R_ref[swingLegId] << "\n"<< endl;
-  //   // ofs << CM_p[0] << " " << CM_p[1] << " " << CM_p[2] << " " <<
-  //   //  p_ref[swingLegId][0] << " " <<  p_ref[swingLegId][1] << " " <<  p_ref[swingLegId][2] << endl;
-  //   pd = 0;
-  //   cnt ++;
-  // }
   
   std::vector<double> qorg(n);
     for(int i=0; i < 12; ++i){
@@ -1080,10 +1061,10 @@ bool CalcIVK_biped_toe(BodyPtr body, Vector3& CM_p, Vector3 *p_ref, Matrix3 *R_r
       SwLeg_R = SwLeg->R();
       CalJo_biped_toe(body, FT, Jacobian, end_link);        
     
-      Vector3 CM_dp=CM_p- body->calcCenterOfMass();// + body->link("LLEG_JOINT5")->p);
-      Vector3 W_omega=W_R* omegaFromRot(W_R.transpose() * R_ref[WAIST]);
-      Vector3 SW_dp =p_ref[swingLegId] - SwLeg_p;  
-      Vector3 SW_omega = SwLeg_R* omegaFromRot(SwLeg_R.transpose() * R_ref[swingLegId]);
+      Vector3 CM_dp=CM_p - body->calcCenterOfMass();// + body->link("LLEG_JOINT5")->p);
+      Vector3 W_omega=W_R* omegaFromRot(W_R.transpose() * pose_ref[WAIST].linear());
+      Vector3 SW_dp =pose_ref[swingLegId].translation() - SwLeg_p;
+      Vector3 SW_omega = SwLeg_R* omegaFromRot(SwLeg_R.transpose() * pose_ref[swingLegId].linear());
       
       //v<< CM_dp, W_omega, SW_dp, SW_omega;
       v.head<3>()=CM_dp;
@@ -1140,7 +1121,7 @@ bool CalcIVK_biped_toe(BodyPtr body, Vector3& CM_p, Vector3 *p_ref, Matrix3 *R_r
 
 
 //////ivk_jacobian/////////
-    void CalJo_biped_toe(BodyPtr body, FootType FT, Eigen::MatrixXd& out_J, string* end_link)
+void CalJo_biped_toe(const BodyPtr body, const FootType& FT, Eigen::MatrixXd& out_J, const string* end_link)
 { 
   Link* SupLeg;
   Link* SwLeg;
@@ -1262,7 +1243,7 @@ bool CalcIVK4Limbs(BodyPtr body, Vector3& CM_p, Vector3 *p_ref, Matrix3 *R_ref, 
       ///
       Vector3 CM_dp=CM_p- body->calcCenterOfMass();// + body->link("LLEG_JOINT5")->p);
       Vector3 W_omega=W_R* omegaFromRot(W_R.transpose() * R_ref[WAIST]);
-      Vector3 SW_dp =p_ref[swingLegId] - SwLeg_p;  
+      Vector3 SW_dp =p_ref[swingLegId] - SwLeg_p;
       Vector3 SW_omega = SwLeg_R* omegaFromRot(SwLeg_R.transpose() * R_ref[swingLegId]);
      
       Vector3 RARM_dp =p_ref[RARM] - rarm_p;  

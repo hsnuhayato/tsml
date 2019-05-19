@@ -91,8 +91,8 @@ void ZmpPlaner::setw(double &cm_z_in, double groundHeight)
   w=sqrt(9.806/cm_z);
   //w= wIn;
 }
-void ZmpPlaner::planCP(BodyPtr m_robot, FootType FT, Vector3 swLegRef_p, Matrix3 input_ref_R,
-                        std::deque<vector2> &rfzmp, bool usePivot, string *end_link, bool ifLastStep)
+void ZmpPlaner::planCP(const BodyPtr m_robot, const FootType& FT, Vector3 swLegRef_p, const Matrix3& input_ref_R,
+                       std::deque<vector2> &rfzmp, const bool usePivot, const string *end_link, const bool& ifLastStep)
 {
   matrix22 SwLeg_R, SupLeg_R; //yow only already okla
   // calc swing foot xyz cm_z pivot_b
@@ -176,7 +176,6 @@ void ZmpPlaner::planCP(BodyPtr m_robot, FootType FT, Vector3 swLegRef_p, Matrix3
 
     vector2 cp_EOF;
     double abzZMP_z_EOF;
-    //ifLastStep = 0;  //ogawa
     if (!ifLastStep) {
       cp_EOF = swLegRef_p_v2;
       abzZMP_z_EOF = swLegRef_p(2);
@@ -240,8 +239,7 @@ void ZmpPlaner::planCP(BodyPtr m_robot, FootType FT, Vector3 swLegRef_p, Matrix3
   //cout<<"cp "<<cp_deque.size()<<endl;
 }
 
-//p_ref R_ref swLegRef_p  unused
-void ZmpPlaner::planCPstop(BodyPtr m_robot, FootType FT, Vector3 *p_ref, Matrix3 *R_ref,  Vector3 swLegRef_p, Matrix3 input_ref_R, std::deque<vector2> &rfzmp, string *end_link)
+void ZmpPlaner::planCPstop(const BodyPtr m_robot, const FootType& FT, const Matrix3& input_ref_R, std::deque<vector2> &rfzmp, const string *end_link)
 {      
   Link* rleg;Link* lleg;
   rleg = m_robot->link(end_link[RLEG]);

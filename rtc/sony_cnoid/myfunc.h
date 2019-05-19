@@ -174,7 +174,6 @@ vector2 pfromVector3(Vector3 p);
 
 void NaturalZmp(BodyPtr body, Vector3 &absZMP, double offset_x, string *end_link);
 
-void updateInit(Vector3 *p_now, Vector3 *p_Init, Matrix3 *R_now, Matrix3 *R_Init);
 void copy_poses(Position* pose_copy, const Position* const pose);
 
 bool walkJudge( BodyPtr body, FootType FT, Vector3 RLEG_ref_p, Vector3 LLEG_ref_p, Matrix3  LEG_ref_R, string *end_link);
@@ -189,8 +188,8 @@ bool CalcIVK_biped(BodyPtr body, Vector3& CM_p, Vector3 *p_ref, Matrix3 *R_ref, 
 void CalJo_biped(BodyPtr body, FootType FT, Eigen::MatrixXd& out_J, string *end_link);
 
 
-bool CalcIVK_biped_toe(BodyPtr body, Vector3& CM_p, Vector3 *p_ref, Matrix3 *R_ref, FootType FT, string *end_link);
-void CalJo_biped_toe(BodyPtr body, FootType FT, Eigen::MatrixXd& out_J,string *end_link);
+bool CalcIVK_biped_toe(const BodyPtr body,const Vector3& CM_p, const Position* pose_ref, const FootType& FT, const string *end_link);
+void CalJo_biped_toe(const BodyPtr body, const FootType& FT, Eigen::MatrixXd& out_J, const string *end_link);
 
 //for jvrc
 bool CalcIVK4Limbs(BodyPtr body, Vector3& CM_p, Vector3 *p_ref, Matrix3 *R_ref, FootType FT, string *end_link);

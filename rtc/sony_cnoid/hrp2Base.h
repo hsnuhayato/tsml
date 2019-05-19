@@ -183,14 +183,6 @@ class hrp2Base  : public RTC::DataFlowComponentBase
   
   string end_link[LINKNUM];
   string HEAD_P,HEAD_Y;
-
-  Vector3 p_now[LINKNUM];
-  Matrix3 R_now[LINKNUM];
-  Vector3 p_ref[LINKNUM];
-  Matrix3 R_ref[LINKNUM];
-  Vector3 p_Init[LINKNUM];
-  Matrix3 R_Init[LINKNUM];
-
   Position pose_now[LINKNUM], pose_ref[LINKNUM], pose_init[LINKNUM];
 
   //ForceSensor * fsensorRLEG;
