@@ -156,16 +156,14 @@ class sony  : public hrp2Base
   bool active_control_loop;
   bool idle;
   //int step_counter;
-
   bool flagcalczmp;
-  int CommandIn;
  
   std::vector<double> halfpos;
   //Path planning
-  Vector3 p_obj2RLEG,p_obj2LLEG;
+  Vector3 p_obj2RLEG, p_obj2LLEG;
   Matrix3 R_LEG_ini;
 
-  Vector3 RLEG_ref_p,LLEG_ref_p;
+  Vector3 RLEG_ref_p, LLEG_ref_p;
   Matrix3 LEG_ref_R;
   vector6 velobj;
   //Position dst;
@@ -189,11 +187,7 @@ class sony  : public hrp2Base
   Link* pt;
   Link* pt_L;
   Link* pt_R;
-  // JointPathPtr s2sw_R;
-  // JointPathPtr s2sw_L;
-  // Vector3 p_ref_toe[LINKNUM];
-  // Matrix3 R_ref_toe[LINKNUM];
-  
+
   Position toe_pose[LINKNUM];
  
   bool usePivot;

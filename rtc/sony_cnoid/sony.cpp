@@ -242,29 +242,6 @@ RTC::ReturnCode_t sony::onExecute(RTC::UniqueId ec_id)
     m_toeheelRatioOut.write();
     m_controlSwingSupportTimeOut.write();
 
-    // Vector3 tmprf(m_rfsensor.data[0],m_rfsensor.data[1], m_rfsensor.data[2]);
-    // Vector3 tmplf(m_lfsensor.data[0],m_lfsensor.data[1], m_lfsensor.data[2]);
-    // Vector3 rf_w = m_robot->link(end_link[RLEG])->R() * tmprf;
-    // Vector3 lf_w = m_robot->link(end_link[LLEG])->R() * tmplf;
-    // ofswu<< rf_w[2] << " " << lf_w[2] <<" " << m_rfsensor.data[2] << 
-    //   " " << m_lfsensor.data[2]<<endl;
-    // ogawa
-    // if( ofs.is_open() ) {
-    //   cnoid::Vector3 rpyR, rpyL;
-    //   rpyR = R_ref[RLEG].eulerAngles(2,1,0);
-    //   rpyL = R_ref[LLEG].eulerAngles(2,1,0);
-    //   //ofs << absZMP(0) << " " << absZMP(1) << " " << absZMP(2) << " " << cm_ref(0) << " " << cm_ref(1) << " " << com_ref(2) << std::endl;
-
-    //   ofs << toSec(m_mc.tm);
-    //   for(int i=0; i<3; i++)  ofs << " " << absZMP(i);
-    //   for(int i=0; i<3; i++)  ofs << " " << cm_ref(i);
-    //   for(int i=0; i<3; i++)  ofs << " " << p_ref[RLEG](i);
-    //   for(int i=0; i<3; i++)  ofs << " " << p_ref[LLEG](i);
-    //   ofs << " " << rpyR(2) << " " << rpyR(1) << " " << rpyR(0);
-    //   ofs << " " << rpyL(2) << " " << rpyL(1) << " " << rpyL(0);
-    //   ofs << std::endl;
-    // }
-
     //m_localEEposOut.write();
   }//active_control_loop
 
@@ -300,16 +277,6 @@ inline void sony::rzmp2st()
 
 inline void sony::calcWholeIVK()
 {
-  // ogawa
-  if((FT==FSRFsw)||(FT==RFsw)){
-    //std::cout << p_ref[RLEG].format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
-  }
-  else if((FT==FSLFsw)||(FT==LFsw)){
-    //std::cout << p_ref[LLEG].format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
-  }
-  //std::cout << cm_ref.format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
-  
-
   if(usePivot){
     if (CalcIVK_biped_toe(m_robot, cm_ref, pose_ref, FT, end_link)) {
       getIKResult();
@@ -393,19 +360,9 @@ inline void sony::prmGenerator()//this is calcrzmp flag
       //calc trajectory
       gaitGenerate();
       flagcalczmp = 0;
-      /*
-      std::cout << "sony : ref rfoot pos = "
-      << RLEG_ref_p.format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
-      std::cout << "sony : ref lfoot pos = "
-      << LLEG_ref_p.format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
-      std::cout << "sony : p_ref[RLEG] = "
-      << p_ref[RLEG].format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
-      std::cout << "sony : p_ref[LLEG] = "
-      << p_ref[LLEG].format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
-      */
     }
   }
-  else if(flagcalczmp == 1){//keep walking start from new leg
+  else if(flagcalczmp == 1) {//keep walking start from new leg
     
     if( (!walkJudge(m_robot, FT, RLEG_ref_p, LLEG_ref_p, LEG_ref_R, end_link))&& zmpP->cp_deque.empty() && !step){
       pattern = STOP;
@@ -539,15 +496,6 @@ void sony::resetZmpPlanner()
     //cout<<"swLegRef_p "<<swLegRef_p<<endl;
     zmpP -> planCPstop(m_robot, FT, LEG_ref_R, rfzmp, end_link);
   }
-    
-  // else if(CommandIn==2){
-  //   //cout<<FT<<" CPstop"<<endl;
-  //   //cout<<"swLegRef_p "<<swLegRef_p<<endl;
-  //   bool ifLastStep = 1;
-  //   zmpP -> planCP(m_robot, FT, SwLeg_p_ref, LEG_ref_R, 
-  //     rfzmp, usePivot, end_link, ifLastStep);
-  // }
-
 }
 
 // assign all parameter for ik 
@@ -633,9 +581,7 @@ void sony::getWalkingMotion()
       
   }//empty
 
- 
 }
-
 
 void sony::ifChangeSupLeg()
 {
@@ -653,51 +599,6 @@ void sony::ifChangeSupLeg()
   }
 }
 
-// void sony::ifChangeSupLeg2(BodyPtr m_robot, FootType &FT,  ZmpPlaner *zmpP, bool &idle,
-//                            int &CommandIn, Vector3 *p_now, Vector3 *p_Init, Matrix3 *R_now, Matrix3 *R_Init, bool &calczmpflag)
-// {
-//   if(zmpP->cp_deque.empty()){
- 
-//     if(stepNum>0){
-//       //cp walking. FSRFsw FSLFsw no foot swing
-//       if(FT==FSRFsw||FT==LFsw)
-//         FT=RFsw;
-//       else if(FT==FSLFsw||FT==RFsw)
-//         FT=LFsw;
-
-//       //change leg
-//       IniNewStep(m_robot, FT, zmpP, idle, CommandIn, p_ref, p_Init, R_ref, R_Init);
-//       calczmpflag=1;
-      
-      
-//       //LLEG_ref_p[0] = next abs ref pos. deque 
-//       //if(stepNum ==2) cp to center
-      
-//       if(stepNum==1)
-//         CommandIn = 5;
-//       else if(stepNum == 2)
-//         CommandIn = 2;
-
-//       gaitGenerate(FT, p_ref, R_ref, RLEG_ref_p, LLEG_ref_p, LEG_ref_R, rfzmp, zmpP);
-//       stepNum--;
-//     }
-//     else if(stepNum==0){
-//       IniNewStep(m_robot, FT, zmpP, idle, CommandIn, p_ref, p_Init, R_ref, R_Init);
-//       stepNum--;//let above execute once
-//       cout<<"off active_control_loop"<<endl;
-//       neutralTime = 1*200;// (int)(1/dt+NEAR0);
-//     }
-
-//     if(neutralTime > 0){
-//       neutralTime--;
-//       if(neutralTime == 0)
-//         active_control_loop = 0;
-//     }
-
-//   }
-
-// }
-  
 void sony::IniNewStep() {
   //p_ref >> p_Init
   copy_poses(pose_init, pose_ref);
@@ -855,7 +756,10 @@ void sony::stepping()
     step =! step;
     cout << "step" << endl;
     active_control_loop=1;
-    prmGenerator();//idle off here
+
+    if (idle) {
+      prmGenerator();//idle off here
+    }
     std::cout << "sony : robot pos = " << m_robot->rootLink()->p().format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
   }
 }
@@ -1014,7 +918,6 @@ void sony::setFootPosL(double x, double y, double z, double r, double p, double 
   active_control_loop=1;
 }
 
-
 void sony::testMove()
 {
   //cout<<m_robot->link(end_link[RLEG])->p()<<endl;
@@ -1034,75 +937,6 @@ void sony::testMove()
     body_ref(i)=halfpos[i];
   }
   
-  /*
-  //for new halfpos
-  update_model(m_robot, body_ref, FT, end_link, dof);
-  RenewModel(m_robot, p_now, R_now, end_link);
-  cm_ref=m_robot->calcCenterOfMass();
- 
-  body_ref(21) =  deg2rad(-97.2);
-  body_ref(34) =  deg2rad(-97.2);
-  update_model(m_robot, body_ref, FT, end_link, dof);
-  RenewModel(m_robot, p_now, R_now, end_link);
-
-  cout<< R_now[RARM] <<'\n'<<endl;
-  cout<< R_now[LARM] <<'\n'<<endl;
-
-  R_now[RARM] = cnoid::rotFromRpy(0, deg2rad(-90),0);
-  R_now[LARM] = cnoid::rotFromRpy(0, deg2rad(-90),0);
-  */
-  /*
-  if(CalcIVK4Limbs(m_robot, cm_ref, p_now, R_now, FT, end_link)){
-    cout<<"okok"<<endl;
-    for(unsigned int i=0;i<dof;i++){
-      cout<<m_robot->joint(i)->q()<<",";
-    }
-    cout<<endl;
-  }
-  else
-    cout<<"no"<<endl;
-  */
-
-  /*
-  JointPathPtr C2RHAND;
-  C2RHAND = getCustomJointPath(m_robot, m_robot->link("WAIST_R"), m_robot->link("R_WRIST_Y"));
-  Vector3 RHAND_p =  m_robot->link("R_WRIST_Y")->p();
-  Matrix3 RHAND_R = m_robot->link("R_WRIST_Y")->R();
-  //RHAND_p(0)+=0.03;
-  cout<<"jj "<<C2RHAND->numJoints()<<endl;
-
-  C2RHAND -> setGoal(RHAND_p, RHAND_R);
-  if(C2RHAND -> calcInverseKinematics()){
-    cout<<"inv OK"<<endl;
-  }
-  */
-  /*
-  JointPathPtr C2RHAND;
-  C2RHAND=getCustomJointPath(m_robot, m_robot->link("WAIST_R"), m_robot->link("R_WRIST_Y"));
-  p_now[RARM]= m_robot->link("R_WRIST_Y")->p();
-  p_now[RARM](0) += 0.03;
-  R_now[RARM]= m_robot->link("R_WRIST_Y")->R();
-  C2RHAND->setGoal(p_now[RARM], R_now[RARM]);
-  if(!C2RHAND->calcInverseKinematics()){
-    cout<<"inv err"<<endl;
-  }
-  cout<<"jj "<<C2RHAND->numJoints()<<endl;
-
-  JointPathPtr C2LHAND;
-  C2LHAND=getCustomJointPath(m_robot, m_robot->link("WAIST_R"), m_robot->link("L_WRIST_Y"));
-  p_now[LARM]= m_robot->link("L_WRIST_Y")->p();
-  R_now[LARM]= m_robot->link("L_WRIST_Y")->R();
-  C2LHAND->setGoal(p_now[LARM], R_now[LARM]);
-  if(!C2LHAND->calcInverseKinematics()){
-    cout<<"inv err"<<endl;
-  }
-  cout<<"jj "<<C2LHAND->numJoints()<<endl;
-  */
-  /*
-  Interplation5(body_cur,  zero,  zero, body_ref,  zero,  zero, 3, bodyDeque_p);
-  */
-
-  ////////////////////////////////////////
   for (int i=0; i<dof; i++) {
     m_mc.data[i] = m_robot->joint(i)->q() = body_ref(i);
   }
@@ -1123,216 +957,8 @@ void sony::testMove()
   }
   else
     cout<<"ivk error"<<endl;
-
- 
-  // m_robot->calcForwardKinematics();
-  // update_model(m_robot, m_mc, FT, end_link);
-  // RenewModel(m_robot, p_now, R_now, end_link);
-  // //for expos
-  // for(int i=0;i<LINKNUM;i++){
-  //   p_ref[i]=p_now[i];
-  //   R_ref[i]=R_now[i];
-  // }
-  // R_ref[WAIST]=Eigen::MatrixXd::Identity(3,3);
-  //////////////////////////////////////////////////
-
-
-  //Interplation5(body_cur,  zero,  zero, body_ref,  zero,  zero, 3, bodyDeque);
-
-  // for(int i=0; i<dof; i++) {
-  //   m_mc.data[i] = halfpos[i];
-  // }
-  // update_model(m_robot, m_mc, FT, end_link);
-  // RenewModel(m_robot, p_ref, R_ref, end_link);
-  // m_robot->calcForwardKinematics();
-  // cm_ref = m_robot->calcCenterOfMass();
-  // R_ref[WAIST]=Eigen::MatrixXd::Identity(3,3);
-  // //cm_ref(0)+=0.03;
-
-  // //cm_ref(0)=m_robot->link(end_link[RLEG])->p()(0)+0.015;
-  // //cm_ref(0)=m_robot->link(end_link[RLEG])->p()(0)+0.03;  // JVRC
-
-  // cm_ref(0)=m_robot->link(end_link[RLEG])->p()(0)+cm_offset_x;
-
-  // if(CalcIVK_biped(m_robot, cm_ref, p_ref, R_ref, FT, end_link)){
-  //   cout<<"okok"<<endl;
-  //   for(unsigned int i=0;i<dof;i++){
-  //     body_ref(i)=m_robot->joint(i)->q();
-  //     cout<<body_ref(i)<<", ";
-  //   }
-  //   cout<<endl;
-  // }
-  // else
-  //   cout<<"ivk error"<<endl;
-  
   
   Interplation5(body_cur,  zero,  zero, body_ref,  zero,  zero, 2, bodyDeque);
-
-  /*
-  //
-  //new posture
-   body_ref<<0, 0.00332796, -0.482666, 0.859412, -0.370882, -0.00322683,
-            0, 0.00332796, -0.482666, 0.859412, -0.370882, -0.00322683,  0,  0,  0,  0,
-       deg2rad(40.0), -deg2rad(7.0),  -deg2rad(0.0),   deg2rad(-86.5),  -deg2rad(7.0), 0.0, 0.0, 0.0,
-       deg2rad(40.0),  deg2rad(7.0),   deg2rad(0.0),   deg2rad(-86.5),  deg2rad(7.0), 0.0, 0.0, 0.0 ;
-  */
-
-  /*
- for(int i=0;i<32;i++)
-   m_mc.data[i]=body_ref(i);
- update_model(m_robot, m_mc, FT);
- RenewModel(m_robot, p_now, R_now);
- cm_ref=m_robot->calcCenterOfMass();// 
- cout<<"cm "<<cm_ref<<endl;
- //for expos
- for(int i=0;i<LINKNUM;i++){
-   p_Init[i]=p_now[i];
-   R_Init[i]=R_now[i];
-   p_ref[i]=p_now[i];
-   R_ref[i]=R_now[i];
-   p_ref_toe[i]=p_now[i];
-   R_ref_toe[i]=R_now[i];
- }
- R_ref[WAIST]=Eigen::MatrixXd::Identity(3,3);
-
- cm_ref(0)=0.015;
- cm_ref(1)=0.0;
- cm_ref(2)=0.827752;
- if(CalcIVK_biped(m_robot, cm_ref, p_ref, R_ref, FT)){
-   cout<<"okok"<<endl;
-   for(unsigned int i=0;i<32;i++){
-     body_ref(i)=m_robot->joint(i)->q();
-     cout<<body_ref(i)<<", ";
-   }
-   cout<<endl;
- }
- else
-   cout<<"ivk error"<<endl;
- Interplation5(body_cur,  zero,  zero, body_ref,  zero,  zero, 3, bodyDeque);
-  */
-
-  /*
-  cm_ref(0)+=0.125;
-  p_ref[RLEG](0)+=0.25;
-
- if( CalcIVK_biped(m_robot, cm_ref, p_ref, R_ref, FT, p_Init, R_Init)){
-    for(int i=0;i<m_robot->numJoints();i++)
-      body_ref(i)=m_robot->joint(i)->q;
-    SeqPlay32(body_cur, body_ref, bodyDeque, 1);
-  }
-  else 
-    cerr<<"errrr"<<endl;
-  */
-
-  /*  
-  JointPathPtr C2RARM;
-  Vector3 tar_p(p_now[RARM]);
-  Matrix3 tar_R(R_now[RARM]);
-   
-  C2RARM=m_robot->getJointPath(m_robot->link("CHEST_JOINT1"), m_robot->link("RARM_JOINT6"));
- pt= new hrp::Link();
-  for(int i=0;i<m_robot->numJoints();i++)
-    body_cur[i]=m_robot->joint(i)->q;
-
-  //tar_p(0)+=0.02;
-  Vector3 rpyTemp;
-  rpyTemp=Vector3(-30*M_PI/180, 0, 0) ;
-  Matrix3 rotRTemp(hrp::rotFromRpy(rpyTemp));
-  tar_R = rotRTemp * R_now[RARM];
-
-  if( C2RARM->calcInverseKinematics(tar_p, tar_R)){
-    for(int i=0;i<m_robot->numJoints();i++)
-      body_ref[i]=m_robot->joint(i)->q;
-  }
-  else
-    cerr<<"inv arm err"<<endl;
-  
-  SeqPlay32(body_cur, body_ref, bodyDeque, 1);
-  */
-  
-  
-  /*
-  //pt in aram
-  pt->b=0,0.15,0;
-  pt->name="sase";
-  pt->jointType=hrp::Link::FIXED_JOINT;
-  m_robot->link("RARM_JOINT6")->addChild(pt);
-  JointPathPtr C2pt;
-  //cerr<<m_robot->link("RARM_JOINT6")->child->jointType<<endl;
-  //cerr<<m_robot->link("RARM_JOINT6")->d<<endl;
-
-  //cerr<<m_robot->link("sase")->jointType<<endl;//ng
-  C2pt=JointPathPtr(new JointPath(m_robot->link("CHEST_JOINT1"), m_robot->link("RARM_JOINT6")->child));
-  C2pt->calcForwardKinematics();
-  //cerr<< m_robot->link("RARM_JOINT6")->R()<<'\n'<<m_robot->link("RARM_JOINT6")->child->R()<<endl;
-  dmatrix gg;
-  C2pt->calcJacobian(gg);
-  //cerr<<C2pt->numJoints()<<endl;
-  
-  Vector3  tar_p(m_robot->link("RARM_JOINT6")->child->p());
-  Matrix3 tar_R(m_robot->link("RARM_JOINT6")->child->R());
-  
-   for(int i=0;i<m_robot->numJoints();i++)
-    body_cur[i]=m_robot->joint(i)->q;
-
-  //tar_p(0)+=0.02;
-  Vector3 rpyTemp;
-  rpyTemp=Vector3(0, 60*M_PI/180, 0) ;
-  Matrix3 rotRTemp(hrp::rotFromRpy(rpyTemp));
-  tar_R = rotRTemp * m_robot->link("RARM_JOINT6")->child->R();
-
-  if( C2pt->calcInverseKinematics(tar_p, tar_R)){
-    for(int i=0;i<m_robot->numJoints();i++)
-      body_ref[i]=m_robot->joint(i)->q;
-  }
-  else
-    cerr<<"inv arm err"<<endl;
-
-    SeqPlay32(body_cur, body_ref, bodyDeque, 1);
-  */
-
-  /*
-  pt->b=0.13, 0,-0.105;
-  //pt->b=0, 0, -0.105;
-  pt->name="pivot";
-  pt->jointType=hrp::Link::FIXED_JOINT;
-  m_robot->link("RLEG_JOINT5")->addChild(pt);
-
-  JointPathPtr s2sw;
-  //cerr<<m_robot->link("RARM_JOINT6")->child->jointType<<endl;
-  //cerr<<m_robot->link("RARM_JOINT6")->d<<endl;
-
-  //cerr<<m_robot->link("sase")->jointType<<endl;//ng
-  s2sw=JointPathPtr(new JointPath(m_robot->link("LLEG_JOINT5"), m_robot->link("RLEG_JOINT5")->child));
-  s2sw->calcForwardKinematics();
-  cerr<<m_robot->link("RLEG_JOINT5")->child->p()<<'\n'<<m_robot->link("RLEG_JOINT5")->p()<<endl;
-  */ 
-
-  /*
-  Vector3  tar_p(m_robot->link("RLEG_JOINT5")->child->p());
-  Matrix3 tar_R(m_robot->link("RLEG_JOINT5")->child->R());
-  for(int i=0;i<m_robot->numJoints();i++)
-    body_cur[i]=m_robot->joint(i)->q;
-
-  Vector3 rpyTemp;
-  rpyTemp=Vector3(0, 10*M_PI/180, 0) ;
-  Matrix3 rotRTemp(hrp::rotFromRpy(rpyTemp));
-  tar_R = rotRTemp * m_robot->link("RLEG_JOINT5")->child->R();
-  //tar_p(0)+=0.02;
-  //cm_ref(1)=p_ref[LLEG](1);
-
-  p_ref[RLEG]=tar_p;
-  R_ref[RLEG]=tar_R;
-
-  if( CalcIVK_biped_toe(m_robot, cm_ref, p_ref, R_ref, FT, p_Init, R_Init)){
-    for(int i=0;i<m_robot->numJoints();i++)
-      body_ref[i]=m_robot->joint(i)->q;
-    SeqPlay32(body_cur, body_ref, bodyDeque, 5);
-  }
-  else 
-    cerr<<"errrr"<<endl;
-  */
-
 
   while( !bodyDeque.empty() && !active_control_loop ) {
     usleep(10);
@@ -1483,17 +1109,6 @@ void sony::basePosUpdate()
   m_basePosOut.write();
   m_baseRpyOut.write();
 }
-
-// void sony::writeOutPortsAll()
-// {
-//  //////////////write///////////////
-//     rzmp2st();
-//     m_contactStatesOut.write();
-//     m_basePosOut.write();
-//     m_baseRpyOut.write();
-//     m_lightOut.write();
-// }
-
 
 void sony::logStart(std::string date)
 {
