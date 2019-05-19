@@ -97,7 +97,6 @@ RTC::ReturnCode_t sony::onInitialize()
   relZMP << m_robot->link(end_link[RLEG])->p()(0) + cm_offset_x, 0.0, 0.0;
   step = 0;
   //cout<<cm_offset_x<<endl;
-  flagcalczmp = 0;
   FT = FSRFsw;
   pattern = STOP;
   
@@ -359,10 +358,9 @@ inline void sony::prmGenerator()//this is calcrzmp flag
      
       //calc trajectory
       gaitGenerate();
-      flagcalczmp = 0;
     }
   }
-  else if(flagcalczmp == 1) {//keep walking start from new leg
+  else {//keep walking start from new leg
     
     if( (!walkJudge(m_robot, FT, RLEG_ref_p, LLEG_ref_p, LEG_ref_R, end_link))&& zmpP->cp_deque.empty() && !step){
       pattern = STOP;
@@ -370,7 +368,6 @@ inline void sony::prmGenerator()//this is calcrzmp flag
     }
     // if pattern == STOP planstop 
     gaitGenerate();
-    flagcalczmp = 0;
   }
 
 }
@@ -593,8 +590,6 @@ void sony::ifChangeSupLeg()
     //change leg
     //move updateInit to here
     IniNewStep();
-    flagcalczmp = 1;
-
     prmGenerator();//idle off here
   }
 }

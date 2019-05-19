@@ -155,9 +155,6 @@ class sony  : public hrp2Base
  private:
   bool active_control_loop;
   bool idle;
-  //int step_counter;
-  bool flagcalczmp;
- 
   std::vector<double> halfpos;
   //Path planning
   Vector3 p_obj2RLEG, p_obj2LLEG;
@@ -195,12 +192,9 @@ class sony  : public hrp2Base
   //Eigen::MatrixXd gh;
   //for joystick
   bool buttom_accept;
-
   int stepNum;
   int neutralTime;
-  bool initialized;
   bool freeWalk;
-  bool stopSequence;
 
   enum PatternType {NORMAL, STOP} pattern;
 
