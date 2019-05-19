@@ -89,17 +89,19 @@ class sony  : public hrp2Base
   inline void calcRefZMP();
   inline void getIKResult();
   inline void calcRefPoint();
-  inline void calcRefLeg();
+  inline void calcRefFoot();
   inline void prmGenerator();
+  inline void readGamepad();
+
   void resetZmpPlanner();
-  void gaitGenerate(FootType FT, Vector3 *p_ref, Matrix3 *R_ref, Vector3 RLEG_ref_p, Vector3 LLEG_ref_p, Matrix3 LEG_ref_R, std::deque<vector2> &rfzmp, ZmpPlaner *zmpP);
+  void gaitGenerate(FootType FT, Vector3 *p_ref, Matrix3 *R_ref,
+                    Vector3 RLEG_ref_p, Vector3 LLEG_ref_p, Matrix3 LEG_ref_R,
+                    std::deque<vector2> &rfzmp, ZmpPlaner *zmpP);
   void getWalkingMotion();  
-  
   void ifChangeSupLeg();
   
   // void ifChangeSupLeg2(BodyPtr m_robot, FootType &FT,  ZmpPlaner *zmpP, bool &idle, int &CommandIn, Vector3 *p_now, Vector3 *p_Init, Matrix3 *R_now, Matrix3 *R_Init, bool &calczmpflag);
   
-
   void IniNewStep();
 
   //service port

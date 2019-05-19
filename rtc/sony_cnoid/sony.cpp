@@ -46,7 +46,7 @@ sony::sony(RTC::Manager* manager):
 
 sony::~sony()
 {
-  //delete zmpP;
+  delete zmpP;
 }
 
 RTC::ReturnCode_t sony::onInitialize()
@@ -179,18 +179,18 @@ RTC::ReturnCode_t sony::onDeactivated(RTC::UniqueId ec_id)
 }
 
 
-
 RTC::ReturnCode_t sony::onExecute(RTC::UniqueId ec_id)
 {
   hrp2Base::updateInport();
 
+  //readGamepad();
   // ogawa
   if (m_basePosInitIn.isNew() && m_baseRpyInitIn.isNew()) {
     m_basePosInitIn.read();
     m_baseRpyInitIn.read();
     //m_mcIn.read();
 
-    if (!active_control_loop ) {
+    if (!active_control_loop) {
       for (int i=0; i<dof; i++) {
         m_robot->joint(i)->q() = m_mc.data[i];
       }
@@ -200,64 +200,6 @@ RTC::ReturnCode_t sony::onExecute(RTC::UniqueId ec_id)
 
       setCurrentData();
     }
-  }
-
-  //gamepad
-  //if(m_axesIn.isNew()){
-  if (0) { //for using blutooth keyboad
-    m_axesIn.read();
-
-    velobj(0) = m_axes.data[1] * -20;
-    velobj(1) = m_axes.data[0] * -2.5;
-    velobj(5) = m_axes.data[2] * -3;
-  
-    //wireless
-    if (freeWalk) {
-      if(m_axes.data[17] >= 0.1) {//o buttom
-        step=1;
-        active_control_loop=1;
-      }
-      else if(m_axes.data[18] >= 0.1) {//x burrom
-        step=0;
-      }
-    }
-    
-    //head
-    m_robot->link(HEAD_P)->q()-=0.6*m_axes.data[8]*M_PI/180;
-    m_robot->link(HEAD_P)->q()+=0.6*m_axes.data[10]*M_PI/180;
-    m_robot->link(HEAD_Y)->q()-=0.6*m_axes.data[9]*M_PI/180;
-    m_robot->link(HEAD_Y)->q()+=0.6*m_axes.data[11]*M_PI/180;
-    //light
-    if(buttom_accept){
-      if(m_axes.data[16]>=0.1){//^ buttom
-        m_light.data[0]=!m_light.data[0];
-        buttom_accept=false;
-      }
-    }
-    else{
-      //todo すべてニュートラル状態accept trueにする
-      if(m_axes.data[16]==0)
-        buttom_accept=true;
-    }
-    /*
-      double velsqr=pow(velobj(0),2) + pow(velobj(1),2);
-      if( velsqr > 64){
-      velobj(0)= velobj(0)* 8/ sqrt(velsqr);
-      velobj(1)= velobj(1)* 8/ sqrt(velsqr);
-      }
-    */
-  }
-  
-  if (m_buttonsIn.isNew()) {
-    m_buttonsIn.read();
-    //cout<<"buttom is new"<<endl;
-    /*
-    //wire
-    if(m_buttons.data[1]==1)//o button
-    step=1;
-    else if(m_buttons.data[0]==1)//x burron
-    step=0;
-    */
   }
 
   //_/_/_/_/_/_/_/_/_/_/_/_/main algorithm_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
@@ -430,7 +372,7 @@ inline void sony::calcRefPoint()
   object_ref->p() = object_ref->p() + rotRTemp*tmp; // ogawa
 }
 
-inline void sony::calcRefLeg()
+inline void sony::calcRefFoot()
 {
   Matrix3 Rtem_Q=extractYow(object_ref->R());
   //actually in x-y plan only
@@ -441,7 +383,7 @@ inline void sony::calcRefLeg()
 
 inline void sony::prmGenerator()//this is calcrzmp flag
 {
-  calcRefLeg();
+  calcRefFoot();
   //////////////usually obmit when keep walking//////////////////
   //start to walk or not
   //waiting
@@ -480,7 +422,65 @@ inline void sony::prmGenerator()//this is calcrzmp flag
 
 }
 
+inline void sony::readGamepad() {
+  //gamepad
+  if(m_axesIn.isNew()){
+    m_axesIn.read();
 
+    velobj(0) = m_axes.data[1] * -20;
+    velobj(1) = m_axes.data[0] * -2.5;
+    velobj(5) = m_axes.data[2] * -3;
+
+    //wireless
+    if (freeWalk) {
+      if(m_axes.data[17] >= 0.1) {//o buttom
+        step = 1;
+        active_control_loop = 1;
+      }
+      else if(m_axes.data[18] >= 0.1) {//x burrom
+        step=0;
+      }
+    }
+
+    //head
+    m_robot->link(HEAD_P)->q()-=0.6*m_axes.data[8]*M_PI/180;
+    m_robot->link(HEAD_P)->q()+=0.6*m_axes.data[10]*M_PI/180;
+    m_robot->link(HEAD_Y)->q()-=0.6*m_axes.data[9]*M_PI/180;
+    m_robot->link(HEAD_Y)->q()+=0.6*m_axes.data[11]*M_PI/180;
+    //light
+    if(buttom_accept){
+      if(m_axes.data[16]>=0.1){//^ buttom
+        m_light.data[0]=!m_light.data[0];
+        buttom_accept=false;
+      }
+    }
+    else{
+      //todo すべてニュートラル状態accept trueにする
+      if(m_axes.data[16]==0)
+        buttom_accept=true;
+    }
+    /*
+      double velsqr=pow(velobj(0),2) + pow(velobj(1),2);
+      if( velsqr > 64){
+      velobj(0)= velobj(0)* 8/ sqrt(velsqr);
+      velobj(1)= velobj(1)* 8/ sqrt(velsqr);
+      }
+    */
+  }
+  
+  if (m_buttonsIn.isNew()) {
+    m_buttonsIn.read();
+    //cout<<"buttom is new"<<endl;
+    /*
+    //wire
+    if(m_buttons.data[1]==1)//o button
+    step=1;
+    else if(m_buttons.data[0]==1)//x burron
+    step=0;
+    */
+  }
+
+}
 
 void sony::resetZmpPlanner()
 {// this is for FSRF or FSLF
@@ -852,11 +852,10 @@ void sony::start()//todo change to initialize_wpg
 
   zmpP->setInit(rzmpInit);//for cp init
   //absZMP(2) = object_ref->p()(2);
-  calcRefLeg();
+  calcRefFoot();
 
   //ooo
   active_control_loop = 0;
-  
 
   //ogawa
   absZMP = rzmpInit;
@@ -1539,7 +1538,7 @@ void sony::setCurrentData()
   zmpP->NaturalZmp(m_robot, rzmpInit, end_link);
   zmpP->setInit(rzmpInit);//for cp init
   //absZMP(2) = object_ref->p()(2);
-  //calcRefLeg();
+  //calcRefFoot();
 
   absZMP = rzmpInit;
   basePosUpdate();
