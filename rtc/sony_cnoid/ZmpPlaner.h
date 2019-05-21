@@ -4,18 +4,10 @@
 #include <deque>
 
 //#define NEAR0 1e-8
-// OpenHRP
-//#include "hrpModel/Body.h"
-//#include "hrpModel/Link.h"
-//#include "hrpModel/JointPath.h"
-//#include "hrpModel/ModelLoaderUtil.h"
-//#include "hrpUtil/MatrixSolvers.h"
 
-//#include "hrpUtil/uBlasCommonTypes.h"
-
-#include "myfunc.h"
+#include "commonFunc.h"
 #include "spline.h"
-#include "wuNewType.h"
+#include "customTypes.h"
 //use preview control operater
 //#include "preview_control/PreviewControl.h"
 class ZmpPlaner {
@@ -26,10 +18,7 @@ class ZmpPlaner {
   ~ZmpPlaner();
   void setInit(const Vector3& Ini);
   //void calcWaistR( FootType FT,  Matrix3 *R_ref);
-  Matrix3 calcWaistR( FootType FT,  BodyPtr m_robot, string *end_link);
-  void atan2adjust(double &pre, double &cur);
-
-  //void StopZMP(FootType FT, std::deque<vector2> &rfzmp, int count);
+  Matrix3 calcWaistR(const FootType& FT, const BodyPtr m_robot, const string *end_link);
 
   //capture point/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
   void planCP(const BodyPtr m_robot, const FootType& FT, Vector3 swLegRef_p, const Matrix3& input_ref_R,
@@ -45,11 +34,11 @@ class ZmpPlaner {
 
   void getNextCom(Vector3 &cm_ref);
   void setWpgParam(wpgParam param);
-  void NaturalZmp(const BodyPtr m_robot, Vector3 &absZMP,const string *end_link);
+  void neutralZmp(const BodyPtr m_robot, Vector3 &absZMP,const string *end_link);
 
   std::deque<Vector3> swingLegTraj;//x y theta
-  std::deque<vector2> swLegxy;
-  std::deque<double> Trajzd;
+  std::deque<vector2> swLeg_xy;
+  std::deque<double> swLeg_z;
   std::deque<double> groundAirRemainTime;
   std::deque<Matrix3> swLeg_R;
   //std::deque<Matrix3> rot_pitch;
@@ -59,7 +48,7 @@ class ZmpPlaner {
   std::deque<Vector3> link_b_deque;
   Vector3 link_b_front;
   Vector3 link_b_rear;
-  Vector3 link_b_ankle;
+  Vector3 link_b_ee;
 
   double offsetZMPx;
   double offsetZMPy;
@@ -89,8 +78,7 @@ class ZmpPlaner {
   //new
   vector2 zmpInit;
   Vector3 offsetZMPr;
-  Vector3 offsetZMPl; 
- 
+  Vector3 offsetZMPl;
 
   double Zup;
   double Zup_in;

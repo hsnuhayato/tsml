@@ -19,16 +19,9 @@
 //#include "hrpUtil/MatrixSolvers.h"
 //#include "hrpUtil/EigenTypes.h" 
 
-#include "wuNewType.h"
+#include "customTypes.h"
 #include <iostream>
 #include <deque>
-//#include "SequencePlayerServiceStub.h"
-
-//using namespace std;
-//using namespace hrp;
-//using namespace RTC;
-
-//void ShowMatrix(Matrix3& M,int k,int l);
 
 double* CalcInterplation1(double xs,double xf,double tf);
 void CalcInterplation1Vector2(Vector2 xs, Vector2 xf, double tf, std::deque<Vector2> &DQ);
@@ -133,16 +126,11 @@ double sum(double* Array1st,int n);
 ////for robot../////
 //void RenewModel(BodyPtr body,Vector3  *p_now, Matrix3 *R_now);
 
-void RenewModel(BodyPtr body,Vector3  *p_now, Matrix3 *R_now, string *end_link);
-
 void get_end_link_pose(Position* pose, const BodyPtr body, const string *end_link);
 
-void update_model( BodyPtr body, const TimedDoubleSeq &m_q, const FootType FT, const string *end_link);
+void update_model(const BodyPtr body, const TimedDoubleSeq &m_q, const FootType FT, const string *end_link);
 
-//deprecate
-void setModelPosture( BodyPtr body,  MatrixXd body_q, FootType FT, string *end_link, int dof);
-
-void getModelPosture( BodyPtr body,  TimedDoubleSeq &m_refq);
+void getModelAngles(const BodyPtr body, TimedDoubleSeq &m_refq);
 
 Matrix3 yowRotate(double& q);
 
@@ -171,8 +159,6 @@ matrix22 RfromMatrix3(Matrix3 R);
 Matrix3 extractYow(Matrix3 Rin);
 
 vector2 pfromVector3(Vector3 p);
-
-void NaturalZmp(BodyPtr body, Vector3 &absZMP, double offset_x, string *end_link);
 
 void copy_poses(Position* pose_copy, const Position* const pose);
 

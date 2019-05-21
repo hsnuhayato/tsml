@@ -112,7 +112,7 @@ RTC::ReturnCode_t sony::onInitialize()
   coil::stringTo(param.pitch_angle, prop["pitch_angle"].c_str());
   coil::stringTo(param.link_b_front, prop["link_b_front"].c_str());
   coil::stringTo(param.link_b_rear, prop["link_b_rear"].c_str());
-  coil::stringTo(param.link_b_ankle, prop["link_b_ankle"].c_str());
+  coil::stringTo(param.link_b_ee, prop["link_b_ee"].c_str());
   coil::stringTo(param.dt, prop["wpg.dt"].c_str());
   coil::stringTo(param.ankle_height, prop["ankle_height"].c_str());
 
@@ -120,7 +120,7 @@ RTC::ReturnCode_t sony::onInitialize()
   stepNum= -1;
   neutralTime = 0;
   freeWalk = 1;
-
+  foot_distance_limit_y = 0.17;
   //test paraini
   velobj = Eigen::MatrixXd::Zero(6,1);
   yawTotal =0;
@@ -295,8 +295,8 @@ inline void sony::calcRefZMP()
 {
   //waiting
   if(idle){
-    //NaturalZmp(m_robot, absZMP, cm_offset_x, end_link);
-    zmpP->NaturalZmp(m_robot, absZMP, end_link);
+    //neutralZmp(m_robot, absZMP, cm_offset_x, end_link);
+    zmpP -> neutralZmp(m_robot, absZMP, end_link);
 
   }
   //walking
@@ -312,8 +312,8 @@ inline void sony::calcRefZMP()
 
 inline void sony::getIKResult()
 {
- getModelPosture(m_robot, m_refq);
- m_refqOut.write();
+  getModelAngles(m_robot, m_refq);
+  m_refqOut.write();
 }
 
 inline void sony::calcRefPoint()
@@ -336,14 +336,14 @@ inline void sony::calcRefPoint()
 
 inline void sony::calcRefFoot()
 {
-  Matrix3 Rtem_Q=extractYow(object_ref->R());
+  Matrix3 R = extractYow(object_ref->R());
   //actually in x-y plan only
-  RLEG_ref_p = object_ref->p() + Rtem_Q * p_obj2RLEG;
-  LLEG_ref_p = object_ref->p() + Rtem_Q * p_obj2LLEG;
-  LEG_ref_R= Rtem_Q * R_LEG_ini;
+  RLEG_ref_p = object_ref->p() + R * p_obj2RLEG;
+  LLEG_ref_p = object_ref->p() + R * p_obj2LLEG;
+  LEG_ref_R = R * R_LEG_ini;
 }
 
-inline void sony::prmGenerator()//this is calcrzmp flag
+inline void sony::ptnGenerator()//this is calcrzmp flag
 {
   calcRefFoot();
   //////////////usually obmit when keep walking//////////////////
@@ -355,16 +355,13 @@ inline void sony::prmGenerator()//this is calcrzmp flag
       pattern = NORMAL;
       //set Initial zmp to zmpP
       resetZmpPlanner();//idle off
-     
       //calc trajectory
       gaitGenerate();
     }
   }
   else {//keep walking start from new leg
-    
     if( (!walkJudge(m_robot, FT, RLEG_ref_p, LLEG_ref_p, LEG_ref_R, end_link))&& zmpP->cp_deque.empty() && !step){
       pattern = STOP;
-      //cout<<"should stop here"<<endl;
     }
     // if pattern == STOP planstop 
     gaitGenerate();
@@ -435,25 +432,16 @@ inline void sony::readGamepad() {
 void sony::resetZmpPlanner()
 {// this is for FSRF or FSLF
   Vector3 rzmpInit;
-  //NaturalZmp(m_robot, rzmpInit, cm_offset_x, end_link);
-  zmpP -> NaturalZmp(m_robot, rzmpInit, end_link);
+  //neutralZmp(m_robot, rzmpInit, cm_offset_x, end_link);
+  zmpP -> neutralZmp(m_robot, rzmpInit, end_link);
   zmpP -> setInit(rzmpInit);
   
-  idle = 0;//comment out when test mode
+  idle = 0;
 }
 
 //TODO:RLEG_ref_p LLEG_ref_p only one
 // generate refzmp cm_z cp swingLeg trajectory pivot_b
- void sony::gaitGenerate() {
-  // Vector3  swLegRef_p;
-  // if((FT==FSRFsw)||(FT==RFsw)){
-  //   swLegRef_p = RLEG_ref_p;
-  // }
-  // else if((FT==FSLFsw)||(FT==LFsw)){
-  //   swLegRef_p = LLEG_ref_p;
-  // }
-
-  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_//_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+void sony::gaitGenerate() {
   //limit new without p_ref
   Link* SupLeg;
   Vector3 SwLeg_p_ref;
@@ -462,26 +450,20 @@ void sony::resetZmpPlanner()
   if((FT==FSRFsw) || FT==RFsw){
     SupLeg = m_robot->link(end_link[LLEG]);
     SwLeg_p_ref = RLEG_ref_p;
-    limit_y = -0.17;
+    limit_y = -foot_distance_limit_y;
   }
   else if((FT==FSLFsw) || FT==LFsw){
     SupLeg=m_robot->link(end_link[RLEG]);
     SwLeg_p_ref = LLEG_ref_p;
-    limit_y = 0.17;
+    limit_y = foot_distance_limit_y;
   }
 
   // prevent foot collision
   Vector3 sup_2_sw_leg_abs(SupLeg->R().transpose()*(SwLeg_p_ref - SupLeg->p()));
-  if (fabs(sup_2_sw_leg_abs(1)) < 0.17) {
+  if (fabs(sup_2_sw_leg_abs(1)) < foot_distance_limit_y) {
     sup_2_sw_leg_abs(1) = limit_y;
     SwLeg_p_ref = SupLeg->p() + SupLeg->R() * sup_2_sw_leg_abs;
-    //adjust
-    //swLegRef_p= pfromVector3( SwLeg_p_ref);
-    //swLegRef_p = SwLeg_p_ref;
-    //cerr<<"interference"<<endl;
   }
-
-  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_//_/_/_/_/_/_/_/_/_/_/_/_/_/_/_  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
   
   rfzmp.clear();
   
@@ -501,12 +483,12 @@ void sony::getWalkingMotion()
   //capture point 
   zmpP->getNextCom(cm_ref);
   //swingLeg nomal mode
-  if (!zmpP->swLegxy.empty()) {
+  if (!zmpP->swLeg_xy.empty()) {
     int swingLeg = swLeg(FT);
-    pose_ref[swingLeg].translation()(0) = zmpP->swLegxy.at(0)[0];
-    pose_ref[swingLeg].translation()(1) = zmpP->swLegxy.at(0)[1];
-    //p_ref[swingLeg](2)=p_Init[swingLeg][2]+zmpP->Trajzd.at(0);
-    pose_ref[swingLeg].translation()(2) = zmpP->Trajzd.at(0);
+    pose_ref[swingLeg].translation()(0) = zmpP->swLeg_xy.at(0)[0];
+    pose_ref[swingLeg].translation()(1) = zmpP->swLeg_xy.at(0)[1];
+    //p_ref[swingLeg](2)=p_Init[swingLeg][2]+zmpP->swLeg_z.at(0);
+    pose_ref[swingLeg].translation()(2) = zmpP->swLeg_z.at(0);
     pose_ref[swingLeg].linear() = zmpP->swLeg_R.at(0);
     //zmpP->calcWaistR(FT,  R_ref);
     pose_ref[WAIST].linear() = zmpP->calcWaistR(FT, m_robot, end_link);
@@ -545,15 +527,6 @@ void sony::getWalkingMotion()
       zmpP -> rot_pitch.pop_front();
     } 
     ////////////////////////////
-
-    /*
-    //contact states ..no good if climb stair
-    if(zmpP->Trajzd.at(0)<1e-9)
-      m_contactStates.data[swingLeg]=1;
-    else 
-      m_contactStates.data[swingLeg]=0;
-    */
-
     m_contactStates.data[swingLeg] = zmpP->contactState_deque.at(0);
     if (FT==FSRFsw || FT==LFsw) {
       m_toeheelRatio.data[RLEG] = 1;
@@ -568,14 +541,12 @@ void sony::getWalkingMotion()
       m_controlSwingSupportTime.data[swingLeg] = zmpP -> groundAirRemainTime.at(0);
     }
 
-    zmpP -> swLegxy.pop_front();
-    zmpP -> Trajzd.pop_front();
+    zmpP -> swLeg_xy.pop_front();
+    zmpP -> swLeg_z.pop_front();
     zmpP -> swLeg_R.pop_front();
     zmpP -> cm_z_deque.pop_front();
     zmpP -> contactState_deque.pop_front();
     zmpP -> groundAirRemainTime.pop_front();
-
-      
   }//empty
 
 }
@@ -590,7 +561,7 @@ void sony::ifChangeSupLeg()
     //change leg
     //move updateInit to here
     IniNewStep();
-    prmGenerator();//idle off here
+    ptnGenerator();//idle off here
   }
 }
 
@@ -616,12 +587,11 @@ void sony::start()//todo change to initialize_wpg
   m_mcIn.read();
   //for(unsigned int i=0;i<m_mc.data.length();i++)
   //m_refq.data[i]=body_cur(i)=m_mc.data[i];
-  for(int i=0;i<dof;i++) {
+  for (int i=0;i<dof;i++) {
     //m_refq.data[i]=body_cur(i)=halfpos[i];
     m_refq.data[i] = body_cur(i) = m_mc.data[i];
   }
   update_model(m_robot, m_mc, FT, end_link);
-  
   get_end_link_pose(pose_now, m_robot, end_link);
 
   cm_ref = m_robot -> calcCenterOfMass();// 
@@ -643,18 +613,16 @@ void sony::start()//todo change to initialize_wpg
     Matrix3 Rmid( R_R.transpose() * L_R);
     Vector3 omega( omegaFromRot(Rmid));
     object_ref -> R() = R_R*rodoriges(omega, 0.5);
-    // object_ref -> p() = (p_Init[RLEG] +  p_Init[LLEG] )/2;
     object_ref -> p() = (pose_now[RLEG].translation() +
                          pose_now[LLEG].translation())/2;
   }
 
-
   //class ini
-  if( !zmpP ) {
+  if (!zmpP) {
     zmpP= new ZmpPlaner();
     zmpP -> setWpgParam(param);
   }
-  //for path planning/////////////////////////////////////////
+  //for foot planning/////////////////////////////////////////
   //ini
   p_obj2RLEG = object_ref->R().transpose() * (pose_now[RLEG].translation() - object_ref->p()); // ogawa
   p_obj2LLEG = object_ref->R().transpose() * (pose_now[LLEG].translation() - object_ref->p()); // ogawa
@@ -690,22 +658,6 @@ void sony::start()//todo change to initialize_wpg
   }
   //cout<<m_profile.instance_name<<":pivot "<<m_robot->link("pivot_R")->p()<<endl;
   //cout<<m_robot->link("RLEG_JOINT5")->p()<<endl;
-  
-  /*  
-  pt_R->b()<<0.13, 0.0, -0.105;
-  pt_L->b()<<0.13, 0.0, -0.105;
-  pt_R->jointType=cnoid::Link::FIXED_JOINT;
-  pt_L->jointType=cnoid::Link::FIXED_JOINT;
-  m_robot->link("RLEG_JOINT5")->addChild(pt_R);
-  m_robot->link("LLEG_JOINT5")->addChild(pt_L);
- 
-  s2sw_R=JointPathPtr(new JointPath(m_robot->link("LLEG_JOINT5"), m_robot->link("RLEG_JOINT5")->child));
-  s2sw_R->calcForwardKinematics();
-  s2sw_L=JointPathPtr(new JointPath(m_robot->link("RLEG_JOINT5"), m_robot->link("LLEG_JOINT5")->child));
-  s2sw_L->calcForwardKinematics();
-  p_ref_toe[RLEG]=m_robot->link("RLEG_JOINT5")->child->p();
-  p_ref_toe[LLEG]=m_robot->link("LLEG_JOINT5")->child->p();
-  */
   //////////////////////////////////////////////////////////////
 
   rotRTemp = object_ref->R();
@@ -715,17 +667,13 @@ void sony::start()//todo change to initialize_wpg
   //no good when climb stair
   // double w=sqrt(9.806/cm_ref(2));
   // zmpP->setw(w);
-  zmpP->setw(cm_ref(2), object_ref->p()(2));  // ogawa
-  zmpP->setZmpOffsetX(cm_offset_x);
+  zmpP -> setw(cm_ref(2), object_ref->p()(2));  // ogawa
+  zmpP -> setZmpOffsetX(cm_offset_x);
   Vector3 rzmpInit;
-  //NaturalZmp(m_robot, rzmpInit, cm_offset_x, end_link);
-  zmpP->NaturalZmp(m_robot, rzmpInit, end_link);
-
-  zmpP->setInit(rzmpInit);//for cp init
+  zmpP -> neutralZmp(m_robot, rzmpInit, end_link);
+  zmpP -> setInit(rzmpInit);//for cp init
   //absZMP(2) = object_ref->p()(2);
   calcRefFoot();
-
-  //ooo
   active_control_loop = 0;
 
   //ogawa
@@ -735,25 +683,23 @@ void sony::start()//todo change to initialize_wpg
 
 void sony::stepping()
 {
-  if(freeWalk){
-
+  if (freeWalk) {
     // ogawa
-    if( !active_control_loop ) {
+    if (!active_control_loop) {
       m_mcIn.read();
-      for(int i=0;i<dof;i++) {
+      for (int i=0;i<dof;i++) {
         m_refq.data[i]=body_cur(i)=m_mc.data[i];
       }
       update_model(m_robot, m_mc, FT, end_link);
       setCurrentData();
     }
 
-
     step =! step;
     cout << "step" << endl;
     active_control_loop=1;
 
     if (idle) {
-      prmGenerator();//idle off here
+      ptnGenerator();//idle off here
     }
     std::cout << "sony : robot pos = " << m_robot->rootLink()->p().format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
   }
@@ -780,11 +726,11 @@ void sony::setFootPosR()
   RLEG_ref_p[0]+=0.2;
   LLEG_ref_p[0]+=0.2;
     
-  if(zmpP->cp_deque.empty()){
+  if (zmpP->cp_deque.empty()) {
     FT=FSRFsw;
     //start to walk
     pattern = NORMAL;
-    if( idle ){
+    if (idle) {
       std::cout << "setFootPosR : start2walk" << std::endl;
       std::cout << "setFootPosR : stepnum = " << stepNum << std::endl;
       resetZmpPlanner();//idle off
@@ -854,8 +800,8 @@ void sony::setFootPosR(double x, double y, double z, double r, double p, double 
   LLEG_ref_p[2]=z;
   LEG_ref_R = cnoid::rotFromRpy(r,p,w);
   */
-  if(zmpP->cp_deque.empty()){
-    FT=FSRFsw;
+  if (zmpP -> cp_deque.empty()) {
+    FT = FSRFsw;
     // start to walk
     pattern = NORMAL;
     if( idle ){
@@ -892,9 +838,7 @@ void sony::setFootPosL(double x, double y, double z, double r, double p, double 
     std::cout << "setFootPosR : set current data" << std::endl;
   }
 
-
-  
-  if (zmpP->cp_deque.empty()) {
+  if (zmpP -> cp_deque.empty()) {
     FT = FSLFsw;
     // start to walk
     pattern = NORMAL;
@@ -999,17 +943,6 @@ void sony::freeWalkSwitch()
 
   ///////////////////////
   if(!freeWalk){
-    // object_ref->p()=(m_robot->link(end_link[RLEG])->p() + m_robot->link(end_link[LLEG])->p())/2;
-    // //object_ref->p()(2)=0;
-    // object_ref->p()(2) -= param.ankle_height; // ogawa
-
-    // Matrix3 R_R=extractYow(m_robot->link(end_link[RLEG])->R());
-    // Matrix3 L_R=extractYow(m_robot->link(end_link[LLEG])->R());
-    
-    // Matrix3 Rmid( R_R.transpose() * L_R);//for toe
-    // Vector3 omega( omegaFromRot(Rmid));
-    // object_ref->R()= R_R*rodoriges(omega, 0.5);
-
     // ogawa
     m_mcIn.read();
     for(int i=0;i<dof;i++) {
@@ -1071,11 +1004,11 @@ void sony::setCurrentData()
     pose_ref[LLEG] = m_robot->link("pivot_L")->T();
   }
 
-  zmpP->setw(cm_ref(2), object_ref->p()(2));
+  zmpP -> setw(cm_ref(2), object_ref->p()(2));
   Vector3 rzmpInit;
-  //NaturalZmp(m_robot, rzmpInit, cm_offset_x, end_link);
-  zmpP->NaturalZmp(m_robot, rzmpInit, end_link);
-  zmpP->setInit(rzmpInit);//for cp init
+  //neutralZmp(m_robot, rzmpInit, cm_offset_x, end_link);
+  zmpP -> neutralZmp(m_robot, rzmpInit, end_link);
+  zmpP -> setInit(rzmpInit);//for cp init
   //absZMP(2) = object_ref->p()(2);
   //calcRefFoot();
 

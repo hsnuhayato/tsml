@@ -1,16 +1,8 @@
-#ifndef WUNEWTYPES_H
-#define WUNEWTYPES_H
+#ifndef CUSTOMTYPES_H
+#define CUSTOMTYPES_H
 
-
-//#include "hrpModel/Body.h"
-//#include "hrpModel/Link.h"
-//#include "hrpModel/JointPath.h"
-//#include "hrpModel/ModelLoaderUtil.h"
-//#include "hrpUtil/MatrixSolvers.h"
-//#include "hrpUtil/EigenTypes.h" 
-
-#include<fstream>
-#include<math.h>
+#include <fstream>
+#include <math.h>
 
 #include <cnoid/Body>
 #include <cnoid/BodyLoader>
@@ -60,7 +52,7 @@ struct wpgParam
   double pitch_angle;
   std::vector<double> link_b_front;
   std::vector<double> link_b_rear;
-  std::vector<double> link_b_ankle;
+  std::vector<double> link_b_ee;
   double ankle_height;
 };
 

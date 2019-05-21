@@ -90,7 +90,7 @@ class sony  : public hrp2Base
   inline void getIKResult();
   inline void calcRefPoint();
   inline void calcRefFoot();
-  inline void prmGenerator();
+  inline void ptnGenerator();
   inline void readGamepad();
 
   void resetZmpPlanner();
@@ -171,6 +171,7 @@ class sony  : public hrp2Base
 
   wpgParam param;
   bool step;
+  double foot_distance_limit_y;
 
   //test para
   //std::deque<vector32> bodyDeque;

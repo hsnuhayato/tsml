@@ -1,21 +1,9 @@
-#include<stdio.h>
-#include<fstream>
-#include<math.h>
-#include "myfunc.h"
+#include <stdio.h>
+#include <fstream>
+#include <math.h>
+#include "commonFunc.h"
 // static std::ofstream ofs("/home/player/tsml/log/tar.log");
 // static std::ofstream ofs2("/home/player/tsml/log/tarq.log");
-/*
-void ShowMatrix(Matrix33& M,int k,int l)
-{
-  for(int i=0;i<3;i++)
-    {
-      for(int j=0;j<3;j++)
-	{
-	  std::cout<<M(i,j)<<" ";
-	}std::cout<<std::endl;
-    }
-}
-*/
 
 double* CalcInterplation1(double xs,double xf,double tf)
 {
@@ -71,16 +59,6 @@ double* CalcInterplation3(double xs,double dxs,double xf,double dxf,double tf)
   delete tmp;
 }
 
-/*
- double sigma(dvector arr,int x,int y)
-{
-  double total=0;
-  for(int i=x;i<y+1;i++)
-    total+=arr[i];
-  return total;
-}
-*/
-
 double vel(double* Array,int i)
 {
   double vel=0;
@@ -95,19 +73,6 @@ double acc(double* Array,int i)
   return acc;
 }
 
-/*
-void ShowMatrix(dmatrix& M,int k,int l)
-{
-  for(int i=0;i<k;i++)
-    {
-      for(int j=0;j<l;j++)
-	{
-	  std::cout<<M(i,j)<<" ";
-	}std::cout<<std::endl;
-    }
-}
-*/
-
 double sum(double* Array1st,int n)
 {
   double total=0;
@@ -117,16 +82,15 @@ double sum(double* Array1st,int n)
   return total;
 }
 ////for robot..///
-void getModelPosture( BodyPtr body,  TimedDoubleSeq &m_refq)
+void getModelAngles(const BodyPtr body, TimedDoubleSeq &m_refq)
 {
   int dof=body->numJoints();
   for(unsigned int i=0;i<dof;i++)
     m_refq.data[i]=body->joint(i)->q();
 }
-//old
 
 //new
-void update_model( BodyPtr body, const TimedDoubleSeq &m_q, const FootType FT, const string *end_link)
+void update_model(const BodyPtr body, const TimedDoubleSeq &m_q, const FootType FT, const string *end_link)
 {
   int dof = body -> numJoints();
   for(unsigned int i=0;i<dof;i++)
@@ -163,47 +127,6 @@ Matrix3 rotationY(double theta){
   return R;
 }
 
-
-/*
-void RenewModel(BodyPtr body,Vector3  *p_now, Matrix3 *R_now)
-{
-  string RARM_END,LARM_END;
-  if( body->numJoints()==32){
-    RARM_END= "RARM_JOINT6";
-    LARM_END= "LARM_JOINT6";
-  }
-  else if( body->numJoints()==30){
-    RARM_END= "RARM_JOINT5";
-    LARM_END= "LARM_JOINT5";
-  }
-
-  p_now[0]=body->link("RLEG_JOINT5")->p();
-  p_now[1]=body->link("LLEG_JOINT5")->p();
-  p_now[2]=body->link(RARM_END)->p();
-  p_now[3]=body->link(LARM_END)->p();
-  p_now[4]=body->link("WAIST")->p();
- 
-  R_now[0]=body->link("RLEG_JOINT5")->R();
-  R_now[1]=body->link("LLEG_JOINT5")->R();
-  R_now[2]=body->link(RARM_END)->R();
-  R_now[3]=body->link(LARM_END)->R();
-  R_now[4]=body->link("WAIST")->R();
-}
-*/
-void RenewModel(BodyPtr body,Vector3  *p_now, Matrix3 *R_now, string *end_link)
-{
-  p_now[0]=body->link(end_link[RLEG])->p();
-  p_now[1]=body->link(end_link[LLEG])->p();
-  p_now[2]=body->link(end_link[RARM])->p();
-  p_now[3]=body->link(end_link[LARM])->p();
-  p_now[4]=body->link(end_link[WAIST])->p();
- 
-  R_now[0]=body->link(end_link[RLEG])->R();
-  R_now[1]=body->link(end_link[LLEG])->R();
-  R_now[2]=body->link(end_link[RARM])->R();
-  R_now[3]=body->link(end_link[LARM])->R();
-  R_now[4]=body->link(end_link[WAIST])->R();
-}
 
 void get_end_link_pose(Position* pose, const BodyPtr body, const string *end_link)
 {
@@ -459,10 +382,6 @@ Matrix3 extractYow(Matrix3 Rin)
 {
   Vector3 rpy = rpyFromRot(Rin);
   Matrix3 R = rotationZ(rpy(2));
-  // Eigen::AngleAxisd aa(Rin);
-  // // if ( fabs(aa.angle()) < 1e-2) {  
-  // //   return MatrixXd::Identity(3,3);
-  // // } 
   // Matrix3 R=rotationZ(euler(0));
 
   return R;
@@ -475,23 +394,6 @@ Vector2 pfromVector3(Vector3 p)
   p_xy(0)=p(0);
   p_xy(1)=p(1);
   return p_xy;
-}
-
-void NaturalZmp(BodyPtr body, Vector3 &absZMP, double offset_x, string *end_link)
-{
-  Vector2 pfzmp;
-  Vector2 zmpoffset(MatrixXd::Zero(2,1));
-  zmpoffset<<offset_x, 0.0;
-
-  pfzmp(0)=(body->link(end_link[RLEG])->p()(0) + body->link(end_link[LLEG])->p()(0))/2;
-  pfzmp(1)=(body->link(end_link[RLEG])->p()(1) + body->link(end_link[LLEG])->p()(1))/2;
-  
-  //pfzmp= pfzmp + (RLeg_R*zmpoffset + LLeg_R*zmpoffset)/2;
-  
-  pfzmp += RfromMatrix3(body->link(end_link[WAIST])->R())*zmpoffset;
-  absZMP(0)=pfzmp(0);
-  absZMP(1)=pfzmp(1);
-  absZMP(2)=(body->link(end_link[RLEG])->p()(2) + body->link(end_link[LLEG])->p()(2))/2;
 }
 
 //please use calcWaistR in zmp planner
@@ -527,29 +429,18 @@ bool walkJudge(BodyPtr body,  FootType FT, Vector3 RLEG_ref_p, Vector3 LLEG_ref_
   Vector3 omega_err_R(VectorXd::Zero(3));
   Vector3 omega_err_L(VectorXd::Zero(3));
 
-  //use parent p calculate XX
-  //body->link("RLEG_JOINT5")->p better
-
-  //usuall
-  /*
-  FErr_R=  RLEG_ref_p - p_ref[RLEG]; 
-  FErr_L=  LLEG_ref_p - p_ref[LLEG]; 
-  omega_err_R=R_ref[RLEG] * omegaFromRot(Matrix3(trans(R_ref[RLEG]) * LEG_ref_R));
-  omega_err_L=R_ref[LLEG] * omegaFromRot(Matrix3(trans(R_ref[LLEG]) * LEG_ref_R));
-  */
-  //for toe mode
-  FErr_R=  RLEG_ref_p - body->link(end_link[RLEG])->p(); 
-  FErr_L=  LLEG_ref_p - body->link(end_link[LLEG])->p(); 
-  Matrix3 temR_R=extractYow(body->link(end_link[RLEG])->R());
-  Matrix3 temR_L=extractYow(body->link(end_link[LLEG])->R());
-  omega_err_R=temR_R * omegaFromRot(temR_R.transpose() * LEG_ref_R);
-  omega_err_L=temR_L * omegaFromRot(temR_L.transpose() * LEG_ref_R);
+  FErr_R =  RLEG_ref_p - body->link(end_link[RLEG])->p();
+  FErr_L =  LLEG_ref_p - body->link(end_link[LLEG])->p();
+  Matrix3 temR_R = extractYow(body->link(end_link[RLEG])->R());
+  Matrix3 temR_L = extractYow(body->link(end_link[LLEG])->R());
+  omega_err_R = temR_R * omegaFromRot(temR_R.transpose() * LEG_ref_R);
+  omega_err_L = temR_L * omegaFromRot(temR_L.transpose() * LEG_ref_R);
  
   bool start2walk=0;
 
-  if((sqrt(FErr_L(0)*FErr_L(0)+FErr_L(1)*FErr_L(1))>0.03)||(sqrt(FErr_R(0)*FErr_R(0)+FErr_R(1)*FErr_R(1))>0.03))
+  if ((sqrt(FErr_L(0)*FErr_L(0)+FErr_L(1)*FErr_L(1))>0.03)||(sqrt(FErr_R(0)*FErr_R(0)+FErr_R(1)*FErr_R(1))>0.03))
     start2walk=1;//start to walk
-  if(omega_err_R.dot(omega_err_R)>0.03||(omega_err_L.dot(omega_err_L)>0.03))
+  if (omega_err_R.dot(omega_err_R)>0.03||(omega_err_L.dot(omega_err_L)>0.03))
     start2walk=1;//start to walk
 
   return start2walk;
@@ -573,12 +464,12 @@ void atan2adjust(Vector3 &pre, Vector3 &cur)
   for(int i=0;i<3;i++){
     if(fabs(pre(i)- cur(i))>M_PI){
       if(pre(i) > cur(i) ){
-	while(fabs(pre(i) - cur(i))>M_PI)
-	  cur(i)+=2*M_PI;
+        while(fabs(pre(i) - cur(i))>M_PI)
+          cur(i)+=2*M_PI;
       }
       else if(pre(i) < cur(i) ){
-	while(fabs(pre(i) - cur(i))>M_PI)
-	  cur(i)-=2*M_PI;
+        while(fabs(pre(i) - cur(i))>M_PI)
+          cur(i)-=2*M_PI;
       }   
     }// if(fabs(pre - cur)>M_PI)
   }//for
@@ -663,8 +554,8 @@ bool CalcIVK_biped(const BodyPtr body, const Vector3& CM_p, const Position* pose
       double errsqr=v.squaredNorm();
 
       if(errsqr < maxIKErrorSqr){
-	converged = true;
-	break;
+        converged = true;
+        break;
       }
       
       MatrixXd JJ;
@@ -674,19 +565,8 @@ bool CalcIVK_biped(const BodyPtr body, const Vector3& CM_p, const Position* pose
 
 
       for(int j=0; j < n; ++j){
-	body->joint(j)->q() += LAMBDA * dq(j);
+        body->joint(j)->q() += LAMBDA * dq(j);
       }
-     
-      /*
-      if((FT==FSRFsw)||FT==RFsw){
-	body->link("LLEG_JOINT5")->p()=p_Init[LLEG];
-	body->link("LLEG_JOINT5")->R()=R_Init[LLEG];
-      }
-      else if((FT==FSLFsw)||FT==LFsw){
-	body->link("RLEG_JOINT5")->p()=p_Init[RLEG];
-	body->link("RLEG_JOINT5")->R()=R_Init[RLEG];
-      }
-      */
 
       SupLeg->p()=SupLeg_p_Init;
       SupLeg->R()=SupLeg_R_Init;
@@ -698,18 +578,9 @@ bool CalcIVK_biped(const BodyPtr body, const Vector3& CM_p, const Position* pose
     if(!converged){
       
       for(int j=0; j < n; ++j){
-	body->joint(j)->q() = qorg[j];
+        body->joint(j)->q() = qorg[j];
       }
-      /*
-	if((FT==FSRFsw)||FT==RFsw){
-	body->link("LLEG_JOINT5")->p()=p_Init[LLEG];
-	body->link("LLEG_JOINT5")->R()=R_Init[LLEG];//tvmet::identity<matrix33>();
-      }
-      else if((FT==FSLFsw)||FT==LFsw){
-	body->link("RLEG_JOINT5")->p()=p_Init[RLEG];
-	body->link("RLEG_JOINT5")->R()=R_Init[RLEG];//tvmet::identity<matrix33>();
-      }
-      */
+
       SupLeg->p()=SupLeg_p_Init;
       SupLeg->R()=SupLeg_R_Init;
       SupLeg2SwLeg->calcForwardKinematics();
@@ -971,33 +842,6 @@ Matrix3 rodoriges(Vector3 omega, double dt)
   R=E + hat_a*sin(w*dt)+ hat_a*hat_a*(1-cos(w*dt));
   return R;
 }
-
-
-/*
-//print dmatrix
-  int row,column;
-  row=gg.rows();
-  column=gg.cols();
-  
-  for(int i=0;i<row;i++){
-  for(int j=0;j<column;j++){
-  ofs<<gg(i,j)<<" ";
-  }ofs<<std::endl;
-  }
-  ofs<<'\n'<<endl;
-*/
-
-/*
-//rpy to rot
-Eigen::AngleAxisd rollAngle(roll, Eigen::Vector3d::UnitZ());
-Eigen::AngleAxisd yawAngle(yaw, Eigen::Vector3d::UnitY());
-Eigen::AngleAxisd pitchAngle(pitch, Eigen::Vector3d::UnitX());
-
-Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
-
-Eigen::Matrix3d rotationMatrix = q.matrix();
- */
-
 
 bool CalcIVK_biped_toe(const BodyPtr body,const Vector3& CM_p, const Position* pose_ref,
                        const FootType& FT, const string *end_link)

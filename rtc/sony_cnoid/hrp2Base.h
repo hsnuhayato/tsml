@@ -35,7 +35,7 @@
 // </rtc-template>
 //#include <Eigen/Dense>
 //user
-#include "myfunc.h"
+#include "commonFunc.h"
 //#include "VConvert.h"
 #include "VectorConvert.h"
 #include "ZmpPlaner.h"
