@@ -5,60 +5,6 @@
 // static std::ofstream ofs("/home/player/tsml/log/tar.log");
 // static std::ofstream ofs2("/home/player/tsml/log/tarq.log");
 
-double* CalcInterplation1(double xs,double xf,double tf)
-{
- double* tmp;
- double dt=0.005;
- int num=(int)(tf/dt+NEAR0);
- tmp=new double[num];
- for(int i=1;i<num+1;i++)
-   {
-     tmp[i-1]=xs+(xf-xs)*i/num;
-   }
-
-
- return tmp;
-}
-
-void CalcInterplation1Vector2(Vector2 xs, Vector2 xf, double tf, std::deque<Vector2> &DQ)
-{
-  DQ.clear();
-  double dt=0.005;
-  int num=(int)(tf/dt+NEAR0);
-  Vector2 DQtem;
-  for(int i=1;i<num+1;i++){
-    DQtem=xs+(xf-xs)*i/num;
-    DQ.push_back(DQtem);
-  }
-}
-
-double* CalcInterplation3(double xs,double dxs,double xf,double dxf,double tf)
-{
-  double* tmp;
-  double a0,a1,a2,a3;
-  double dt=0.005;
-  int num=(int)(tf/dt+NEAR0);//correct
-  //cout<<"numinC5 "<<num<<"v"<<(int)(tf/dt)<<endl;
-  tmp=new double[num];
-  //cout<<"iter5 number "<<num<<endl;
-  a0=xs;
-  a1=dxs;
-  a2=1/(2*pow(tf,2))*(-6*(xs-xf)+2*(dxs-dxf)*tf);
-  a3=1/pow(tf,3)*(2*(xs-xf)-(dxs-dxf)*tf);
-
-  
-  for(int i=1;i<num+1;i++)//頭抜き
-    //for(int i=0;i<num;i++)//ビリ抜き
-    {
-      double ti=dt*i;
-      tmp[i-1]=a0+a1*ti+a2*pow(ti,2)+a3*pow(ti,3);//頭抜き
-      //tmp[i]=a0+a1*ti+a2*pow(ti,2)+a3*pow(ti,3);//ビリ抜き
-      //  cout<<"5inert "<<tmp[i-1]<<endl;
-    }
-  return tmp;
-  delete tmp;
-}
-
 double vel(double* Array,int i)
 {
   double vel=0;

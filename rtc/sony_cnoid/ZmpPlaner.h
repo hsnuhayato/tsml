@@ -21,10 +21,10 @@ class ZmpPlaner {
   Matrix3 calcWaistR(const FootType& FT, const BodyPtr m_robot, const string *end_link);
 
   //capture point/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-  void planCP(const BodyPtr m_robot, const FootType& FT, Vector3 swLegRef_p, const Matrix3& input_ref_R,
+  void planCP(const BodyPtr m_robot, const FootType& FT, Vector3 swLegRef_p, const Matrix3& footRef_R,
               std::deque<vector2> &rfzmp, const bool usePivot, const string *end_link, const bool& ifLastStep = 0);
 
-  void planCPstop(const BodyPtr m_robot ,const FootType& FT, const Matrix3& input_ref_R, std::deque<vector2>& rfzmp, const string *end_link);
+  void planCPstop(const BodyPtr m_robot, std::deque<vector2>& rfzmp, const string *end_link);
   // plan swing leg and COM in z direction
   void planSwingLeg(const BodyPtr m_robot, const FootType& FT,const Vector3& swLegRef_p, const Matrix3& tar_R,
                       const bool usePivot, const string *end_link);

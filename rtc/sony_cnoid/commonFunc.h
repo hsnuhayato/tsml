@@ -23,16 +23,21 @@
 #include <iostream>
 #include <deque>
 
-double* CalcInterplation1(double xs,double xf,double tf);
-void CalcInterplation1Vector2(Vector2 xs, Vector2 xf, double tf, std::deque<Vector2> &DQ);
-double* CalcInterplation3(double xs,double dxs,double xf,double dxf,double tf);
+template<class T>
+void extendDeque(std::deque<T>& input, T val, double tf, double dt=0.005)
+{
+   int num=(int)(tf/dt+NEAR0);
+   for (int i=0;i<num;i++) {
+     input.push_back(val);
+   }
+}
 
 template<class T>
-void Interplation5(T ps, T dps, T ddps, T pf,T dpf, T ddpf,  double tf, std::deque<T>& input)
+void Interplation5(T ps, T dps, T ddps, T pf,T dpf, T ddpf,  double tf, std::deque<T>& input, double dt=0.005)
 {
   //cout<<"IP5 template"<<endl;
   T a0,a1,a2,a3,a4,a5;
-  int num=(int)(tf/0.005+NEAR0);
+  int num=(int)(tf/dt+NEAR0);
 
   a0=ps;
   a1=dps;
@@ -42,7 +47,7 @@ void Interplation5(T ps, T dps, T ddps, T pf,T dpf, T ddpf,  double tf, std::deq
   a5=(12.0*pf - 12.0*ps - (6.0*dpf + 6.0*dps)*tf - (ddps - ddpf)*pow(tf,2))/(2.0*pow(tf,5));
 
   for(int i=1;i<num+1;i++){
-    double ti=0.005*i;
+    double ti=dt*i;
     T tmp;
     tmp=a0+a1*ti+a2*pow(ti,2)+a3*pow(ti,3)+a4*pow(ti,4)+a5*pow(ti,5);//頭抜き
     input.push_back(tmp);
@@ -50,10 +55,9 @@ void Interplation5(T ps, T dps, T ddps, T pf,T dpf, T ddpf,  double tf, std::deq
 }
 
 template<class T>
-void Interplation3(T xs, T dxs, T xf,T dxf, double tf, std::deque<T>& input)
+void Interplation3(T xs, T dxs, T xf,T dxf, double tf, std::deque<T>& input, double dt=0.005)
 {
   T a0,a1,a2,a3;
-  double dt=0.005;
   int num=(int)(tf/dt+NEAR0);//correct
  
   a0=xs;
@@ -75,10 +79,9 @@ void Interplation3(T xs, T dxs, T xf,T dxf, double tf, std::deque<T>& input)
 
 
 template<class T>
-void Interplation3_zvel(T xs, T dxs, T xf,T dxf, double tf, std::deque<T>& input)
+void Interplation3_zvel(T xs, T dxs, T xf,T dxf, double tf, std::deque<T>& input, double dt=0.005)
 {
   T a0,a1,a2,a3;
-  double dt=0.005;
   int num=(int)(tf/dt+NEAR0);//correct
  
   a0=xs;
@@ -99,9 +102,8 @@ void Interplation3_zvel(T xs, T dxs, T xf,T dxf, double tf, std::deque<T>& input
 }
 
 template<class T>
-void Interplation1(T xs,T xf,double tf, std::deque<T>& input)
+void Interplation1(T xs,T xf,double tf, std::deque<T>& input, double dt=0.005)
 {
-  double dt=0.005;
   int num=(int)(tf/dt+NEAR0);
   T tmp;
   for(int i=1;i<num+1;i++){
@@ -109,6 +111,29 @@ void Interplation1(T xs,T xf,double tf, std::deque<T>& input)
     input.push_back(tmp);
   }
 }
+
+
+class minVelInterp {
+public:
+  minVelInterp()  {c << 0,0,0,0;};
+
+  void setParams(const double xs, const double xf, const double tf) {
+    Matrix4 E;
+    c << xs, xf, 0.0, 0.0;
+    E << 1.0, 1.0, 0.0, 1.0,
+        exp(tf), exp(-tf), tf, 1.0,
+        1.0, -1.0, 1.0, 0.0,
+        exp(tf), -exp(-tf), 1.0, 0.0;
+    c = E.inverse() * c;
+  };
+
+  double sampling(const double dt) {
+    return  c(0)*exp(dt) + c(1)*exp(-dt) + c(2)*dt + c(3);
+  };
+
+private:
+  Vector4 c;
+};
 
 //double sigma(dvector arr,int x,int y);
 
@@ -188,4 +213,7 @@ void SeqPlay32(vector32 body_cur,   vector32 body_ref,  std::deque<vector32>& bo
 
 Matrix3 rotationZ(double theta);
 Matrix3 rotationY(double theta);
+
+
+
 #endif

@@ -473,7 +473,7 @@ void sony::gaitGenerate() {
   else if (pattern == STOP) {
     //cout<<FT<<" CPstop"<<endl;
     //cout<<"swLegRef_p "<<swLegRef_p<<endl;
-    zmpP -> planCPstop(m_robot, FT, LEG_ref_R, rfzmp, end_link);
+    zmpP -> planCPstop(m_robot, rfzmp, end_link);
   }
 }
 
