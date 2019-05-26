@@ -122,7 +122,7 @@ class JVRC(HrpsysConfigurator):
             rtm.connectPorts(self.sh.port("baseRpyOut"), self.st.port("baseRpyIn"))
             rtm.connectPorts(self.wpg.port("contactStates"), self.st.port("contactStates"))
             rtm.connectPorts(self.wpg.port("toeheelRatio"), self.st.port("toeheelRatio"))
-            #rtm.connectPorts(self.wpg.port("controlSwingSupportTime"), self.st.port("controlSwingSupportTime"))
+            rtm.connectPorts(self.wpg.port("controlSwingSupportTime"), self.st.port("controlSwingSupportTime"))
             #rtm.connectPorts(wpg.port("localEEpos"), st.port("localEEpos"))
             rtm.connectPorts(self.st.port("q"),  self.pdc.port("qRef"))
             rtm.connectPorts(self.st.port("q"),  self.wpg.port("mc"))
