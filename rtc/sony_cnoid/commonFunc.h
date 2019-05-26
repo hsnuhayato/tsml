@@ -24,7 +24,7 @@
 #include <deque>
 
 template<class T>
-void extendDeque(std::deque<T>& input, T val, double tf, double dt=0.005)
+void extendDeque(std::deque<T>& input, const T val, const double tf, const double dt=0.005)
 {
    int num=(int)(tf/dt+NEAR0);
    for (int i=0;i<num;i++) {
@@ -33,11 +33,17 @@ void extendDeque(std::deque<T>& input, T val, double tf, double dt=0.005)
 }
 
 template<class T>
-void Interplation5(T ps, T dps, T ddps, T pf,T dpf, T ddpf,  double tf, std::deque<T>& input, double dt=0.005)
+void Interplation5(T ps, T dps, T ddps, T pf,T dpf, T ddpf,
+                   double tf, std::deque<T>& input,
+                   double dt=0.005, double start_time = 0, double end_time = 0)
 {
   //cout<<"IP5 template"<<endl;
   T a0,a1,a2,a3,a4,a5;
-  int num=(int)(tf/dt+NEAR0);
+  if (end_time == 0) {
+    end_time = tf;
+  }
+  int start_idx = (int)(start_time/0.005+NEAR0) + 1;
+  int end_idx = (int)(end_time/0.005+NEAR0) + 1;
 
   a0=ps;
   a1=dps;
@@ -46,10 +52,10 @@ void Interplation5(T ps, T dps, T ddps, T pf,T dpf, T ddpf,  double tf, std::deq
   a4=(30.0*ps - 30.0*pf + (14.0*dpf + 16.0*dps)*tf + (3.0*ddps - 2.0*ddpf)*pow(tf,2))/(2.0*pow(tf,4));
   a5=(12.0*pf - 12.0*ps - (6.0*dpf + 6.0*dps)*tf - (ddps - ddpf)*pow(tf,2))/(2.0*pow(tf,5));
 
-  for(int i=1;i<num+1;i++){
+  for(int i=start_idx; i<end_idx; i++) {
     double ti=dt*i;
     T tmp;
-    tmp=a0+a1*ti+a2*pow(ti,2)+a3*pow(ti,3)+a4*pow(ti,4)+a5*pow(ti,5);//頭抜き
+    tmp=a0+a1*ti+a2*pow(ti,2)+a3*pow(ti,3)+a4*pow(ti,4)+a5*pow(ti,5);
     input.push_back(tmp);
   }
 }
@@ -76,42 +82,6 @@ void Interplation3(T xs, T dxs, T xf,T dxf, double tf, std::deque<T>& input, dou
       input.push_back(tmp);
     }
 }
-
-
-template<class T>
-void Interplation3_zvel(T xs, T dxs, T xf,T dxf, double tf, std::deque<T>& input, double dt=0.005)
-{
-  T a0,a1,a2,a3;
-  int num=(int)(tf/dt+NEAR0);//correct
- 
-  a0=xs;
-  a1=dxs;
-  //a2=1/(2*pow(tf,2))*(-6*(xs-xf)+2*(dxs-dxf)*tf);
-  //a3=1/pow(tf,3)*(2*(xs-xf)-(dxs-dxf)*tf);
-  a2=1/pow(tf,2)*(3*(xf-xs)-(2*dxs+dxf)*tf);
-  a3=1/pow(tf,3)*(2*(xs-xf)+(dxs+dxf)*tf);
-  
-  for(int i=1;i<num+1;i++)//頭抜き
-    //for(int i=0;i<num;i++)//ビリ抜き
-    {
-      double ti=dt*i;
-      T tmp;
-      tmp=a0+a1*ti+a2*pow(ti,2)+a3*pow(ti,3);//頭抜き
-      input.push_back(tmp);
-    }
-}
-
-template<class T>
-void Interplation1(T xs,T xf,double tf, std::deque<T>& input, double dt=0.005)
-{
-  int num=(int)(tf/dt+NEAR0);
-  T tmp;
-  for(int i=1;i<num+1;i++){
-    tmp=xs+(xf-xs)*i/num;
-    input.push_back(tmp);
-  }
-}
-
 
 class minVelInterp {
 public:

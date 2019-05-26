@@ -899,7 +899,7 @@ void sony::testMove()
   
   Interplation5(body_cur,  zero,  zero, body_ref,  zero,  zero, 2, bodyDeque);
 
-  while( !bodyDeque.empty() && !active_control_loop ) {
+  while (!bodyDeque.empty() && !active_control_loop) {
     usleep(10);
   }
   bodyDeque.clear();
@@ -908,22 +908,6 @@ void sony::testMove()
 
 void sony::setObjectV(double x, double y, double z, double roll, double pitch, double yaw)
 { 
-  /*
-  vector32 body_cur;
-  vector32 body_ref;
-  cm_ref(1)=p_ref[LLEG](1);
-  for(int i=0;i<m_robot->numJoints();i++)
-   body_cur[i]=m_robot->joint(i)->q;
-
-  if( CalcIVK_biped(m_robot, cm_ref, p_ref, R_ref, FT, p_Init, R_Init)){
-    for(int i=0;i<m_robot->numJoints();i++)
-      body_ref[i]=m_robot->joint(i)->q;
-    SeqPlay32(body_cur, body_ref, bodyDeque, 5);
-  }
-  else 
-    cerr<<"errrr"<<endl;
-  */
-
   velobj<< x,y,z,roll,pitch,yaw;
 }
 
@@ -931,7 +915,7 @@ void sony::setObjectV(double x, double y, double z, double roll, double pitch, d
 // ogawa
 void sony::stop()
 {
-  cout<<"sony write out off"<<endl;
+  cout<<"sony write outport off"<<endl;
   active_control_loop=0;
 }
 
@@ -950,8 +934,6 @@ void sony::freeWalkSwitch()
     }
     update_model(m_robot, m_mc, FT, end_link);
     setCurrentData();
-
-
     //object_ref->R()=m_robot->link(end_link[RLEG])->R();
   }
 

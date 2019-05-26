@@ -33,7 +33,7 @@ class ZmpPlaner {
   void setZmpOffsetX(double &cm_offset_x);
 
   void getNextCom(Vector3 &cm_ref);
-  void setWpgParam(wpgParam param);
+  void setWpgParam(const wpgParam& param);
   void neutralZmp(const BodyPtr m_robot, Vector3 &absZMP,const string *end_link);
 
   std::deque<Vector3> swingLegTraj;//x y theta
@@ -64,6 +64,7 @@ class ZmpPlaner {
 
   deque<double> cm_z_deque;
   deque<double> absZMP_z_deque;
+  deque<Vector3> absZMP_deque;
   deque<bool> contactState_deque;
   //for capture point
   std::deque<vector2> cp_deque;
