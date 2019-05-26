@@ -368,30 +368,6 @@ void copy_poses(Position* pose_copy, const Position* const pose)
   }
 }
 
-bool walkJudge(BodyPtr body,  FootType FT, Vector3 RLEG_ref_p, Vector3 LLEG_ref_p, Matrix3  LEG_ref_R, string *end_link)
-{
-  Vector3 FErr_R(VectorXd::Zero(3));
-  Vector3 FErr_L(VectorXd::Zero(3));
-  Vector3 omega_err_R(VectorXd::Zero(3));
-  Vector3 omega_err_L(VectorXd::Zero(3));
-
-  FErr_R =  RLEG_ref_p - body->link(end_link[RLEG])->p();
-  FErr_L =  LLEG_ref_p - body->link(end_link[LLEG])->p();
-  Matrix3 temR_R = extractYow(body->link(end_link[RLEG])->R());
-  Matrix3 temR_L = extractYow(body->link(end_link[LLEG])->R());
-  omega_err_R = temR_R * omegaFromRot(temR_R.transpose() * LEG_ref_R);
-  omega_err_L = temR_L * omegaFromRot(temR_L.transpose() * LEG_ref_R);
- 
-  bool start2walk=0;
-
-  if ((sqrt(FErr_L(0)*FErr_L(0)+FErr_L(1)*FErr_L(1))>0.03)||(sqrt(FErr_R(0)*FErr_R(0)+FErr_R(1)*FErr_R(1))>0.03))
-    start2walk=1;//start to walk
-  if (omega_err_R.dot(omega_err_R)>0.03||(omega_err_L.dot(omega_err_L)>0.03))
-    start2walk=1;//start to walk
-
-  return start2walk;
-}
-
 void adjust_M_PI(double &v)
 {
   while(true) {

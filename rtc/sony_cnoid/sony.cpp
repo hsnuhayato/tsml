@@ -295,7 +295,6 @@ inline void sony::calcRefZMP()
 {
   //waiting
   if(idle){
-    //neutralZmp(m_robot, absZMP, cm_offset_x, end_link);
     ptnP -> neutralZmp(m_robot, absZMP, end_link);
 
   }
@@ -357,7 +356,7 @@ inline void sony::ptnGenerator()//this is calcrzmp flag
     }
   }
   else {//keep walking start from new leg
-    if( (!walkJudge(m_robot, FT, RLEG_ref_p, LLEG_ref_p, LEG_ref_R, end_link))&& ptnP->cp_deque.empty() && !step){
+    if( (!walkJudge())&& ptnP->cp_deque.empty() && !step){
       pattern = STOP;
     }
     // if pattern == STOP planstop 
@@ -414,7 +413,6 @@ inline void sony::readGamepad() {
 void sony::resetPtnPlanner()
 {// this is for FSRF or FSLF
   Vector3 rzmpInit;
-  //neutralZmp(m_robot, rzmpInit, cm_offset_x, end_link);
   ptnP -> neutralZmp(m_robot, rzmpInit, end_link);
   ptnP -> setInit(rzmpInit);
   
@@ -543,6 +541,30 @@ void sony::ifChangeSupLeg()
     IniNewStep();
     ptnGenerator();//idle off here
   }
+}
+
+bool sony::walkJudge()
+{
+  Vector3 FErr_R(VectorXd::Zero(3));
+  Vector3 FErr_L(VectorXd::Zero(3));
+  Vector3 omega_err_R(VectorXd::Zero(3));
+  Vector3 omega_err_L(VectorXd::Zero(3));
+
+  FErr_R =  RLEG_ref_p - m_robot->link(end_link[RLEG])->p();
+  FErr_L =  LLEG_ref_p - m_robot->link(end_link[LLEG])->p();
+  Matrix3 temR_R = extractYow(m_robot->link(end_link[RLEG])->R());
+  Matrix3 temR_L = extractYow(m_robot->link(end_link[LLEG])->R());
+  omega_err_R = temR_R * omegaFromRot(temR_R.transpose() * LEG_ref_R);
+  omega_err_L = temR_L * omegaFromRot(temR_L.transpose() * LEG_ref_R);
+
+  bool start2walk=0;
+
+  if ((sqrt(FErr_L(0)*FErr_L(0)+FErr_L(1)*FErr_L(1))>0.03)||(sqrt(FErr_R(0)*FErr_R(0)+FErr_R(1)*FErr_R(1))>0.03))
+    start2walk=1;//start to walk
+  if (omega_err_R.dot(omega_err_R)>0.03||(omega_err_L.dot(omega_err_L)>0.03))
+    start2walk=1;//start to walk
+
+  return start2walk;
 }
 
 void sony::IniNewStep() {
@@ -960,7 +982,6 @@ void sony::setCurrentData()
 
   ptnP -> setw(cm_ref(2), object_ref->p()(2));
   Vector3 rzmpInit;
-  //neutralZmp(m_robot, rzmpInit, cm_offset_x, end_link);
   ptnP -> neutralZmp(m_robot, rzmpInit, end_link);
   ptnP -> setInit(rzmpInit);//for cp init
   //absZMP(2) = object_ref->p()(2);

@@ -157,8 +157,6 @@ vector2 pfromVector3(Vector3 p);
 
 void copy_poses(Position* pose_copy, const Position* const pose);
 
-bool walkJudge( BodyPtr body, FootType FT, Vector3 RLEG_ref_p, Vector3 LLEG_ref_p, Matrix3  LEG_ref_R, string *end_link);
-
 void adjust_M_PI(double &v);
 
 void atan2adjust(Vector3 &pre, Vector3 &cur);

@@ -97,6 +97,7 @@ class sony  : public hrp2Base
   void gaitGenerate();
   void getWalkingMotion();  
   void ifChangeSupLeg();
+  bool walkJudge();
   
   // void ifChangeSupLeg2(BodyPtr m_robot, FootType &FT,  patternPlannery *zmpP, bool &idle, int &CommandIn, Vector3 *p_now, Vector3 *p_Init, Matrix3 *R_now, Matrix3 *R_Init, bool &calczmpflag);
   
