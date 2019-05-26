@@ -2,18 +2,18 @@
 #include<fstream>
 #include<math.h>
 
-#include "ZmpPlaner.h"
+#include "patternPlanner.h"
 
 //static std::ofstream ofs("/home/player/tsml/log/zmpp.log");
 //static int cnt = 0;
 
-ZmpPlaner::ZmpPlaner()
+patternPlanner::patternPlanner()
 {
   //capture point init
   cp << 0.0, 0.0;
 }
  
-void ZmpPlaner::setWpgParam(const wpgParam& param)
+void patternPlanner::setWpgParam(const wpgParam& param)
 {
   Tsup_in = param.Tsup;
   Tsup_stepping_in = param.Tsup_stepping;
@@ -37,27 +37,27 @@ void ZmpPlaner::setWpgParam(const wpgParam& param)
   offsetZMPl(1) = -offsetZMPy;
 }
      
-void ZmpPlaner::setInit(const Vector3& Ini)
+void patternPlanner::setInit(const Vector3& Ini)
 {
   zmpInit << Ini(0) , Ini(1);
   cp << Ini(0), Ini(1);
 }
 
-void ZmpPlaner::setZmpOffsetX(double &cm_offset_x)
+void patternPlanner::setZmpOffsetX(double &cm_offset_x)
 {
   offsetZMPx=cm_offset_x;
   offsetZMPr(0)=offsetZMPl(0)=offsetZMPx;
 }
 //////////////
 // modified by ogawa
-void ZmpPlaner::setw(double &cm_z_in, double groundHeight)
+void patternPlanner::setw(double &cm_z_in, double groundHeight)
 {
   cm_z_cur = cm_z = cm_z_in;
   cm_z -= groundHeight;
   w=sqrt(9.806/cm_z);
   //w= wIn;
 }
-void ZmpPlaner::planCP(const BodyPtr m_robot, const FootType& FT, Vector3 swLegRef_p,
+void patternPlanner::planCP(const BodyPtr m_robot, const FootType& FT, Vector3 swLegRef_p,
                        const Matrix3& footRef_R,
                        const bool usePivot, const string *end_link, const bool& ifLastStep)
 {
@@ -181,7 +181,7 @@ void ZmpPlaner::planCP(const BodyPtr m_robot, const FootType& FT, Vector3 swLegR
   //cout<<"cp "<<cp_deque.size()<<endl;
 }
 
-void ZmpPlaner::planCPstop(const BodyPtr m_robot, const string *end_link)
+void patternPlanner::planCPstop(const BodyPtr m_robot, const string *end_link)
 {
   absZMP_deque.clear();
   Link* rleg;Link* lleg;
@@ -207,7 +207,7 @@ void ZmpPlaner::planCPstop(const BodyPtr m_robot, const string *end_link)
 
 }
 
-void ZmpPlaner::getNextCom(Vector3 &cm_ref)
+void patternPlanner::getNextCom(Vector3 &cm_ref)
 {
   //if(cp_deque.empty())
   //  return;
@@ -231,7 +231,7 @@ void ZmpPlaner::getNextCom(Vector3 &cm_ref)
 }
 
 
-Matrix3 ZmpPlaner::calcWaistR(const FootType& FT, const BodyPtr m_robot, const string *end_link)
+Matrix3 patternPlanner::calcWaistR(const FootType& FT, const BodyPtr m_robot, const string *end_link)
 {
   Link* SwLeg;
   Link* SupLeg;
@@ -263,7 +263,7 @@ Matrix3 ZmpPlaner::calcWaistR(const FootType& FT, const BodyPtr m_robot, const s
 }
 
 
-void ZmpPlaner::planSwingLeg(const BodyPtr m_robot, const FootType& FT,const Vector3& swLegRef_p,
+void patternPlanner::planSwingLeg(const BodyPtr m_robot, const FootType& FT,const Vector3& swLegRef_p,
                              const Matrix3& tar_R, const bool usePivot, const string *end_link)
 { 
   double zs = 0;
@@ -508,7 +508,7 @@ void ZmpPlaner::planSwingLeg(const BodyPtr m_robot, const FootType& FT,const Vec
 }
 
 //todo use rats
-void ZmpPlaner::neutralZmp(const BodyPtr m_robot, Vector3 &absZMP, const string *end_link)
+void patternPlanner::neutralZmp(const BodyPtr m_robot, Vector3 &absZMP, const string *end_link)
 {
   Vector3 rleg_cur_p, lleg_cur_p;
   rleg_cur_p = m_robot->link(end_link[RLEG])->p() + 

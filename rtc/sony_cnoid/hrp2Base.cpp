@@ -44,7 +44,7 @@ hrp2Base::hrp2Base(RTC::Manager* manager)
     m_baseRpyInitIn("baseRpyInit", m_baseRpyInit),
     m_toeheelRatioOut("toeheelRatio", m_toeheelRatio),
     m_controlSwingSupportTimeOut("controlSwingSupportTime", m_controlSwingSupportTime),
-    zmpP(0)
+    ptnP(0)
     //m_hrp2BaseServicePort("hrp2BaseService")
     // </rtc-template>
 {

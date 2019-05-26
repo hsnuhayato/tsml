@@ -10,12 +10,12 @@
 #include "customTypes.h"
 //use preview control operater
 //#include "preview_control/PreviewControl.h"
-class ZmpPlaner {
+class patternPlanner {
   
  public:
-  ZmpPlaner();
-  //ZmpPlaner(FootType FT, double *prm);
-  ~ZmpPlaner();
+  patternPlanner();
+  //patternPlanner(FootType FT, double *prm);
+  ~patternPlanner();
   void setInit(const Vector3& Ini);
   //void calcWaistR( FootType FT,  Matrix3 *R_ref);
   Matrix3 calcWaistR(const FootType& FT, const BodyPtr m_robot, const string *end_link);

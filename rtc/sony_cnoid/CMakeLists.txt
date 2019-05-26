@@ -49,7 +49,7 @@ set(comp_sources ${comp_sources} ${comp_name}Service_impl.cpp ${comp_name}Servic
 
 set(comp_sources ${comp_sources} hrp2Base.cpp)
 set(comp_sources ${comp_sources} commonFunc.cpp)# to be revise tvmet
-set(comp_sources ${comp_sources} ZmpPlaner.cpp)
+set(comp_sources ${comp_sources} patternPlanner.cpp)
 
 
 add_library(${comp_name} SHARED ${comp_sources})

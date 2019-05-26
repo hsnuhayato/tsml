@@ -93,12 +93,12 @@ class sony  : public hrp2Base
   inline void ptnGenerator();
   inline void readGamepad();
 
-  void resetZmpPlanner();
+  void resetPtnPlanner();
   void gaitGenerate();
   void getWalkingMotion();  
   void ifChangeSupLeg();
   
-  // void ifChangeSupLeg2(BodyPtr m_robot, FootType &FT,  ZmpPlaner *zmpP, bool &idle, int &CommandIn, Vector3 *p_now, Vector3 *p_Init, Matrix3 *R_now, Matrix3 *R_Init, bool &calczmpflag);
+  // void ifChangeSupLeg2(BodyPtr m_robot, FootType &FT,  patternPlannery *zmpP, bool &idle, int &CommandIn, Vector3 *p_now, Vector3 *p_Init, Matrix3 *R_now, Matrix3 *R_Init, bool &calczmpflag);
   
   void IniNewStep();
 
