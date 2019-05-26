@@ -58,21 +58,18 @@ void ZmpPlaner::setw(double &cm_z_in, double groundHeight)
   //w= wIn;
 }
 void ZmpPlaner::planCP(const BodyPtr m_robot, const FootType& FT, Vector3 swLegRef_p,
-                       const Matrix3& footRef_R, std::deque<vector2> &rfzmp,
+                       const Matrix3& footRef_R,
                        const bool usePivot, const string *end_link, const bool& ifLastStep)
 {
+  absZMP_deque.clear();
   // calc swing foot_xyz R, cm_z pivot_b movement
   planSwingLeg(m_robot, FT, swLegRef_p, footRef_R, usePivot, end_link);
 
-  matrix22 SwLeg_R, SupLeg_R;
-  vector2 SupLeg_p(MatrixXd::Zero(2,1));
   Vector3 offsetZMP_SupLeg, offsetZMP_SwLeg;
   Link *SupLeg = NULL;
   Link *SwLeg = NULL;
 
   //for rfzmp
-  vector2 swLeg_cur_p;
-  //Vector2 swLegRef_p_v2=pfromVector3(swLegRef_p);
   //////////parameter calculate/////////////////////
   if ((FT==FSRFsw) || (FT==RFsw)) {
     SupLeg = m_robot->link(end_link[LLEG]);
@@ -91,124 +88,102 @@ void ZmpPlaner::planCP(const BodyPtr m_robot, const FootType& FT, Vector3 swLegR
   Vector3 Sup_cur_p;//maybe call Sup_cur_zmp
   Sup_cur_p = SupLeg->p() + SupLeg->R() * offsetZMP_SupLeg;
  
-  SupLeg_p = pfromVector3(Sup_cur_p);
-  SupLeg_R = RfromMatrix3(SupLeg->R());
-
   Vector3 Sw_cur_p;//maybe call Sw_cur_zmp
   Sw_cur_p = SwLeg->p() + SwLeg->R() * offsetZMP_SwLeg;
-  swLeg_cur_p = pfromVector3(Sw_cur_p);
  
   offsetZMP_SwLeg(2) = 0;
   swLegRef_p += footRef_R * offsetZMP_SwLeg;
-  vector2 swLegRef_p_v2 = pfromVector3(swLegRef_p);
-
-  //matrix22 swLegRef_R2=RfromMatrix3(footRef_R);
-  //vector2 temt = pfromVector3(offsetZMP_SwLeg);
-  //swLegRef_p_v2+= swLegRef_R2*temt;
-  /*
-  SupLeg_p=pfromVector3(SupLeg->p());
-  SupLeg_R=RfromMatrix3(SupLeg->R());
-  SupLeg_p  +=   SupLeg_R*offsetZMP_SupLeg;
-  
-  swLegRef_p_v2+= swLegRef_R*offsetZMP_SwLeg;
-
-  //for rfzmp
-  swLeg_cur_p=pfromVector3(SwLeg->p());
-  SwLeg_R=RfromMatrix3(SwLeg->R());
-  swLeg_cur_p+= SwLeg_R*offsetZMP_SwLeg;
-  */
-  //Vector3 SwLegNow_p = SwLeg->p() + SwLeg->R() * link_b_ankle;
-  //Vector3 SupLegNow_p = SupLeg->p() + SupLeg->R() * link_b_ankle;
   double abszmp_z_mid = (Sup_cur_p(2) + Sw_cur_p(2))/2;
-  //cout<<"fffff "<< '\n' <<SupLeg_p<<'\n'<<swLeg_cur_p <<'\n'<< swLegRef_p_v2 <<endl;
 
   ////////////plan//////////////
   vector2 zero(MatrixXd::Zero(2,1));
   
-  if((FT==FSRFsw)||(FT==FSLFsw)){
+  if ((FT==FSRFsw)||(FT==FSLFsw)) {
     //for capture point// todo make function below
     vector2 cp_cur(zmpInit);
     double b = exp(w*Tsup);
-    cZMP= (SupLeg_p - b*cp_cur)/(1-b);
-    for(int i=1;i<(int)(Tsup/dt+NEAR0)+1;i++){
-      cp = cZMP + exp(w*i*dt) * (cp_cur - cZMP);
+    cZMP.block<2,1>(0,0) = (Sup_cur_p.block<2,1>(0,0) - b*cp_cur)/(1-b);
+    for(int i=1; i<(int)(Tsup/dt+NEAR0)+1; i++){
+      cp = cZMP.block<2,1>(0,0) + exp(w*i*dt) * (cp_cur - cZMP.block<2,1>(0,0));
       cp_deque.push_back(cp);
     }
 
-    //for rzmp//
-    Interplation5(cZMP, zero, zero, cZMP, zero, zero,  Tsup, rfzmp);
-    Interplation5(abszmp_z_mid, 0.0, 0.0, abszmp_z_mid, 0.0, 0.0, Tsup, absZMP_z_deque);
+    //for reference zmp//
+    cZMP[2] = abszmp_z_mid;
+    extendDeque(absZMP_deque, cZMP, Tsup);
+    //Interplation5(cZMP, zero, zero, cZMP, zero, zero,  Tsup, rfzmp);
+    //Interplation5(abszmp_z_mid, 0.0, 0.0, abszmp_z_mid, 0.0, 0.0, Tsup, absZMP_z_deque);
   }
   if ((FT==RFsw)||(FT==LFsw)) {
 
-    vector2 cp_EOF;
-    double abzZMP_z_EOF;
+    Vector3 cp_EOF;
     if (!ifLastStep) {
-      cp_EOF = swLegRef_p_v2;
-      abzZMP_z_EOF = swLegRef_p(2);
+      cp_EOF = swLegRef_p;
     }
     else{
-      cp_EOF = (swLegRef_p_v2 + SupLeg_p)/2;
-      abzZMP_z_EOF = (swLegRef_p(2) + Sup_cur_p(2))/2;
+      cp_EOF = (swLegRef_p + Sup_cur_p)/2;
     }
     
     //for capture point//
     Interplation5(cp, zero, zero, cp, zero, zero,  Tdbl, cp_deque);//
-    vector2 cZMP_pre(cZMP);
+    //vector2 cZMP_pre(cZMP);
     vector2 cp_cur(cp);
     //double b=exp(w*(Tsup));
     double b = exp(w*(Tsup+Tp));
     //cZMP= (swLegRef_p_v2- b*cp_cur)/(1-b);
-    cZMP = (cp_EOF - b*cp_cur)/(1-b);
+    cZMP.block<2,1>(0,0) = (cp_EOF.block<2,1>(0,0) - b*cp_cur)/(1-b);
 
     //int timeLength=(int)((Tsup)/0.005+NEAR0);
     int timeLength=(int)((Tsup+Tp)/0.005+NEAR0);
     for(int i=1;i<timeLength+1;i++){
-      cp = cZMP + exp( w*i*dt )*(cp_cur - cZMP);
+      cp = cZMP.block<2,1>(0,0) + exp(w*i*dt) * (cp_cur - cZMP.block<2,1>(0,0));
       cp_deque.push_back(cp);
     }
-    
-    //timeLength=(int)((Tp)/0.005+NEAR0);
-    //for(int i=0;i<timeLength;i++)
-    //  cp_deque.push_back(cp);
-   
-    
-    //for rzmp
-    //Interplation5(cZMP_pre, zero, zero, cZMP, zero, zero, Tdbl, rfzmp);
-    //Interplation5(SupLeg_p, zero, zero, SupLeg_p, zero, zero, Tsup+Tp, rfzmp);
-    ////Interplation5(cZMP, zero, zero, cZMP, zero, zero, Tsup, rfzmp);//no good
-  
-    //try
-    //Interplation5(cZMP_pre, zero, zero, cZMP, zero, zero, 2*Tdbl, rfzmp);
-    //1
-    Interplation5(swLeg_cur_p, zero, zero, SupLeg_p, zero, zero, 2*Tdbl, rfzmp);
-    timeLength=(int)((Tdbl)/0.005+NEAR0);
-    for(int i=0;i<timeLength;i++)
-      rfzmp.pop_front();
-    //Interplation5(SupLeg_p, zero, zero, SupLeg_p, zero, zero, Tsup, rfzmp);
-    //2
-    Interplation5(cZMP, zero, zero, cZMP, zero, zero, Tsup, rfzmp);
-    //3
-    //Interplation5(SupLeg_p, zero, zero, swLegRef_p_v2, zero, zero, 2*Tp, rfzmp);
-    Interplation5(SupLeg_p, zero, zero, cp_EOF, zero, zero, 2*Tp, rfzmp);
-    for(int i=0;i<timeLength;i++)
-      rfzmp.pop_back();
 
-    //abszmp_z
-    Interplation5( Sw_cur_p(2), 0.0, 0.0, Sup_cur_p(2), 0.0, 0.0, 2*Tdbl, absZMP_z_deque);
-    for(int i=0;i<timeLength;i++)
-      absZMP_z_deque.pop_front();
-    Interplation5(Sup_cur_p(2), 0.0, 0.0, Sup_cur_p(2), 0.0, 0.0, Tsup, absZMP_z_deque);
-    Interplation5(Sup_cur_p(2), 0.0, 0.0, abzZMP_z_EOF, 0.0, 0.0, 2*Tp, absZMP_z_deque);
-    for(int i=0;i<timeLength;i++)
-      absZMP_z_deque.pop_back();
-   }
+    static Vector3 v3zero = Vector3d::Zero();
+    Interplation5(Sw_cur_p, v3zero, v3zero,
+                  Sup_cur_p, v3zero, v3zero,
+                  2*Tdbl, absZMP_deque, dt, Tdbl, 2*Tdbl);
+    
+    cZMP[2] = Sup_cur_p(2);
+    extendDeque(absZMP_deque, cZMP, Tsup);
+
+    Interplation5(Sup_cur_p, v3zero, v3zero,
+                  cp_EOF,  v3zero, v3zero,
+                  2*Tp, absZMP_deque, dt, 0, Tp);
+
+    // //try
+    // Interplation5((vector2)Sw_cur_p.block<2,1>(0,0), zero, zero,
+    //               (vector2)Sup_cur_p.block<2,1>(0,0), zero, zero, 2*Tdbl, rfzmp);
+    // timeLength=(int)((Tdbl)/0.005+NEAR0);
+    // for(int i=0;i<timeLength;i++)
+    //   rfzmp.pop_front();
+    // //abszmp_z
+    // Interplation5( Sw_cur_p(2), 0.0, 0.0, Sup_cur_p(2), 0.0, 0.0, 2*Tdbl, absZMP_z_deque);
+    // for(int i=0;i<timeLength;i++)
+    //   absZMP_z_deque.pop_front();
+
+    ////////////
+    // Interplation5(cZMP, zero, zero, cZMP, zero, zero, Tsup, rfzmp);
+    // Interplation5(Sup_cur_p(2), 0.0, 0.0, Sup_cur_p(2), 0.0, 0.0, Tsup, absZMP_z_deque);
+
+    ////////////////////
+   //  Interplation5((vector2)Sup_cur_p.block<2,1>(0,0), zero, zero, cp_EOF, zero, zero, 2*Tp, rfzmp);
+   //  for(int i=0;i<timeLength;i++)
+   //    rfzmp.pop_back();
+
+   //  Interplation5(Sup_cur_p(2), 0.0, 0.0, abzZMP_z_EOF, 0.0, 0.0, 2*Tp, absZMP_z_deque);
+   //  for(int i=0;i<timeLength;i++)
+   //    absZMP_z_deque.pop_back();
+
+  }
 
   //cout<<"cp "<<cp_deque.size()<<endl;
 }
 
-void ZmpPlaner::planCPstop(const BodyPtr m_robot, std::deque<vector2> &rfzmp, const string *end_link)
-{      
+void ZmpPlaner::planCPstop(const BodyPtr m_robot, const string *end_link)
+{
+  absZMP_deque.clear();
   Link* rleg;Link* lleg;
   rleg = m_robot->link(end_link[RLEG]);
   lleg = m_robot->link(end_link[LLEG]);
@@ -218,56 +193,18 @@ void ZmpPlaner::planCPstop(const BodyPtr m_robot, std::deque<vector2> &rfzmp, co
   Vector3 mid = (rleg_cur_p + lleg_cur_p)/2;
  
   ////////////plan//////////////
-  vector2 zero(MatrixXd::Zero(2,1));
-  // //focus on unity
-  // //for capture point//
-  // Interplation5(cp, zero, zero, cp, zero, zero,  Tdbl, cp_deque);//
-  // vector2 cZMP_pre(cZMP);
-  // vector2 cp_cur(cp);
-  // double b = exp(w*Tsup);
-  // vector2 middle_of_foot;
-  // //middle_of_foot=(swLegRef_p_v2+ SupLeg_p)/2;
-  // middle_of_foot = pfromVector3(mid);
-
-  // cZMP= (middle_of_foot - b*cp_cur)/(1-b);
-  // for(int i=1;i<(int)(Tsup/dt+NEAR0)+1;i++){
-  //   cp = cZMP+ exp( w*i*dt ) * (cp_cur - cZMP);
-  //   cp_deque.push_back(cp);
-  // }
-
-  // //for rzmp
-  // Interplation5(cZMP_pre, zero, zero, cZMP, zero, zero, Tdbl, rfzmp);
-  // Interplation5(cZMP, zero, zero, middle_of_foot, zero, zero, Tsup, rfzmp);
-
   // quick stop
-  vector2 middle_of_foot;
-  middle_of_foot = pfromVector3(mid);
-
   for(int i=1;i<(int)( (Tsup+Tdbl) /dt+NEAR0)+1;i++){
     //cp = cZMP+ exp( w*i*dt ) * (cp_cur - cZMP);
-    cp = middle_of_foot;
-    cp_deque.push_back(middle_of_foot);
+    cp = mid.block<2,1>(0,0);
+    cp_deque.push_back(cp);
   }
   //for rzmp
-  //Interplation5(cZMP, zero, zero, cZMP, zero, zero, Tdbl+Tsup, rfzmp);
-  Interplation5(middle_of_foot, zero, zero, middle_of_foot, zero, zero, Tsup+Tdbl, rfzmp);
-  Interplation5(mid(2), 0.0, 0.0, mid(2), 0.0, 0.0, Tdbl+Tsup, absZMP_z_deque);
-  /*
-  //quick version
-  //for capture point//
-  vector2 cZMP_pre(cZMP);
-  vector2 cp_cur(cp);
-  double b=exp(w*Tsup);
-  vector2 middle_of_foot;
-  middle_of_foot=(swLegRef_p+ SupLeg_p)/2;
-  cZMP= (middle_of_foot - b*cp_cur)/(1-b);
-  Interplation5(cp, zero, zero, middle_of_foot, zero, zero,  Tdbl, cp_deque);//
-  Interplation5(middle_of_foot, zero, zero, middle_of_foot, zero, zero,  Tsup, cp_deque);
+  extendDeque(absZMP_deque, mid, Tsup+Tdbl);
 
-  //for rzmp
-  Interplation5(cZMP, zero, zero, cZMP, zero, zero, Tdbl, rfzmp);
-  Interplation5(cZMP, zero, zero, middle_of_foot, zero, zero, Tsup, rfzmp);
-  */
+  // Interplation5(middle_of_foot, zero, zero, middle_of_foot, zero, zero, Tsup+Tdbl, rfzmp);
+  // Interplation5(mid(2), 0.0, 0.0, mid(2), 0.0, 0.0, Tdbl+Tsup, absZMP_z_deque);
+
 }
 
 void ZmpPlaner::getNextCom(Vector3 &cm_ref)

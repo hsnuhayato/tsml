@@ -302,11 +302,8 @@ inline void sony::calcRefZMP()
   //walking
   else{
     ///rzmp To st
-    absZMP[0] = rfzmp.at(0)(0);
-    absZMP[1] = rfzmp.at(0)(1);
-    absZMP[2] = zmpP->absZMP_z_deque.at(0);
-    rfzmp.pop_front();
-    zmpP->absZMP_z_deque.pop_front();
+    absZMP = zmpP -> absZMP_deque.at(0);
+    zmpP -> absZMP_deque.pop_front();
   }
 }
 
@@ -464,16 +461,14 @@ void sony::gaitGenerate() {
     sup_2_sw_leg_abs(1) = limit_y;
     SwLeg_p_ref = SupLeg->p() + SupLeg->R() * sup_2_sw_leg_abs;
   }
-  
-  rfzmp.clear();
-  
+
   if (pattern == NORMAL){
-    zmpP -> planCP(m_robot, FT, SwLeg_p_ref, LEG_ref_R, rfzmp, usePivot, end_link);
+    zmpP -> planCP(m_robot, FT, SwLeg_p_ref, LEG_ref_R, usePivot, end_link);
   } 
   else if (pattern == STOP) {
     //cout<<FT<<" CPstop"<<endl;
     //cout<<"swLegRef_p "<<swLegRef_p<<endl;
-    zmpP -> planCPstop(m_robot, rfzmp, end_link);
+    zmpP -> planCPstop(m_robot, end_link);
   }
 }
 
@@ -744,13 +739,6 @@ void sony::setFootPosR()
   }
 
   active_control_loop=1;
- 
-  // //start to walk
-  // start2walk(m_robot, zmpP, idle);//idle off
-  // gaitGenerate(FT, p_ref, R_ref, RLEG_ref_p, LLEG_ref_p, LEG_ref_R, rfzmp, zmpP);
- 
-  // stepNum=3; //3 if two steps. number of steps + 1
- 
 }
 
 void sony::setFootPosL()
@@ -825,7 +813,6 @@ void sony::setFootPosL(double x, double y, double z, double r, double p, double 
   LLEG_ref_p[1]=y;
   LLEG_ref_p[2]=z;
   LEG_ref_R = cnoid::rotFromRpy(r,p,w);
-
 
   // ogawa
   if (!active_control_loop) {

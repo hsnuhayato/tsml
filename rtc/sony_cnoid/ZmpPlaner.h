@@ -21,10 +21,9 @@ class ZmpPlaner {
   Matrix3 calcWaistR(const FootType& FT, const BodyPtr m_robot, const string *end_link);
 
   //capture point/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-  void planCP(const BodyPtr m_robot, const FootType& FT, Vector3 swLegRef_p, const Matrix3& footRef_R,
-              std::deque<vector2> &rfzmp, const bool usePivot, const string *end_link, const bool& ifLastStep = 0);
+  void planCP(const BodyPtr m_robot, const FootType& FT, Vector3 swLegRef_p, const Matrix3& footRef_R,  const bool usePivot, const string *end_link, const bool& ifLastStep = 0);
 
-  void planCPstop(const BodyPtr m_robot, std::deque<vector2>& rfzmp, const string *end_link);
+  void planCPstop(const BodyPtr m_robot, const string *end_link);
   // plan swing leg and COM in z direction
   void planSwingLeg(const BodyPtr m_robot, const FootType& FT,const Vector3& swLegRef_p, const Matrix3& tar_R,
                       const bool usePivot, const string *end_link);
@@ -63,14 +62,13 @@ class ZmpPlaner {
   double ankle_height;
 
   deque<double> cm_z_deque;
-  deque<double> absZMP_z_deque;
   deque<Vector3> absZMP_deque;
   deque<bool> contactState_deque;
   //for capture point
   std::deque<vector2> cp_deque;
   vector2 cp;//last cp of one step
   double w;
-  vector2 cZMP;
+  Vector3 cZMP;
   vector2 cm_vel;
   std::deque<vector2> toe_heel_ratio;
   ///
