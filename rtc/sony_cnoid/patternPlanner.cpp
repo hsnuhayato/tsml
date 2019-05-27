@@ -102,9 +102,9 @@ void patternPlanner::planCP(const BodyPtr m_robot, const FootType& FT, Vector3 s
     //for capture point// todo make function below
     vector2 cp_cur(zmpInit);
     double b = exp(w*Tsup);
-    cZMP.block<2,1>(0,0) = (Sup_cur_p.block<2,1>(0,0) - b*cp_cur)/(1-b);
+    cZMP.head<2>() = (Sup_cur_p.head<2>() - b*cp_cur)/(1-b);
     for(int i=1; i<(int)(Tsup/dt+NEAR0)+1; i++){
-      cp = cZMP.block<2,1>(0,0) + exp(w*i*dt) * (cp_cur - cZMP.block<2,1>(0,0));
+      cp = cZMP.head<2>() + exp(w*i*dt) * (cp_cur - cZMP.head<2>());
       cp_deque.push_back(cp);
     }
 
@@ -125,57 +125,32 @@ void patternPlanner::planCP(const BodyPtr m_robot, const FootType& FT, Vector3 s
     }
     
     //for capture point//
-    Interplation5(cp, zero, zero, cp, zero, zero,  Tdbl, cp_deque);//
+    extendDeque(cp_deque, cp, Tdbl);
     //vector2 cZMP_pre(cZMP);
     vector2 cp_cur(cp);
     //double b=exp(w*(Tsup));
     double b = exp(w*(Tsup+Tp));
     //cZMP= (swLegRef_p_v2- b*cp_cur)/(1-b);
-    cZMP.block<2,1>(0,0) = (cp_EOF.block<2,1>(0,0) - b*cp_cur)/(1-b);
+    cZMP.head<2>() = (cp_EOF.head<2>() - b*cp_cur)/(1-b);
 
     //int timeLength=(int)((Tsup)/0.005+NEAR0);
     int timeLength=(int)((Tsup+Tp)/0.005+NEAR0);
     for(int i=1;i<timeLength+1;i++){
-      cp = cZMP.block<2,1>(0,0) + exp(w*i*dt) * (cp_cur - cZMP.block<2,1>(0,0));
+      cp = cZMP.head<2>() + exp(w*i*dt) * (cp_cur - cZMP.head<2>());
       cp_deque.push_back(cp);
     }
 
     static Vector3 v3zero = Vector3d::Zero();
-    Interplation5(Sw_cur_p, v3zero, v3zero,
+    Interplation5(absZMP_deque, Sw_cur_p, v3zero, v3zero,
                   Sup_cur_p, v3zero, v3zero,
-                  2*Tdbl, absZMP_deque, dt, Tdbl, 2*Tdbl);
+                  2*Tdbl, dt, Tdbl, 2*Tdbl);
     
     cZMP[2] = Sup_cur_p(2);
     extendDeque(absZMP_deque, cZMP, Tsup);
 
-    Interplation5(Sup_cur_p, v3zero, v3zero,
+    Interplation5(absZMP_deque, Sup_cur_p, v3zero, v3zero,
                   cp_EOF,  v3zero, v3zero,
-                  2*Tp, absZMP_deque, dt, 0, Tp);
-
-    // //try
-    // Interplation5((vector2)Sw_cur_p.block<2,1>(0,0), zero, zero,
-    //               (vector2)Sup_cur_p.block<2,1>(0,0), zero, zero, 2*Tdbl, rfzmp);
-    // timeLength=(int)((Tdbl)/0.005+NEAR0);
-    // for(int i=0;i<timeLength;i++)
-    //   rfzmp.pop_front();
-    // //abszmp_z
-    // Interplation5( Sw_cur_p(2), 0.0, 0.0, Sup_cur_p(2), 0.0, 0.0, 2*Tdbl, absZMP_z_deque);
-    // for(int i=0;i<timeLength;i++)
-    //   absZMP_z_deque.pop_front();
-
-    ////////////
-    // Interplation5(cZMP, zero, zero, cZMP, zero, zero, Tsup, rfzmp);
-    // Interplation5(Sup_cur_p(2), 0.0, 0.0, Sup_cur_p(2), 0.0, 0.0, Tsup, absZMP_z_deque);
-
-    ////////////////////
-   //  Interplation5((vector2)Sup_cur_p.block<2,1>(0,0), zero, zero, cp_EOF, zero, zero, 2*Tp, rfzmp);
-   //  for(int i=0;i<timeLength;i++)
-   //    rfzmp.pop_back();
-
-   //  Interplation5(Sup_cur_p(2), 0.0, 0.0, abzZMP_z_EOF, 0.0, 0.0, 2*Tp, absZMP_z_deque);
-   //  for(int i=0;i<timeLength;i++)
-   //    absZMP_z_deque.pop_back();
-
+                  2*Tp, dt, 0, Tp);
   }
 
   //cout<<"cp "<<cp_deque.size()<<endl;
@@ -196,7 +171,7 @@ void patternPlanner::planCPstop(const BodyPtr m_robot, const string *end_link)
   // quick stop
   for(int i=1;i<(int)( (Tsup+Tdbl) /dt+NEAR0)+1;i++){
     //cp = cZMP+ exp( w*i*dt ) * (cp_cur - cZMP);
-    cp = mid.block<2,1>(0,0);
+    cp = mid.head<2>();
     cp_deque.push_back(cp);
   }
   //for rzmp
@@ -363,7 +338,7 @@ void patternPlanner::planSwingLeg(const BodyPtr m_robot, const FootType& FT,cons
   // }
   if((FT==RFsw)||(FT==LFsw)) {
     // pivot x y
-    extendDeque(swLeg_xy, (vector2)swPivotIni_p.block<2,1>(0,0), Tdbl+Tv);
+    extendDeque(swLeg_xy, (vector2)swPivotIni_p.head<2>(), Tdbl+Tv);
     double tf = Tsup - 2*Tv;
     minVelInterp x,y;
     x.setParams(swPivotIni_p(0), swPivotRef_p(0), tf);
@@ -375,7 +350,7 @@ void patternPlanner::planSwingLeg(const BodyPtr m_robot, const FootType& FT,cons
       temp(1) = y.sampling(i*dt);
       swLeg_xy.push_back(temp);
     }
-    extendDeque(swLeg_xy, (vector2)swPivotRef_p.block<2,1>(0,0), Tv+Tp);
+    extendDeque(swLeg_xy, (vector2)swPivotRef_p.head<2>(), Tv+Tp);
       
     // pivot z
     double cm_z_tgt;
@@ -450,12 +425,12 @@ void patternPlanner::planSwingLeg(const BodyPtr m_robot, const FootType& FT,cons
     //cm_z
     //double cm_z_tgt = lower + cm_z;
     extendDeque(cm_z_deque, cm_z_cur, Tdbl+Tv);
-    Interplation3(cm_z_cur, 0.0, cm_z_tgt , 0.0, Tsup-2*Tv, cm_z_deque);
+    Interplation3(cm_z_deque, cm_z_cur, 0.0, cm_z_tgt , 0.0, Tsup-2*Tv);
     extendDeque(cm_z_deque, cm_z_tgt, Tv+Tp);
     cm_z_cur = cm_z_tgt;
 
     // swLeg R
-    Interplation5(0.0, 0.0, 0.0 , 1.0, 0.0, 0.0, Tsup-2*Tv, index);
+    Interplation5(index, 0.0, 0.0, 0.0 , 1.0, 0.0, 0.0, Tsup-2*Tv);
     int tem = (int)((Tdbl+Tv)/dt +NEAR0 );
     for(int i=0;i<tem;i++)
       swLeg_R.push_back(SwLeg->R());//Tdbl+tv

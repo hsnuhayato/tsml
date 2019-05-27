@@ -858,7 +858,7 @@ void sony::testMove()
   //vector32 zero;
   //zero=MatrixXd::Zero(dof,1);
   Eigen::MatrixXd zero(Eigen::MatrixXd::Zero(dof,1));
-  body_cur=MatrixXd::Zero(dof,1);
+  body_cur = MatrixXd::Zero(dof,1);
   m_mcIn.read();
   for(int i=0; i<dof; i++) {
     body_cur(i) = m_mc.data[i];
@@ -891,7 +891,8 @@ void sony::testMove()
   else
     cout<<"ivk error"<<endl;
   
-  Interplation5(body_cur,  zero,  zero, body_ref,  zero,  zero, 2, bodyDeque);
+  Interplation5(bodyDeque, body_cur, zero, zero,
+                body_ref, zero, zero, 2.0);
 
   while (!bodyDeque.empty() && !active_control_loop) {
     usleep(10);

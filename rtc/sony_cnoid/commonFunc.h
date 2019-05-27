@@ -33,9 +33,10 @@ void extendDeque(std::deque<T>& input, const T val, const double tf, const doubl
 }
 
 template<class T>
-void Interplation5(T ps, T dps, T ddps, T pf,T dpf, T ddpf,
-                   double tf, std::deque<T>& input,
-                   double dt=0.005, double start_time = 0, double end_time = 0)
+void Interplation5(std::deque<T>& input, const T ps, const T dps, const T ddps,
+                   const T pf, const T dpf, const T ddpf,
+                   const double tf,
+                   const double dt=0.005, const double start_time = 0, double end_time = 0)
 {
   //cout<<"IP5 template"<<endl;
   T a0,a1,a2,a3,a4,a5;
@@ -61,7 +62,8 @@ void Interplation5(T ps, T dps, T ddps, T pf,T dpf, T ddpf,
 }
 
 template<class T>
-void Interplation3(T xs, T dxs, T xf,T dxf, double tf, std::deque<T>& input, double dt=0.005)
+void Interplation3(std::deque<T>& input, const T xs, const T dxs,
+                   const T xf, const T dxf, const double tf, const double dt=0.005)
 {
   T a0,a1,a2,a3;
   int num=(int)(tf/dt+NEAR0);//correct
@@ -150,10 +152,7 @@ FootType FTselect(BodyPtr body,StepDir dir);
 //dmatrix diag(const hrp::dmatrix &in1, const hrp::dmatrix &in2, const hrp::dmatrix &in3, const hrp::dmatrix &in4);
 
 Vector3 rot2rpy(Matrix3 R);
-matrix22 RfromMatrix3(Matrix3 R);
 Matrix3 extractYow(Matrix3 Rin);
-
-vector2 pfromVector3(Vector3 p);
 
 void copy_poses(Position* pose_copy, const Position* const pose);
 
@@ -176,8 +175,6 @@ void CalJo4Limbs(BodyPtr body, FootType FT, Eigen::MatrixXd& out_J, string *end_
 //bool CalcIVK_biped_toe(BodyPtr body, Vector3& CM_p, Vector3 *p_ref, Matrix3 *R_ref, FootType FT, Vector3  *p_Init, Matrix3 *R_Init);
 //void CalJo_biped_toe(BodyPtr body, FootType FT,dmatrix& Jacobian);
 Matrix3 rodoriges(Vector3 omega, double dt);
-
-void SeqPlay32(vector32 body_cur,   vector32 body_ref,  std::deque<vector32>& bodyDeque, double dt);
 
 Matrix3 rotationZ(double theta);
 Matrix3 rotationY(double theta);
