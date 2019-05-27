@@ -203,7 +203,6 @@ RTC::ReturnCode_t sony::onExecute(RTC::UniqueId ec_id)
   if (active_control_loop) {
     if (freeWalk) {
       calcRefPoint();
-      
       // getnextcom->pop_front CP
       getWalkingMotion();
       calcWholeIVK(); //write in refq
@@ -213,7 +212,7 @@ RTC::ReturnCode_t sony::onExecute(RTC::UniqueId ec_id)
       // if cp empty and pattern==STOP idle=1
       ifChangeSupLeg();
     }
-    // //none freeWalk
+    // //TODO: none freeWalk
     // else {
     //   getWalkingMotion(m_robot, FT, cm_ref, absZMP, p_Init, p_ref, R_ref, rfzmp, ptnP);
     //   ifChangeSupLeg2(m_robot, FT,  ptnP, idle, CommandIn, 
@@ -294,12 +293,12 @@ inline void sony::calcWholeIVK()
 inline void sony::calcRefZMP()
 {
   //waiting
-  if(idle){
+  if (idle) {
     ptnP -> neutralZmp(m_robot, absZMP, end_link);
 
   }
   //walking
-  else{
+  else {
     ///rzmp To st
     absZMP = ptnP -> absZMP_deque.at(0);
     ptnP -> absZMP_deque.pop_front();
@@ -410,7 +409,7 @@ inline void sony::readGamepad() {
 
 }
 
-void sony::resetPtnPlanner()
+inline void sony::resetPtnPlanner()
 {// this is for FSRF or FSLF
   Vector3 rzmpInit;
   ptnP -> neutralZmp(m_robot, rzmpInit, end_link);
@@ -421,19 +420,19 @@ void sony::resetPtnPlanner()
 
 //TODO:RLEG_ref_p LLEG_ref_p only one
 // generate refzmp cm_z cp swingLeg trajectory pivot_b
-void sony::gaitGenerate() {
+inline void sony::gaitGenerate() {
   //limit new without p_ref
-  Link* SupLeg;
+  Link* SupLeg = NULL;
   Vector3 SwLeg_p_ref;
   double limit_y;
   //RLEG_ref_R= LLEG_ref_R=obj
-  if((FT==FSRFsw) || FT==RFsw){
+  if ((FT==FSRFsw) || FT==RFsw) {
     SupLeg = m_robot->link(end_link[LLEG]);
     SwLeg_p_ref = RLEG_ref_p;
     limit_y = -foot_distance_limit_y;
   }
-  else if((FT==FSLFsw) || FT==LFsw){
-    SupLeg=m_robot->link(end_link[RLEG]);
+  else if((FT==FSLFsw) || FT==LFsw) {
+    SupLeg = m_robot->link(end_link[RLEG]);
     SwLeg_p_ref = LLEG_ref_p;
     limit_y = foot_distance_limit_y;
   }
@@ -456,10 +455,10 @@ void sony::gaitGenerate() {
 }
 
 // assign all parameter for ik 
-void sony::getWalkingMotion()
+inline void sony::getWalkingMotion()
 {
   //capture point 
-  ptnP->getNextCom(cm_ref);
+  ptnP -> getNextCom(cm_ref);
   //swingLeg nomal mode
   if (!ptnP->swLeg_xy.empty()) {
     int swingLeg = swLeg(FT);
@@ -529,7 +528,7 @@ void sony::getWalkingMotion()
 
 }
 
-void sony::ifChangeSupLeg()
+inline void sony::ifChangeSupLeg()
 {
   if ((ptnP->cp_deque.empty()) && (!idle)) {
     //cp walking. FSRFsw FSLFsw no foot swing
@@ -543,7 +542,7 @@ void sony::ifChangeSupLeg()
   }
 }
 
-bool sony::walkJudge()
+inline bool sony::walkJudge()
 {
   Vector3 FErr_R(VectorXd::Zero(3));
   Vector3 FErr_L(VectorXd::Zero(3));
@@ -567,7 +566,7 @@ bool sony::walkJudge()
   return start2walk;
 }
 
-void sony::IniNewStep() {
+inline void sony::IniNewStep() {
   //p_ref >> p_Init
   copy_poses(pose_init, pose_ref);
 
@@ -769,12 +768,9 @@ void sony::setFootPosL()
 
 void sony::setFootPosR(double x, double y, double z, double r, double p, double w)
 {
-  if(freeWalk)
-    freeWalkSwitch();
+  if (freeWalk) freeWalkSwitch();
 
-
-  // ogawa
-  if( !active_control_loop ) {
+  if (!active_control_loop) {
     m_mcIn.read();
     for(int i=0;i<dof;i++) {
       m_refq.data[i]=body_cur(i)=m_mc.data[i];
@@ -783,8 +779,6 @@ void sony::setFootPosR(double x, double y, double z, double r, double p, double 
     setCurrentData();
     std::cout << "setFootPosR : set current data" << std::endl;
   }
-
-
   RLEG_ref_p[0]=x;
   RLEG_ref_p[1]=y;
   RLEG_ref_p[2]=z;
@@ -816,16 +810,16 @@ void sony::setFootPosR(double x, double y, double z, double r, double p, double 
 
 void sony::setFootPosL(double x, double y, double z, double r, double p, double w)
 {
-  LLEG_ref_p[0]=x;
-  LLEG_ref_p[1]=y;
-  LLEG_ref_p[2]=z;
+  LLEG_ref_p[0] = x;
+  LLEG_ref_p[1] = y;
+  LLEG_ref_p[2] = z;
   LEG_ref_R = cnoid::rotFromRpy(r,p,w);
 
   // ogawa
   if (!active_control_loop) {
     m_mcIn.read();
     for(int i=0;i<dof;i++) {
-      m_refq.data[i]=body_cur(i)=m_mc.data[i];
+      m_refq.data[i] = body_cur(i) = m_mc.data[i];
     }
     update_model(m_robot, m_mc, FT, end_link);
     setCurrentData();
@@ -845,10 +839,10 @@ void sony::setFootPosL(double x, double y, double z, double r, double p, double 
     stepNum = 2;
   }  
   else {
-    stepNum+=1;
+    stepNum += 1;
   }
 
-  active_control_loop=1;
+  active_control_loop = 1;
 }
 
 void sony::testMove()
@@ -952,10 +946,8 @@ void sony::freeWalkSwitchOff()
 }
 
 
-//_/_/_/_/_/_/_/_/_/_/_/_/_/_/_//_/_/_/_/_/_/_/_/_/_/_/_/_/_/_  //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-
 // ogawa
-void sony::setCurrentData()
+inline void sony::setCurrentData()
 {
   get_end_link_pose(pose_now, m_robot, end_link);
   get_end_link_pose(pose_init, m_robot, end_link);
@@ -970,10 +962,10 @@ void sony::setCurrentData()
     Matrix3 L_R=extractYow(m_robot->link(end_link[LLEG])->R());
     
     Matrix3 Rmid( R_R.transpose() * L_R);
-    Vector3 omega( omegaFromRot(Rmid));
-    object_ref->R()= R_R*rodoriges(omega, 0.5);
+    Vector3 omega(omegaFromRot(Rmid));
+    object_ref->R() = R_R*rodoriges(omega, 0.5);
   }
-  rotRTemp=object_ref->R();
+  rotRTemp = object_ref->R();
   
 
   if(usePivot){
@@ -993,18 +985,18 @@ void sony::setCurrentData()
 }
 
 
-void sony::basePosUpdate()
+inline void sony::basePosUpdate()
 {
   //base
-  m_basePos.data.x=m_robot->rootLink()->p()(0);
-  m_basePos.data.y=m_robot->rootLink()->p()(1);
-  m_basePos.data.z=m_robot->rootLink()->p()(2);
+  m_basePos.data.x = m_robot->rootLink()->p()(0);
+  m_basePos.data.y = m_robot->rootLink()->p()(1);
+  m_basePos.data.z = m_robot->rootLink()->p()(2);
   Vector3 rpy = pose_ref[WAIST].linear().eulerAngles(2, 1, 0);
   //m_baseRpy.data.r=rpy(2);
   //m_baseRpy.data.p=rpy(1);
-  m_baseRpy.data.r=0.0;
-  m_baseRpy.data.p=0.0;
-  m_baseRpy.data.y=rpy(0);
+  m_baseRpy.data.r = 0.0;
+  m_baseRpy.data.p = 0.0;
+  m_baseRpy.data.y = rpy(0);
   //ofs<<m_robot->link(end_link[RLEG])->p()(0)<<endl;
 
   //////////////write///////////////
@@ -1020,6 +1012,17 @@ void sony::logStart(std::string date)
     std::string filepath("/home/player/tsml/log/");
     filepath += (date+"_sony.log");
     ofs.open(filepath.c_str());
+  }
+}
+
+int sony::swLeg(const FootType& FT)
+{
+  //swingLeg
+  if ((FT==FSRFsw) || (FT==RFsw)) {
+    return RLEG;
+  }
+  else if ((FT==FSLFsw) || (FT==LFsw)) {
+    return LLEG;
   }
 }
 

@@ -107,18 +107,6 @@ private:
   Vector4 c;
 };
 
-//double sigma(dvector arr,int x,int y);
-
-
-double vel(double* Array,int i);
-
-double acc(double* Array,int i);
-
-
-//void ShowMatrix(dmatrix& M,int k,int l);
-
-
-double sum(double* Array1st,int n);
 
 ////for robot../////
 //void RenewModel(BodyPtr body,Vector3  *p_now, Matrix3 *R_now);
@@ -129,56 +117,28 @@ void update_model(const BodyPtr body, const TimedDoubleSeq &m_q, const FootType 
 
 void getModelAngles(const BodyPtr body, TimedDoubleSeq &m_refq);
 
-Matrix3 yowRotate(double& q);
-
-//Vector3 calcZMP(BodyPtr body, TimedDoubleSeq &m_rfsensor, TimedDoubleSeq &m_lfsensor);
-
-//TimedDoubleSeq calcZMPTDS(BodyPtr body, TimedDoubleSeq &m_rfsensor, TimedDoubleSeq &m_lfsensor);
-
-//void calcJs(BodyPtr body, dmatrix &Js);
-
-int swLeg(FootType FT);
-
 bool loadtxt(std::string path,  std::deque<double> &data);
 
-Vector3 velicity(std::deque<Vector3> &deq,int i);
-
-Vector3 acclar(std::deque<Vector3> &deq,int i);
-
-FootType FTselect(BodyPtr body,StepDir dir);
-
-//dmatrix diag(const hrp::dmatrix &in1, const hrp::dmatrix &in2);
-
-//dmatrix diag(const hrp::dmatrix &in1, const hrp::dmatrix &in2, const hrp::dmatrix &in3, const hrp::dmatrix &in4);
-
-Vector3 rot2rpy(Matrix3 R);
-Matrix3 extractYow(Matrix3 Rin);
+Matrix3 extractYow(const Matrix3& Rin);
 
 void copy_poses(Position* pose_copy, const Position* const pose);
 
-void adjust_M_PI(double &v);
-
-void atan2adjust(Vector3 &pre, Vector3 &cur);
-
-
 bool CalcIVK_biped(const BodyPtr body, const Vector3& CM_p, const Position* pose_ref, const FootType& FT, const string *end_link);
+
 void CalJo_biped(const BodyPtr body, const FootType& FT, Eigen::MatrixXd& out_J, const string *end_link);
 
 
 bool CalcIVK_biped_toe(const BodyPtr body,const Vector3& CM_p, const Position* pose_ref, const FootType& FT, const string *end_link);
 void CalJo_biped_toe(const BodyPtr body, const FootType& FT, Eigen::MatrixXd& out_J, const string *end_link);
 
-//for jvrc
+//deprecated
 bool CalcIVK4Limbs(BodyPtr body, Vector3& CM_p, Vector3 *p_ref, Matrix3 *R_ref, FootType FT, string *end_link);
 void CalJo4Limbs(BodyPtr body, FootType FT, Eigen::MatrixXd& out_J, string *end_link);
 
-//bool CalcIVK_biped_toe(BodyPtr body, Vector3& CM_p, Vector3 *p_ref, Matrix3 *R_ref, FootType FT, Vector3  *p_Init, Matrix3 *R_Init);
-//void CalJo_biped_toe(BodyPtr body, FootType FT,dmatrix& Jacobian);
-Matrix3 rodoriges(Vector3 omega, double dt);
+Matrix3 rodoriges(Vector3 omega, const double dt);
 
-Matrix3 rotationZ(double theta);
-Matrix3 rotationY(double theta);
+Matrix3 rotationZ(const double theta);
 
-
+Matrix3 rotationY(const double theta);
 
 #endif

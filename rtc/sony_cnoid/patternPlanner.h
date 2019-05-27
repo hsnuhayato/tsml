@@ -36,7 +36,7 @@ class patternPlanner {
   void neutralZmp(const BodyPtr m_robot, Vector3 &absZMP,const string *end_link);
 
   std::deque<Vector3> swingLegTraj;//x y theta
-  std::deque<vector2> swLeg_xy;
+  std::deque<Vector2> swLeg_xy;
   std::deque<double> swLeg_z;
   std::deque<double> groundAirRemainTime;
   std::deque<Matrix3> swLeg_R;
@@ -65,17 +65,17 @@ class patternPlanner {
   deque<Vector3> absZMP_deque;
   deque<bool> contactState_deque;
   //for capture point
-  std::deque<vector2> cp_deque;
-  vector2 cp;//last cp of one step
+  std::deque<Vector2> cp_deque;
+  Vector2 cp;//last cp of one step
   double w;
   Vector3 cZMP;
-  vector2 cm_vel;
-  std::deque<vector2> toe_heel_ratio;
+  Vector2 cm_vel;
+  std::deque<Vector2> toe_heel_ratio;
   ///
 
  private:
   //new
-  vector2 zmpInit;
+  Vector2 zmpInit;
   Vector3 offsetZMPr;
   Vector3 offsetZMPl;
 

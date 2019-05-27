@@ -83,25 +83,8 @@ class sony  : public hrp2Base
   // no corresponding operation exists in OpenRTm-aist-0.2.0
   // virtual RTC::ReturnCode_t onRateChanged(RTC::UniqueId ec_id);
 
-  //function
-  inline void rzmp2st();
-  inline void calcWholeIVK();
-  inline void calcRefZMP();
-  inline void getIKResult();
-  inline void calcRefPoint();
-  inline void calcRefFoot();
-  inline void ptnGenerator();
-  inline void readGamepad();
 
-  void resetPtnPlanner();
-  void gaitGenerate();
-  void getWalkingMotion();  
-  void ifChangeSupLeg();
-  bool walkJudge();
-  
   // void ifChangeSupLeg2(BodyPtr m_robot, FootType &FT,  patternPlannery *zmpP, bool &idle, int &CommandIn, Vector3 *p_now, Vector3 *p_Init, Matrix3 *R_now, Matrix3 *R_Init, bool &calczmpflag);
-  
-  void IniNewStep();
 
   //service port
   void start();
@@ -117,15 +100,9 @@ class sony  : public hrp2Base
   void setFootPosL();
   void setFootPosR(double x, double y, double z, double r, double p, double w);
   void setFootPosL(double x, double y, double z, double r, double p, double w);
-
-  // ogawa
-  void setCurrentData();
-  void basePosUpdate();
   void logStart(std::string date);
 
-
- protected:
-
+protected:
   // DataInPort declaration
   RTC::TimedFloatSeq m_axes;
   RTC::InPort<RTC::TimedFloatSeq> m_axesIn;
@@ -163,7 +140,7 @@ class sony  : public hrp2Base
 
   Vector3 RLEG_ref_p, LLEG_ref_p;
   Matrix3 LEG_ref_R;
-  vector6 velobj;
+  Vector6 velobj;
   //Position dst;
   Link* object_ref;
   double yawTotal;
@@ -201,6 +178,29 @@ class sony  : public hrp2Base
   enum PatternType {NORMAL, STOP} pattern;
 
   std::ofstream ofs; // ogawa
+
+  int swLeg(const FootType& FT);
+
+  //function
+  inline void rzmp2st();
+  inline void calcWholeIVK();
+  inline void calcRefZMP();
+  inline void getIKResult();
+  inline void calcRefPoint();
+  inline void calcRefFoot();
+  inline void ptnGenerator();
+  inline void readGamepad();
+
+  inline void resetPtnPlanner();
+  inline void gaitGenerate();
+  inline void getWalkingMotion();
+  inline void ifChangeSupLeg();
+  inline bool walkJudge();
+  inline void IniNewStep();
+
+  // ogawa
+  inline void setCurrentData();
+  inline void basePosUpdate();
 };
 
 

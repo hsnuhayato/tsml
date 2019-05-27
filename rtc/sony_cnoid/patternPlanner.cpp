@@ -96,11 +96,11 @@ void patternPlanner::planCP(const BodyPtr m_robot, const FootType& FT, Vector3 s
   double abszmp_z_mid = (Sup_cur_p(2) + Sw_cur_p(2))/2;
 
   ////////////plan//////////////
-  vector2 zero(MatrixXd::Zero(2,1));
+  Vector2 zero(MatrixXd::Zero(2,1));
   
   if ((FT==FSRFsw)||(FT==FSLFsw)) {
     //for capture point// todo make function below
-    vector2 cp_cur(zmpInit);
+    Vector2 cp_cur(zmpInit);
     double b = exp(w*Tsup);
     cZMP.head<2>() = (Sup_cur_p.head<2>() - b*cp_cur)/(1-b);
     for(int i=1; i<(int)(Tsup/dt+NEAR0)+1; i++){
@@ -127,7 +127,7 @@ void patternPlanner::planCP(const BodyPtr m_robot, const FootType& FT, Vector3 s
     //for capture point//
     extendDeque(cp_deque, cp, Tdbl);
     //vector2 cZMP_pre(cZMP);
-    vector2 cp_cur(cp);
+    Vector2 cp_cur(cp);
     //double b=exp(w*(Tsup));
     double b = exp(w*(Tsup+Tp));
     //cZMP= (swLegRef_p_v2- b*cp_cur)/(1-b);
@@ -186,7 +186,7 @@ void patternPlanner::getNextCom(Vector3 &cm_ref)
 {
   //if(cp_deque.empty())
   //  return;
-  vector2 cm_cur, cp_cur, cm_vel, cm_out;
+  Vector2 cm_cur, cp_cur, cm_vel, cm_out;
   cm_cur<<cm_ref(0), cm_ref(1);
 
   if(!cp_deque.empty()){
@@ -242,7 +242,7 @@ void patternPlanner::planSwingLeg(const BodyPtr m_robot, const FootType& FT,cons
                              const Matrix3& tar_R, const bool usePivot, const string *end_link)
 { 
   double zs = 0;
-  vector2 zero(MatrixXd::Zero(2,1));
+  Vector2 zero(MatrixXd::Zero(2,1));
   Vector3 zerov3(MatrixXd::Zero(3,1));
   swLeg_xy.clear();
   swLeg_z.clear();
@@ -338,7 +338,7 @@ void patternPlanner::planSwingLeg(const BodyPtr m_robot, const FootType& FT,cons
   // }
   if((FT==RFsw)||(FT==LFsw)) {
     // pivot x y
-    extendDeque(swLeg_xy, (vector2)swPivotIni_p.head<2>(), Tdbl+Tv);
+    extendDeque(swLeg_xy, (Vector2)swPivotIni_p.head<2>(), Tdbl+Tv);
     double tf = Tsup - 2*Tv;
     minVelInterp x,y;
     x.setParams(swPivotIni_p(0), swPivotRef_p(0), tf);
@@ -350,7 +350,7 @@ void patternPlanner::planSwingLeg(const BodyPtr m_robot, const FootType& FT,cons
       temp(1) = y.sampling(i*dt);
       swLeg_xy.push_back(temp);
     }
-    extendDeque(swLeg_xy, (vector2)swPivotRef_p.head<2>(), Tv+Tp);
+    extendDeque(swLeg_xy, (Vector2)swPivotRef_p.head<2>(), Tv+Tp);
       
     // pivot z
     double cm_z_tgt;
@@ -492,4 +492,3 @@ void patternPlanner::neutralZmp(const BodyPtr m_robot, Vector3 &absZMP, const st
                m_robot->link(end_link[LLEG])->R() * offsetZMPl;
   absZMP = (rleg_cur_p + lleg_cur_p)/2;
 }
-

@@ -5,28 +5,6 @@
 // static std::ofstream ofs("/home/player/tsml/log/tar.log");
 // static std::ofstream ofs2("/home/player/tsml/log/tarq.log");
 
-double vel(double* Array,int i)
-{
-  double vel=0;
-  vel=(Array[i+1]-Array[i-1])/0.01;
-  return vel;
-}
-
-double acc(double* Array,int i)
-{
-  double acc=0;
-  acc=(Array[i-1]-2*Array[i]+Array[i+1])/(0.005*0.005);
-  return acc;
-}
-
-double sum(double* Array1st,int n)
-{
-  double total=0;
-  for(int i=0;i<n;i++){
-    //cout<<"AR "<<Array1st[i]<<endl;
-    total+=Array1st[i];}
-  return total;
-}
 ////for robot..///
 void getModelAngles(const BodyPtr body, TimedDoubleSeq &m_refq)
 {
@@ -67,7 +45,6 @@ Matrix3 rotationY(const double theta){
   return Matrix3(AngleAxisd(theta, Vector3d::UnitY()));
 }
 
-
 void get_end_link_pose(Position* pose, const BodyPtr body, const string *end_link)
 {
   //RLEG, LLEG, RARM, LARM, WAIST,
@@ -75,104 +52,6 @@ void get_end_link_pose(Position* pose, const BodyPtr body, const string *end_lin
     pose[i].linear() = body->link(end_link[i])->R();
     pose[i].translation() = body->link(end_link[i])->p();
   }
-}
-
-/*
-Vector3 calcZMP(BodyPtr body, TimedDoubleSeq &m_rfsensor, TimedDoubleSeq &m_lfsensor)
-{
-  matrix33 w_R_rf,w_R_lf;
-  Vector3 w_P_rf,w_P_lf;
-  Vector3 wZMP_R,wZMP_L, wZMP;
-  Vector3 rZMP_R,lZMP_L;
-  double d = 0.01;//足底からセンサ中心の距離（適当に0.01[m]とした）
-  rZMP_R << (-m_rfsensor.data[4] - m_rfsensor.data[0]*d)/m_rfsensor.data[2],
-           ( m_rfsensor.data[3] - m_rfsensor.data[1]*d)/m_rfsensor.data[2],
-            -0.135;
-  lZMP_L << (-m_lfsensor.data[4] - m_lfsensor.data[0]*d)/m_lfsensor.data[2],
-           ( m_lfsensor.data[3] - m_lfsensor.data[1]*d)/m_lfsensor.data[2],
-            -0.135;
-  
-    w_P_rf=body->link("RLEG_JOINT5")->p();
-    w_P_lf=body->link("LLEG_JOINT5")->p();
-    // w_P_lf(i)=body->link("LLEG_JOINT5")->p()[i];
-    w_R_rf=body->link("RLEG_JOINT5")->R;
-    w_R_lf=body->link("LLEG_JOINT5")->R;
-    
-    wZMP_R = w_P_rf + w_R_rf*rZMP_R;
-    wZMP_L = w_P_lf + w_R_lf*lZMP_L;
-    
-    wZMP[0] = (wZMP_R(0)*m_rfsensor.data[2] + wZMP_L(0)*m_lfsensor.data[2])/(m_rfsensor.data[2] + m_lfsensor.data[2]);
-    wZMP[1] = (wZMP_R(1)*m_rfsensor.data[2] + wZMP_L(1)*m_lfsensor.data[2])/(m_rfsensor.data[2] + m_lfsensor.data[2]);
-    wZMP[2] = wZMP_R(2);
-  
-  return wZMP;
-}
-*/
-
- /*
-TimedDoubleSeq calcZMPTDS(BodyPtr body, TimedDoubleSeq &m_rfsensor, TimedDoubleSeq &m_lfsensor)
-{
-  matrix33 w_R_rf,w_R_lf;
-  Vector3 w_P_rf,w_P_lf;
-  Vector3 wZMP_R,wZMP_L;
-  Vector3 rZMP_R,lZMP_L;
-  TimedDoubleSeq wZMP;
-  double d = 0.01;//足底からセンサ中心の距離（適当に0.01[m]とした）
-
-  wZMP.data.length(3); 
-  rZMP_R << (-m_rfsensor.data[4] - m_rfsensor.data[0]*d)/m_rfsensor.data[2],
-           ( m_rfsensor.data[3] - m_rfsensor.data[1]*d)/m_rfsensor.data[2],
-            -0.135;
-  lZMP_L << (-m_lfsensor.data[4] - m_lfsensor.data[0]*d)/m_lfsensor.data[2],
-           ( m_lfsensor.data[3] - m_lfsensor.data[1]*d)/m_lfsensor.data[2],
-            -0.135;
-  
-    w_P_rf=body->link("RLEG_JOINT5")->p();
-    w_P_lf=body->link("LLEG_JOINT5")->p();
-    // w_P_lf(i)=body->link("LLEG_JOINT5")->p()[i];
-    w_R_rf=body->link("RLEG_JOINT5")->R;
-    w_R_lf=body->link("LLEG_JOINT5")->R;
-    
-    wZMP_R = w_P_rf + w_R_rf*rZMP_R;
-    wZMP_L = w_P_lf + w_R_lf*lZMP_L;
-    
-    wZMP.data[0] = (wZMP_R(0)*m_rfsensor.data[2] + wZMP_L(0)*m_lfsensor.data[2])/(m_rfsensor.data[2] + m_lfsensor.data[2]);
-    wZMP.data[1] = (wZMP_R(1)*m_rfsensor.data[2] + wZMP_L(1)*m_lfsensor.data[2])/(m_rfsensor.data[2] + m_lfsensor.data[2]);
-    wZMP.data[2] = wZMP_R(2);
-  
-  return wZMP;
-
-}
- */
-/*
-void calcJs(BodyPtr body, MatrixXd &Js)
-{
-  int dof=body->numJoints();
-  Js=Eigen::MatrixXd::Identity(dof,dof);
-  int id = body->link("CHEST_JOINT0")->jointId;
-  Js(id,id)=0;
-  id = body->link("CHEST_JOINT1")->jointId;
-  Js(id,id)=0;
-  id = body->link("HEAD_JOINT0")->jointId;
-  Js(id,id)=0;
-  id = body->link("HEAD_JOINT1")->jointId;
-  Js(id,id)=0;
-  //ShowMatrix(Js, dof, dof);
-}
-*/
-
-
-int swLeg(FootType FT)
-{
-  //swingLeg
-    int swingLeg;
-    if((FT==FSRFsw)||(FT==RFsw)){
-      return RLEG;
-    }
-    else if((FT==FSLFsw)||(FT==LFsw)){
-      return LLEG;
-    }
-
 }
 
 bool loadtxt(std::string path,  std::deque<double> &data)
@@ -197,128 +76,7 @@ bool loadtxt(std::string path,  std::deque<double> &data)
   return true;
 }
 
-Vector3 velicity(std::deque<Vector3> &deq, int i)
-{
-  Vector3 vel=Vector3d::Zero(3);
-  vel=(deq.at(i+1)-deq.at(i-1))/0.01;
-  return vel;
-}
-
-Vector3 acclar(std::deque<Vector3> &deq, int i)
-{
-  Vector3 acc=Vector3d::Zero(3);
-  acc=(deq.at(i-1)-2*deq.at(i)+deq.at(i+1))/(0.005*0.005);
-  return acc;
-}
-
-
-FootType FTselect(BodyPtr body,StepDir dir)
-{
-  FootType FT;
-  //rf is front //initial pos rleg is behind lleg
-  if( body->link("RLEG_JOINT5")->p()(0) >= body->link("LLEG_JOINT5")->p()(0) ){
-    if(dir==front)
-      FT=FSLFsw;
-    else
-      FT=FSRFsw;
-  }
-  else{//lf is front
-     if(dir==front)
-      FT=FSRFsw;
-    else
-      FT=FSLFsw;
-  }
-
-  return FT;
-
-}
-
-//----------------------------------------------------------------------------------
-//  math function
-//----------------------------------------------------------------------------------
-/*
-hrp::dmatrix diag(const hrp::dmatrix &in1, const hrp::dmatrix &in2)
-{
-  int size1 = in1.rows() + in2.rows();
-  int size2 = in1.cols() + in2.cols();
-
-  hrp::dmatrix out(Eigen::MatrixXd::Zero(size1,size2)); 
-  
-  for(int i = 0; i < in1.rows(); i++)
-    for(int j = 0; j < in1.cols(); j++)
-      out(i,j) = in1(i,j);
-
-
-  int shift1 = in1.rows();
-  int shift2 = in1.cols();
-  for(int i = 0; i < in2.rows(); i++)
-    for(int j = 0; j < in2.cols(); j++)
-      out(i+shift1,j+shift2) = in2(i,j);
-
-  return out;
-}
-
-hrp::dmatrix diag(const hrp::dmatrix &in1, const hrp::dmatrix &in2, const hrp::dmatrix &in3, const hrp::dmatrix &in4)
-{
-  int size1 = in1.rows() + in2.rows()+in3.rows() + in4.rows();
-  int size2 = in1.cols() + in2.cols() + in3.cols() + in4.cols();
-
-  hrp::dmatrix out(Eigen::MatrixXd::Zero(size1,size2)); 
-   
-  for(int i = 0; i < in1.rows(); i++)
-    for(int j = 0; j < in1.cols(); j++)
-      out(i,j) = in1(i,j);
-
-
-  int shift1 = in1.rows();
-  int shift2 = in1.cols();
-  for(int i = 0; i < in2.rows(); i++)
-    for(int j = 0; j < in2.cols(); j++)
-      out(i+shift1,j+shift2) = in2(i,j);
-
-  shift1 += in2.rows();
-  shift2 += in2.cols();
-  for(int i = 0; i < in3.rows(); i++)
-    for(int j = 0; j < in3.cols(); j++)
-      out(i+shift1,j+shift2) = in3(i,j);
-
-  shift1 += in3.rows();
-  shift2 += in3.cols();
-  for(int i = 0; i < in4.rows(); i++)
-    for(int j = 0; j < in4.cols(); j++)
-      out(i+shift1,j+shift2) = in4(i,j);
-
-
-  return out;
-}
-*/
-
-Vector3 rot2rpy(Matrix3 R)
-{
-  Vector3 euler =R.eulerAngles(2,1,0);
-  Vector3 out(euler(2), euler(1), euler(0));
-
-  return out;
-}
-
-// todo vecotr cross
-matrix22 RfromMatrix3(Matrix3 Rin)//bimyou
-{
-  //Vector3 rpy=rpyFromRot(Rin);
-  //Matrix3 R=rotationZ(rpy(2));
-  Matrix3 R=extractYow(Rin);
-  matrix22 R_xy;
-  for (int i=0;i<2;i++){
-    for(int j=0;j<2;j++){
-      R_xy(i,j)=R(i,j);
-    }
-  }
-
-  //R_xy = R.block<2,2>(0,0);
-  return R_xy;
-}
-
-Matrix3 extractYow(Matrix3 Rin)
+Matrix3 extractYow(const Matrix3& Rin)
 {
   Vector3 rpy = rpyFromRot(Rin);
   Matrix3 R = rotationZ(rpy(2));
@@ -352,38 +110,6 @@ void copy_poses(Position* pose_copy, const Position* const pose)
     pose_copy[i] = pose[i];
   }
 }
-
-void adjust_M_PI(double &v)
-{
-  while(true) {
-    if( v > M_PI )
-      v -= ( 2 * M_PI );
-    else if( v < -M_PI )
-      v += ( 2 * M_PI );
-    else
-      break;
-  }
-  
-}
-
-void atan2adjust(Vector3 &pre, Vector3 &cur)
-{
-  for(int i=0;i<3;i++){
-    if(fabs(pre(i)- cur(i))>M_PI){
-      if(pre(i) > cur(i) ){
-        while(fabs(pre(i) - cur(i))>M_PI)
-          cur(i)+=2*M_PI;
-      }
-      else if(pre(i) < cur(i) ){
-        while(fabs(pre(i) - cur(i))>M_PI)
-          cur(i)-=2*M_PI;
-      }   
-    }// if(fabs(pre - cur)>M_PI)
-  }//for
-
-  pre=cur;
-}
-
 
 bool CalcIVK_biped(const BodyPtr body, const Vector3& CM_p, const Position* pose_ref, const FootType& FT, const string *end_link)
 {
@@ -549,7 +275,6 @@ void CalJo_biped(const BodyPtr body, const FootType& FT, Eigen::MatrixXd& out_J,
   }
   
 }
-
 
 Matrix3 rodoriges(Vector3 omega, double dt)
 {
