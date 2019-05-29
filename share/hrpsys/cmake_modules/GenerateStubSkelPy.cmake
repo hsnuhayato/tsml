@@ -28,6 +28,7 @@ macro(generate_stub_skel idl_basename)
       COMMAND omniidl ${idl_flags} ${idl_file}
       #COMMAND mkdir -p python
       #COMMAND omniidl -bpython -C python -Idir${OPENRTM_IDL_DIR} ${idl_file}
+      COMMAND mkdir -p ${py_path}
       COMMAND omniidl -bpython -C ${py_path} -Idir${OPENRTM_IDL_DIR} ${idl_file}
       COMMAND ${IDLJ} ${idlj_flags} -Idir${OPENRTM_IDL_DIR} ${idl_file}
       COMMAND mkdir -p bin
