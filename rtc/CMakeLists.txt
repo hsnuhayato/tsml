@@ -1,0 +1,5 @@
+add_subdirectory(PdServo)
+add_subdirectory(sony_cnoid)
+add_subdirectory(ReferenceHolder.cnoid)
+add_subdirectory(StateEstimator)
+add_subdirectory(hrpsys_st)

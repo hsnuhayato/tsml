@@ -11,7 +11,7 @@ if(NOT QNXNTO)
   set(IDLJ idlj)
   set(idlj_flags -fclient -fserver -emitAll -td src -d ORBIT2_IDL -d TYPECODE_CORBA_PREFIX)
   set(javac_flags -target 1.8 -d . -sourcepath src)
-  set(py_path /home/player/tsml/share/rtm_client)
+  set(py_path ${CMAKE_CURRENT_SOURCE_DIR}/share/rtm_client)
 endif()
 
 ####

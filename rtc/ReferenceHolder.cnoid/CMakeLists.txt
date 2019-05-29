@@ -1,42 +1,7 @@
-cmake_minimum_required(VERSION 2.6)
-
-set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
-if (NOT CMAKE_MODULE_PATH)
-  set(CMAKE_MODULE_PATH /home/player/tsml/share/hrpsys/cmake_modules/ CACHE STRING "set path to cmake_modules")
-  #set(CMAKE_MODULE_PATH /opt/grx/share/hrpsys/cmake_modules/ CACHE STRING "set path to cmake_modules")
-endif (NOT CMAKE_MODULE_PATH)
-add_definitions(-std=c++0x)
-
-####
-## settings for OpenRTM
-##
-include(FindPkgConfig)
-include(CheckIncludeFiles)
-pkg_check_modules(OPENRTM REQUIRED openrtm-aist)
-
-include_directories(${OPENRTM_INCLUDE_DIRS})
-link_directories(${OPENRTM_LIBRARY_DIRS})
-
-execute_process(
-  COMMAND $ENV{RTM_ROOT}/bin/rtm-config --rtm-idldir
-  OUTPUT_VARIABLE OPENRTM_IDL_DIR
-  RESULT_VARIABLE RESULT
-  OUTPUT_STRIP_TRAILING_WHITESPACE)
-include(GenerateStubSkel)
-
-
-pkg_check_modules(CHOREONOID REQUIRED choreonoid choreonoid-body-plugin)
-include_directories(${CHOREONOID_INCLUDE_DIRS})
-link_directories(${CHOREONOID_LIBRARY_DIRS})
-
-
-include_directories(${CMAKE_MODULE_PATH})
-include(GenerateStubSkel)
-
 ####
 ## for each component
 ##
-set(comp_name ${COMP_NAME})
+set(comp_name creekReferenceHolder)
 set(comp_sources ${comp_name}.cpp)
 
 #generate_stub_skel(${comp_name}Service)

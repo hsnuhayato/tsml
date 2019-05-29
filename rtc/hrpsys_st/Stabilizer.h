@@ -25,8 +25,8 @@
 #include "StabilizerService_impl.h"
 #include "TwoDofController.h"
 #include "ZMPDistributor.hpp"
-#include "../ImpedanceController/JointPathEx.h"
-#include "../ImpedanceController/RatsMatrix.h"
+#include "ImpedanceController/JointPathEx.h"
+#include "ImpedanceController/RatsMatrix.h"
 #include "IIRFilter.h"
 
 // </rtc-template>
