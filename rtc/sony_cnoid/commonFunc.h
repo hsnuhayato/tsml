@@ -43,8 +43,8 @@ void Interplation5(std::deque<T>& input, const T ps, const T dps, const T ddps,
   if (end_time == 0) {
     end_time = tf;
   }
-  int start_idx = (int)(start_time/0.005+NEAR0) + 1;
-  int end_idx = (int)(end_time/0.005+NEAR0) + 1;
+  int start_idx = (int)(start_time/dt+NEAR0) + 1;
+  int end_idx = (int)(end_time/dt+NEAR0) + 1;
 
   a0=ps;
   a1=dps;

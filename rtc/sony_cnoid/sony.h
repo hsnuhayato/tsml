@@ -177,7 +177,7 @@ protected:
 
   enum PatternType {NORMAL, STOP} pattern;
 
-  std::ofstream ofs; // ogawa
+  std::ofstream ofs;
 
   int swLeg(const FootType& FT);
 
@@ -198,7 +198,6 @@ protected:
   inline bool walkJudge();
   inline void IniNewStep();
 
-  // ogawa
   inline void setCurrentData();
   inline void basePosUpdate();
 };

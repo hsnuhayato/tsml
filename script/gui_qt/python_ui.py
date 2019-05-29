@@ -1,6 +1,9 @@
-#!/home/player/tsml/bin/rtm_python
+#!/usr/bin/python2.7
 
-from hrpsys_config import *
+import os,sys
+sys.path = [''] + [os.getcwd() + '/../../share/rtm_client'] + ['/usr/lib/python2.7/dist-packages'] + sys.path[1:]
+
+from hrpsys.hrpsys_config import *
 import OpenHRP
 rtm.nsport=2809
 # try:

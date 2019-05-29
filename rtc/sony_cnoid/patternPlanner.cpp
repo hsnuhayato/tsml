@@ -49,7 +49,6 @@ void patternPlanner::setZmpOffsetX(double &cm_offset_x)
   offsetZMPr(0)=offsetZMPl(0)=offsetZMPx;
 }
 //////////////
-// modified by ogawa
 void patternPlanner::setw(double &cm_z_in, double groundHeight)
 {
   cm_z_cur = cm_z = cm_z_in;
@@ -361,7 +360,7 @@ void patternPlanner::planSwingLeg(const BodyPtr m_robot, const FootType& FT,cons
       Vector3 SwLegNow_p = SwLeg->p() + SwLeg->R() * link_b_ee;
       Vector3 SupLegNow_p = SupLeg->p() + SupLeg->R() * link_b_ee;
       //double cm_z_tgt = cm_z;
-      cm_z_tgt = cm_z_cur;  // ogawa
+      cm_z_tgt = cm_z_cur;
       double err = 0.001;
       if( SwLegNow_p(2) >swLegRef_p(2)){//downstair
         height = SwLegNow_p(2);

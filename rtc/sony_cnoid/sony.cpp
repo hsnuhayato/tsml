@@ -181,7 +181,6 @@ RTC::ReturnCode_t sony::onExecute(RTC::UniqueId ec_id)
   hrp2Base::updateInport();
 
   //readGamepad();
-  // ogawa
   if (m_basePosInitIn.isNew() && m_baseRpyInitIn.isNew()) {
     m_basePosInitIn.read();
     m_baseRpyInitIn.read();
@@ -326,7 +325,7 @@ inline void sony::calcRefPoint()
   
   object_ref->R() = rotRTemp;
   //object_ref->p() = object_ref->p() + rotationZ(yawTotal)*tmp;
-  object_ref->p() = object_ref->p() + rotRTemp*tmp; // ogawa
+  object_ref->p() = object_ref->p() + rotRTemp*tmp;
 }
 
 inline void sony::calcRefFoot()
@@ -355,7 +354,7 @@ inline void sony::ptnGenerator()//this is calcrzmp flag
     }
   }
   else {//keep walking start from new leg
-    if( (!walkJudge())&& ptnP->cp_deque.empty() && !step){
+    if ((!walkJudge())&& ptnP->cp_deque.empty() && !step) {
       pattern = STOP;
     }
     // if pattern == STOP planstop 
@@ -606,7 +605,6 @@ void sony::start()//todo change to initialize_wpg
   copy_poses(pose_ref, pose_now);
   pose_ref[WAIST].linear() = extractYow(m_robot->rootLink()->R());
 
-  // ogawa
   {// TODO: use Rats
     Matrix3 R_R = extractYow(m_robot->link(end_link[RLEG])->R());
     Matrix3 L_R = extractYow(m_robot->link(end_link[LLEG])->R());
@@ -625,12 +623,11 @@ void sony::start()//todo change to initialize_wpg
   }
   //for foot planning/////////////////////////////////////////
   //ini
-  p_obj2RLEG = object_ref->R().transpose() * (pose_now[RLEG].translation() - object_ref->p()); // ogawa
-  p_obj2LLEG = object_ref->R().transpose() * (pose_now[LLEG].translation() - object_ref->p()); // ogawa
+  p_obj2RLEG = object_ref->R().transpose() * (pose_now[RLEG].translation() - object_ref->p());
+  p_obj2LLEG = object_ref->R().transpose() * (pose_now[LLEG].translation() - object_ref->p());
   R_LEG_ini = LEG_ref_R= Eigen::MatrixXd::Identity(3,3);
 
-  //object_ref->p()(2)=0;  // comment out by ogawa
-  object_ref->p()(2) -= param.ankle_height;  // ogawa
+  object_ref->p()(2) -= param.ankle_height;
   std::cout << "[ " << m_profile.instance_name << "] object pos = " <<
     object_ref->p().format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
   //for pivot///////////////////////////////////////////////
@@ -668,7 +665,7 @@ void sony::start()//todo change to initialize_wpg
   //no good when climb stair
   // double w=sqrt(9.806/cm_ref(2));
   // ptnP->setw(w);
-  ptnP -> setw(cm_ref(2), object_ref->p()(2));  // ogawa
+  ptnP -> setw(cm_ref(2), object_ref->p()(2));
   ptnP -> setZmpOffsetX(cm_offset_x);
   Vector3 rzmpInit;
   ptnP -> neutralZmp(m_robot, rzmpInit, end_link);
@@ -677,7 +674,6 @@ void sony::start()//todo change to initialize_wpg
   calcRefFoot();
   active_control_loop = 0;
 
-  //ogawa
   absZMP = rzmpInit;
   basePosUpdate();
 }
@@ -685,7 +681,6 @@ void sony::start()//todo change to initialize_wpg
 void sony::stepping()
 {
   if (freeWalk) {
-    // ogawa
     if (!active_control_loop) {
       m_mcIn.read();
       for (int i=0;i<dof;i++) {
@@ -712,7 +707,6 @@ void sony::setFootPosR()
     freeWalkSwitch();
   }
 
-  // ogawa
   if( !active_control_loop ) {
     m_mcIn.read();
     for(int i=0;i<dof;i++) {
@@ -815,7 +809,6 @@ void sony::setFootPosL(double x, double y, double z, double r, double p, double 
   LLEG_ref_p[2] = z;
   LEG_ref_R = cnoid::rotFromRpy(r,p,w);
 
-  // ogawa
   if (!active_control_loop) {
     m_mcIn.read();
     for(int i=0;i<dof;i++) {
@@ -900,14 +893,11 @@ void sony::setObjectV(double x, double y, double z, double roll, double pitch, d
   velobj<< x,y,z,roll,pitch,yaw;
 }
 
-
-// ogawa
 void sony::stop()
 {
   cout<<"sony write outport off"<<endl;
   active_control_loop=0;
 }
-
 
 void sony::freeWalkSwitch()
 {
@@ -916,7 +906,6 @@ void sony::freeWalkSwitch()
 
   ///////////////////////
   if(!freeWalk){
-    // ogawa
     m_mcIn.read();
     for(int i=0;i<dof;i++) {
       m_refq.data[i]=body_cur(i)=m_mc.data[i];
@@ -946,7 +935,6 @@ void sony::freeWalkSwitchOff()
 }
 
 
-// ogawa
 inline void sony::setCurrentData()
 {
   get_end_link_pose(pose_now, m_robot, end_link);

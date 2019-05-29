@@ -85,25 +85,6 @@ Matrix3 extractYow(const Matrix3& Rin)
   return R;
 }
 
-//please use calcWaistR in zmp planner
-void clacWaistR(BodyPtr body, FootType FT,Matrix3&  R_ref_WAIST, double swLegYow)
-{
-  Vector3 sup_leg_rpy;
-  Matrix3 sup_leg_R; 
-  if((FT==FSRFsw)||(FT==RFsw)){
-    sup_leg_rpy=rpyFromRot(body->link("LLEG_JOINT5")->R());
-    sup_leg_R=body->link("LLEG_JOINT5")->R();
-  }
-  else if((FT==FSLFsw)||(FT==LFsw)){
-    sup_leg_rpy=rpyFromRot(body->link("RLEG_JOINT5")->R());
-    sup_leg_R=body->link("RLEG_JOINT5")->R();
-  } 
-
-  double YowAvg= (swLegYow +  sup_leg_rpy(2))/2;
-  R_ref_WAIST=rotationZ(YowAvg);
- 
-}
-
 void copy_poses(Position* pose_copy, const Position* const pose)
 {
   for(int i=0; i<LINKNUM; i++) {
@@ -371,8 +352,8 @@ bool CalcIVK_biped_toe(const BodyPtr body,const Vector3& CM_p, const Position* p
       double errsqr=v.squaredNorm();
 
       if(errsqr < maxIKErrorSqr){
-	converged = true;
-	break;
+        converged = true;
+        break;
       }
       
       MatrixXd JJ;
@@ -380,9 +361,8 @@ bool CalcIVK_biped_toe(const BodyPtr body,const Vector3& CM_p, const Position* p
       JJ = Jacobian *  Jacobian.transpose() + dampingConstantSqr * MatrixXd::Identity(Jacobian.rows(), Jacobian.rows());
       dq = Jacobian.transpose() * QR.compute(JJ).solve(v);
 
-
       for(int j=0; j < n; ++j){
-	body->joint(j)->q() += LAMBDA * dq(j);
+        body->joint(j)->q() += LAMBDA * dq(j);
       }
      
       SupLeg->p()=SupLeg_p_Init;
@@ -393,9 +373,8 @@ bool CalcIVK_biped_toe(const BodyPtr body,const Vector3& CM_p, const Position* p
     }//for
     
     if(!converged){
-      
       for(int j=0; j < n; ++j){
-	body->joint(j)->q() = qorg[j];
+        body->joint(j)->q() = qorg[j];
       }
  
       SupLeg->p()=SupLeg_p_Init;
@@ -560,8 +539,8 @@ bool CalcIVK4Limbs(BodyPtr body, Vector3& CM_p, Vector3 *p_ref, Matrix3 *R_ref, 
       double errsqr=v.squaredNorm();
 
       if(errsqr < maxIKErrorSqr){
-	converged = true;
-	break;
+        converged = true;
+        break;
       }
       
       MatrixXd JJ;
@@ -569,9 +548,8 @@ bool CalcIVK4Limbs(BodyPtr body, Vector3& CM_p, Vector3 *p_ref, Matrix3 *R_ref, 
       JJ = Jacobian *  Jacobian.transpose() + dampingConstantSqr * MatrixXd::Identity(Jacobian.rows(), Jacobian.rows());
       dq = Jacobian.transpose() * QR.compute(JJ).solve(v);
 
-
       for(int j=0; j < n; ++j){
-	body->joint(j)->q() += LAMBDA * dq(j);
+        body->joint(j)->q() += LAMBDA * dq(j);
       }
 
       SupLeg->p()=SupLeg_p_Init;
@@ -584,7 +562,7 @@ bool CalcIVK4Limbs(BodyPtr body, Vector3& CM_p, Vector3 *p_ref, Matrix3 *R_ref, 
     if(!converged){
       
       for(int j=0; j < n; ++j){
-	body->joint(j)->q() = qorg[j];
+        body->joint(j)->q() = qorg[j];
       }
  
       SupLeg->p()=SupLeg_p_Init;
@@ -668,6 +646,5 @@ void CalJo4Limbs(BodyPtr body, FootType FT, Eigen::MatrixXd& out_J, string *end_
       out_J(j,id)=JWaist2LARM(j-18,i);
     }
   }
-
 
 }
