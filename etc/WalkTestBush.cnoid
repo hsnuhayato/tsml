@@ -20,7 +20,7 @@ items:
           plugin: Body
           class: BodyItem
           data: 
-            modelFile: "/home/player/tsml/model/JVRC-TSML/main_bush.wrl"
+            modelFile: "${PROJECT_DIR}/../model/JVRC-TSML/main_bush.wrl"
             currentBaseLink: "PELVIS"
             rootPosition: [ 0, 0, 0.854 ]
             rootAttitude: [ 
@@ -57,8 +57,8 @@ items:
               data: 
                 isNoDelayMode: true
                 controllerOptions: ""
-                moduleName: "/home/player/tsml/lib/creekPdServo"
-                confFileName: "/home/player/tsml/etc/bridgeJVRC.conf"
+                moduleName: "${PROJECT_DIR}/../lib/creekPdServo"
+                confFileName: "${PROJECT_DIR}/bridgeJVRC.conf"
                 configurationMode: "Use Configuration File"
                 autoConnect: false
                 instanceName: "JVRC-TSML"
