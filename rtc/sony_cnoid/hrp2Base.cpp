@@ -93,24 +93,6 @@ RTC::ReturnCode_t hrp2Base::onInitialize()
 
   // </rtc-template>
   RTC::Properties& prop = getProperties();
-  /*  
-  RTC::Manager& rtcManager = RTC::Manager::instance();
-  std::string nameServer = rtcManager.getConfig()["corba.nameservers"];
-  int commaPos = nameServer.find(",");
-  if (commaPos > 0)
-    nameServer = nameServer.substr(0, commaPos);
-  RTC::CorbaNaming naming(rtcManager.getORB(), nameServer.c_str());
-  m_robot = hrp::BodyPtr(new hrp::Body());
-   CosNaming::NamingContext_var m_rootNameContext = CosNaming::NamingContext::_duplicate(naming.getRootContext());
-
-  if (!hrp::loadBodyFromModelLoader(m_robot,  prop["model"].c_str(), m_rootNameContext))
-    {
-      std::cerr <<" : failed to load model" << std::endl;
-    }
-  else
-    cout<<"model load OK"<<endl;
-  */
-
   cnoid::BodyLoader bl;
   m_robot = bl.load( prop["model"].c_str());
   dof = m_robot->numJoints();
@@ -206,7 +188,6 @@ RTC::ReturnCode_t hrp2Base::onInitialize()
   cout<<"test R2"<<'\n'<< sensor1->R_local()<< '\n' << sensor1->p_local() <<endl;
   cout<<sensor1->link()->name()<<endl;
 
-  
   //data port
   m_q.data.length(dof);
   m_mc.data.length(dof);
