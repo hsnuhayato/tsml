@@ -132,22 +132,13 @@ RTC::ReturnCode_t hrp2Base::onInitialize()
   HEAD_P = prop["HEAD_P"];
   HEAD_Y = prop["HEAD_Y"];
   std::cout << m_profile.instance_name << " :rleg end "<< m_robot -> link(end_link[RLEG]) ->p() << std::endl;
-  /*
-  if( m_robot->numJoints()==32){
-    armDof=7;
-  }
-  else if( m_robot->numJoints()==30){
-    armDof=6;
-  }  
-  */
+
   //old for preview control
   //prop["kgain"]>>kgain;
   //prop["fgain"]>>fgain;
 
   get_end_link_pose(pose_now,  m_robot, end_link);
-  get_end_link_pose(pose_init, m_robot, end_link);
   //////////
-  
   m_robot -> calcCenterOfMass();
 
   //sensor set
@@ -225,75 +216,6 @@ void hrp2Base::updateInport()
   if( m_lfsensorIn.isNew() ) 
     m_lfsensorIn.read();
 }
-
-/*
-RTC::ReturnCode_t hrp2Base::onFinalize()
-{
-  return RTC::RTC_OK;
-}
-*/
-/*
-RTC::ReturnCode_t hrp2Base::onStartup(RTC::UniqueId ec_id)
-{
-  return RTC::RTC_OK;
-}
-*/
-/*
-RTC::ReturnCode_t hrp2Base::onShutdown(RTC::UniqueId ec_id)
-{
-  return RTC::RTC_OK;
-}
-*/
-/*
-RTC::ReturnCode_t hrp2Base::onActivated(RTC::UniqueId ec_id)
-{
-  return RTC::RTC_OK;
-}
-*/
-/*
-RTC::ReturnCode_t hrp2Base::onDeactivated(RTC::UniqueId ec_id)
-{
-  return RTC::RTC_OK;
-}
-*/
-
-/*
-RTC::ReturnCode_t hrp2Base::onExecute(RTC::UniqueId ec_id)
-{
-  return RTC::RTC_OK;
-}
-*/
-
-/*
-RTC::ReturnCode_t hrp2Base::onAborting(RTC::UniqueId ec_id)
-{
-  return RTC::RTC_OK;
-}
-*/
-/*
-RTC::ReturnCode_t hrp2Base::onError(RTC::UniqueId ec_id)
-{
-  return RTC::RTC_OK;
-}
-*/
-/*
-RTC::ReturnCode_t hrp2Base::onReset(RTC::UniqueId ec_id)
-{
-  return RTC::RTC_OK;
-}
-*/
-/*
-RTC::ReturnCode_t hrp2Base::onStateUpdate(RTC::UniqueId ec_id)
-{
-  return RTC::RTC_OK;
-}
-*/
-/*
-RTC::ReturnCode_t hrp2Base::onRateChanged(RTC::UniqueId ec_id)
-{
-  return RTC::RTC_OK;
-}
-*/
 
 
 extern "C"

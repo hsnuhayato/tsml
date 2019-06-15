@@ -198,7 +198,7 @@ RTC::ReturnCode_t sony::onExecute(RTC::UniqueId ec_id)
     }
   }
 
-  //_/_/_/_/_/_/_/_/_/_/_/_/main algorithm_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+  //_/_/_/_/_/_/_/main algorithm_/_/_/_/_/_/_/_/_
   if (active_control_loop) {
     if (freeWalk) {
       calcRefPoint();
@@ -566,9 +566,6 @@ inline bool sony::walkJudge()
 }
 
 inline void sony::IniNewStep() {
-  //p_ref >> p_Init
-  copy_poses(pose_init, pose_ref);
-
   //ifstop
   if (pattern == STOP) {
     idle = 1;
@@ -601,7 +598,6 @@ void sony::start()//todo change to initialize_wpg
   std::cout << "sony : robot pos = " << m_robot->rootLink()->p().format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
 
   //for expos
-  copy_poses(pose_init, pose_now);
   copy_poses(pose_ref, pose_now);
   pose_ref[WAIST].linear() = extractYow(m_robot->rootLink()->R());
 
@@ -691,12 +687,17 @@ void sony::stepping()
     }
 
     step =! step;
-    cout << "step" << endl;
+    cout << "[ " << m_profile.instance_name << "] step " << step << endl;
     active_control_loop=1;
 
     if (idle) {
       ptnGenerator();//idle off here
     }
+
+    if (!step) {
+      setObjectV(0, 0, 0, 0, 0, 0);
+    }
+
     std::cout << "sony : robot pos = " << m_robot->rootLink()->p().format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
   }
 }
@@ -938,7 +939,6 @@ void sony::freeWalkSwitchOff()
 inline void sony::setCurrentData()
 {
   get_end_link_pose(pose_now, m_robot, end_link);
-  get_end_link_pose(pose_init, m_robot, end_link);
   get_end_link_pose(pose_ref, m_robot, end_link);
   pose_ref[WAIST].linear() =  extractYow(m_robot->rootLink()->R());
   cm_ref = m_robot->calcCenterOfMass();

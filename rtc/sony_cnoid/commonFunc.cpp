@@ -97,7 +97,7 @@ bool CalcIVK_biped(const BodyPtr body, const Vector3& CM_p, const Position* pose
   Link* SupLeg;
   Link* SwLeg;
   JointPathPtr SupLeg2SwLeg,SupLeg2W;
-  Vector3 cm=body->calcCenterOfMass();
+  Vector3 cm = body -> calcCenterOfMass();
   Vector3  SwLeg_p; 
   Matrix3 W_R,SwLeg_R; 
  
@@ -106,7 +106,7 @@ bool CalcIVK_biped(const BodyPtr body, const Vector3& CM_p, const Position* pose
   MatrixXd Jacobian=MatrixXd::Zero(12,12);//leg only
   int swingLegId;
 
-  if((FT==FSRFsw)||FT==RFsw){
+  if ((FT==FSRFsw)||FT==RFsw) {
     SupLeg=body->link(end_link[LLEG]);
     SwLeg=body->link(end_link[RLEG]);
     swingLegId=0;

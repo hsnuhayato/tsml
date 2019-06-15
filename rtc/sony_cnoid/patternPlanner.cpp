@@ -57,8 +57,8 @@ void patternPlanner::setw(double &cm_z_in, double groundHeight)
   //w= wIn;
 }
 void patternPlanner::planCP(const BodyPtr m_robot, const FootType& FT, Vector3 swLegRef_p,
-                       const Matrix3& footRef_R,
-                       const bool usePivot, const string *end_link, const bool& ifLastStep)
+                            const Matrix3& footRef_R,
+                            const bool usePivot, const string *end_link, const bool& ifLastStep)
 {
   absZMP_deque.clear();
   // calc swing foot_xyz R, cm_z pivot_b movement
@@ -238,7 +238,7 @@ Matrix3 patternPlanner::calcWaistR(const FootType& FT, const BodyPtr m_robot, co
 
 
 void patternPlanner::planSwingLeg(const BodyPtr m_robot, const FootType& FT,const Vector3& swLegRef_p,
-                             const Matrix3& tar_R, const bool usePivot, const string *end_link)
+                                  const Matrix3& tar_R, const bool usePivot, const string *end_link)
 { 
   double zs = 0;
   Vector2 zero(MatrixXd::Zero(2,1));
