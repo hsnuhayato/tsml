@@ -133,8 +133,8 @@ void patternPlanner::planCP(const BodyPtr m_robot, const FootType& FT, Vector3 s
     cZMP.head<2>() = (cp_EOF.head<2>() - b*cp_cur)/(1-b);
 
     //int timeLength=(int)((Tsup)/0.005+NEAR0);
-    int timeLength=(int)((Tsup+Tp)/0.005+NEAR0);
-    for(int i=1;i<timeLength+1;i++){
+    int timeLength = (int)((Tsup+Tp)/dt + NEAR0);
+    for(int i=1; i<timeLength+1; i++){
       cp = cZMP.head<2>() + exp(w*i*dt) * (cp_cur - cZMP.head<2>());
       cp_deque.push_back(cp);
     }
@@ -342,7 +342,7 @@ void patternPlanner::planSwingLeg(const BodyPtr m_robot, const FootType& FT,cons
     minVelInterp x,y;
     x.setParams(swPivotIni_p(0), swPivotRef_p(0), tf);
     y.setParams(swPivotIni_p(1), swPivotRef_p(1), tf);
-    int timeLength = (int)(tf/0.005+NEAR0);
+    int timeLength = (int)(tf/dt + NEAR0);
     for(int i=1; i < timeLength+1; i++){
       Vector2 temp;
       temp(0) = x.sampling(i*dt);
@@ -448,7 +448,7 @@ void patternPlanner::planSwingLeg(const BodyPtr m_robot, const FootType& FT,cons
       x.setParams(link_b_s(0), link_b_f(0), tf);
       z.setParams(link_b_s(2), link_b_f(2), tf);
      
-      int timeL = (int)(tf/0.005+NEAR0);
+      int timeL = (int)(tf/dt+NEAR0);
       for(int i=1; i<timeL+1; i++){
         Vector3 temp;
         temp << x.sampling(i*dt), 0.0, z.sampling(i*dt);
@@ -462,17 +462,17 @@ void patternPlanner::planSwingLeg(const BodyPtr m_robot, const FootType& FT,cons
       std::vector<double> X(5), Y(5);
       X[0] = 0.0;
       X[1] = Tp;
-      X[2] = Tp+Tsup;
-      X[3] = Tp+Tsup+Tp-0.011;
-      X[4] = Tp+Tsup+Tp;
+      X[2] = Tp + Tsup;
+      X[3] = Tp + Tsup + Tp -0.011;
+      X[4] = Tp + Tsup + Tp;
       Y[0] = 0.0;
       Y[1] = pitch_s;
       Y[2] = pitch_f;
-      Y[3] = pitch_f*0.005;
+      Y[3] = pitch_f * 0.005;
       Y[4] = 0.0;
       tk::spline s;
       s.set_points(X,Y);    // currently it is required that X is already sorted
-      int timeLength = (int)((Tsup+2*Tp)/dt+NEAR0);
+      int timeLength = (int)((Tsup + 2*Tp)/dt + NEAR0);
       for(int i=0;i<timeLength;i++){
         rot_pitch.push_back(s((i+1)*dt));
       }
@@ -485,9 +485,9 @@ void patternPlanner::planSwingLeg(const BodyPtr m_robot, const FootType& FT,cons
 void patternPlanner::neutralZmp(const BodyPtr m_robot, Vector3 &absZMP, const string *end_link)
 {
   Vector3 rleg_cur_p, lleg_cur_p;
-  rleg_cur_p = m_robot->link(end_link[RLEG])->p() + 
+  rleg_cur_p = m_robot->link(end_link[RLEG]) ->p() +
                m_robot->link(end_link[RLEG]) ->R() * offsetZMPr;
   lleg_cur_p = m_robot->link(end_link[LLEG]) ->p() +
-               m_robot->link(end_link[LLEG])->R() * offsetZMPl;
+               m_robot->link(end_link[LLEG]) ->R() * offsetZMPl;
   absZMP = (rleg_cur_p + lleg_cur_p)/2;
 }

@@ -98,8 +98,8 @@ bool CalcIVK_biped(const BodyPtr body, const Vector3& CM_p, const Position* pose
   Link* SwLeg;
   JointPathPtr SupLeg2SwLeg,SupLeg2W;
   Vector3 cm = body -> calcCenterOfMass();
-  Vector3  SwLeg_p; 
-  Matrix3 W_R,SwLeg_R; 
+  Vector3  SwLeg_p;
+  Matrix3 W_R,SwLeg_R;
  
   Eigen::ColPivHouseholderQR<MatrixXd> QR;
   //careful
@@ -116,12 +116,12 @@ bool CalcIVK_biped(const BodyPtr body, const Vector3& CM_p, const Position* pose
     SwLeg=body->link(end_link[LLEG]);
     swingLegId=1;
   }
-  SupLeg2SwLeg= getCustomJointPath(body, SupLeg, SwLeg);  
-  SupLeg2W= getCustomJointPath(body, SupLeg,body->link(end_link[WAIST]));   
+  SupLeg2SwLeg= getCustomJointPath(body, SupLeg, SwLeg);
+  SupLeg2W= getCustomJointPath(body, SupLeg,body->link(end_link[WAIST]));
 
   //new
   Vector3 SupLeg_p_Init;
-  Matrix3 SupLeg_R_Init; 
+  Matrix3 SupLeg_R_Init;
   SupLeg_p_Init=SupLeg->p();
   SupLeg_R_Init=SupLeg->R();
   
@@ -149,9 +149,8 @@ bool CalcIVK_biped(const BodyPtr body, const Vector3& CM_p, const Position* pose
       W_R=body->link(end_link[WAIST])->R();
       SwLeg_p = SwLeg->p();
       SwLeg_R = SwLeg->R();
-      //tag
-      CalJo_biped(body, FT, Jacobian, end_link);        
-      ///
+
+      CalJo_biped(body, FT, Jacobian, end_link);
 
       Vector3 CM_dp=CM_p- body->calcCenterOfMass();// + body->link("LLEG_JOINT5")->p);
       Vector3 W_omega=W_R* omegaFromRot(W_R.transpose() * pose_ref[WAIST].linear());
@@ -201,7 +200,7 @@ bool CalcIVK_biped(const BodyPtr body, const Vector3& CM_p, const Position* pose
       body->calcForwardKinematics();
     }
     
-    return converged;          
+    return converged;
 }
 
 
@@ -214,33 +213,33 @@ void CalJo_biped(const BodyPtr body, const FootType& FT, Eigen::MatrixXd& out_J,
   MatrixXd JSupLeg2SwLeg ,JSupLeg2W,Jcom;
 
   
-  if((FT==FSRFsw)||FT==RFsw){
-    SupLeg=body->link(end_link[LLEG]);
-    SwLeg=body->link(end_link[RLEG]);
+  if((FT==FSRFsw) || FT==RFsw) {
+    SupLeg = body->link(end_link[LLEG]);
+    SwLeg = body->link(end_link[RLEG]);
   }
-  else if((FT==FSLFsw)||FT==LFsw){
-    SupLeg=body->link(end_link[RLEG]);
-    SwLeg=body->link(end_link[LLEG]);
+  else if((FT==FSLFsw)||FT==LFsw) {
+    SupLeg = body->link(end_link[RLEG]);
+    SwLeg = body->link(end_link[LLEG]);
   }
-  SupLeg2SwLeg= getCustomJointPath(body, SupLeg, SwLeg);  
-  SupLeg2W= getCustomJointPath(body, SupLeg,body->link(end_link[WAIST]));   
+  SupLeg2SwLeg = getCustomJointPath(body, SupLeg, SwLeg);
+  SupLeg2W = getCustomJointPath(body, SupLeg,body->link(end_link[WAIST]));
 
-  body->calcCenterOfMass();
+  body -> calcCenterOfMass();
   calcCMJacobian(body, SupLeg, Jcom);
 
-  SupLeg2SwLeg->calcJacobian(JSupLeg2SwLeg);
-  SupLeg2W->calcJacobian(JSupLeg2W);
+  SupLeg2SwLeg -> calcJacobian(JSupLeg2SwLeg);
+  SupLeg2W -> calcJacobian(JSupLeg2W);
   
   
   //push in
-  for(int i=0;i<3;i++){
-    for(int j=0;j<12;j++){
-      out_J(i,j)=Jcom(i,j);
+  for(int i=0; i<3; i++){
+    for(int j=0; j<12; j++){
+      out_J(i,j) = Jcom(i,j);
     }
   }
   
   // SupLeg2W
-  for(int i = 0; i <  SupLeg2W->numJoints(); i++) {
+  for(int i=0; i< SupLeg2W->numJoints(); i++) {
     int id =  SupLeg2W->joint(i)->jointId();
     for(int j=3;j<6;j++){
       out_J(j,id)=JSupLeg2W(j,i);
@@ -248,10 +247,10 @@ void CalJo_biped(const BodyPtr body, const FootType& FT, Eigen::MatrixXd& out_J,
   }
   
   //SupLeg2SwLeg
-  for(int i = 0; i < SupLeg2SwLeg->numJoints(); i++) {
+  for(int i=0; i < SupLeg2SwLeg->numJoints(); i++) {
     int id = SupLeg2SwLeg->joint(i)->jointId();
-    for(int j=6;j<12;j++){
-      out_J(j,id)=JSupLeg2SwLeg(j-6,i);
+    for(int j=6; j<12; j++){
+      out_J(j,id) = JSupLeg2SwLeg(j-6,i);
     }
   }
   
@@ -281,35 +280,35 @@ bool CalcIVK_biped_toe(const BodyPtr body,const Vector3& CM_p, const Position* p
   Link* SupLeg;
   Link* SwLeg;
   JointPathPtr SupLeg2SwLeg,SupLeg2W;
-  Vector3 cm=body->calcCenterOfMass();
-  Vector3  SwLeg_p; 
-  Matrix3 W_R,SwLeg_R; 
+  Vector3 cm = body->calcCenterOfMass();
+  Vector3  SwLeg_p;
+  Matrix3 W_R,SwLeg_R;
  
   Eigen::ColPivHouseholderQR<MatrixXd> QR;
   //careful
   MatrixXd Jacobian=MatrixXd::Zero(12,12);//leg only
   int swingLegId;
 
-  if((FT==FSRFsw)||FT==RFsw){
+  if ((FT==FSRFsw)||FT==RFsw) {
     SupLeg=body->link(end_link[LLEG]);
     SwLeg=body->link("pivot_R");
     swingLegId=0;
   }
-  else if((FT==FSLFsw)||FT==LFsw){
+  else if((FT==FSLFsw)||FT==LFsw) {
     SupLeg=body->link(end_link[RLEG]);
     SwLeg=body->link("pivot_L");
     swingLegId=1;
   }
-  SupLeg2SwLeg= getCustomJointPath(body, SupLeg, SwLeg);  
-  SupLeg2W= getCustomJointPath(body, SupLeg,body->link(end_link[WAIST]));   
+  SupLeg2SwLeg = getCustomJointPath(body, SupLeg, SwLeg);
+  SupLeg2W = getCustomJointPath(body, SupLeg,body->link(end_link[WAIST]));
 
-  SupLeg2SwLeg->calcForwardKinematics();
+  SupLeg2SwLeg -> calcForwardKinematics();
 
   //new
   Vector3 SupLeg_p_Init;
-  Matrix3 SupLeg_R_Init; 
-  SupLeg_p_Init=SupLeg->p();
-  SupLeg_R_Init=SupLeg->R();
+  Matrix3 SupLeg_R_Init;
+  SupLeg_p_Init = SupLeg->p();
+  SupLeg_R_Init = SupLeg->R();
   
   static const int MAX_IK_ITERATION = 50;
   static const double LAMBDA = 0.9;
@@ -331,15 +330,14 @@ bool CalcIVK_biped_toe(const BodyPtr body,const Vector3& CM_p, const Position* p
     bool converged = false;
   
     for(int i=0; i < MAX_IK_ITERATION; i++){
-      
-      W_R=body->link(end_link[WAIST])->R();
+      W_R = body->link(end_link[WAIST])->R();
       SwLeg_p = SwLeg->p();
       SwLeg_R = SwLeg->R();
-      CalJo_biped_toe(body, FT, Jacobian, end_link);        
+      CalJo_biped_toe(body, FT, Jacobian, end_link);
     
-      Vector3 CM_dp=CM_p - body->calcCenterOfMass();// + body->link("LLEG_JOINT5")->p);
-      Vector3 W_omega=W_R* omegaFromRot(W_R.transpose() * pose_ref[WAIST].linear());
-      Vector3 SW_dp =pose_ref[swingLegId].translation() - SwLeg_p;
+      Vector3 CM_dp = CM_p - body->calcCenterOfMass();// + body->link("LLEG_JOINT5")->p);
+      Vector3 W_omega = W_R* omegaFromRot(W_R.transpose() * pose_ref[WAIST].linear());
+      Vector3 SW_dp = pose_ref[swingLegId].translation() - SwLeg_p;
       Vector3 SW_omega = SwLeg_R* omegaFromRot(SwLeg_R.transpose() * pose_ref[swingLegId].linear());
       
       //v<< CM_dp, W_omega, SW_dp, SW_omega;
@@ -403,44 +401,40 @@ void CalJo_biped_toe(const BodyPtr body, const FootType& FT, Eigen::MatrixXd& ou
   MatrixXd JSupLeg2SwLeg ,JSupLeg2W,Jcom;
 
   
-  if((FT==FSRFsw)||FT==RFsw){
-    SupLeg=body->link(end_link[LLEG]);
-    SwLeg=body->link("pivot_R");
+  if ((FT==FSRFsw) || FT==RFsw) {
+    SupLeg = body->link(end_link[LLEG]);
+    SwLeg = body->link("pivot_R");
   }
-  else if((FT==FSLFsw)||FT==LFsw){
-    SupLeg=body->link(end_link[RLEG]);
-    SwLeg=body->link("pivot_L");
+  else if ((FT==FSLFsw) || FT==LFsw) {
+    SupLeg = body->link(end_link[RLEG]);
+    SwLeg = body->link("pivot_L");
   }
-  SupLeg2SwLeg= getCustomJointPath(body, SupLeg, SwLeg);  
-  SupLeg2W= getCustomJointPath(body, SupLeg,body->link(end_link[WAIST]));   
+  SupLeg2SwLeg = getCustomJointPath(body, SupLeg, SwLeg);
+  SupLeg2W = getCustomJointPath(body, SupLeg,body->link(end_link[WAIST]));
 
-  body->calcCenterOfMass();
-  calcCMJacobian(body, SupLeg, Jcom);
+  body -> calcCenterOfMass();
+  calcCMJacobian(body, SupLeg, Jcom);//jcom size (3 x dof)
 
-  SupLeg2SwLeg->calcJacobian(JSupLeg2SwLeg);
-  SupLeg2W->calcJacobian(JSupLeg2W);
+  SupLeg2SwLeg -> calcJacobian(JSupLeg2SwLeg);
+  SupLeg2W -> calcJacobian(JSupLeg2W);
   
   
   //push in
-  for(int i=0;i<3;i++){
-    for(int j=0;j<12;j++){
-      out_J(i,j)=Jcom(i,j);
-    }
-  }
+  out_J.block<3,12>(0,0) = Jcom.block<3,12>(0,0);
   
   // SupLeg2W
-  for(int i = 0; i <  SupLeg2W->numJoints(); i++) {
-    int id =  SupLeg2W->joint(i)->jointId();
-    for(int j=3;j<6;j++){
-      out_J(j,id)=JSupLeg2W(j,i);
+  for(int i = 0; i < SupLeg2W->numJoints(); i++) {
+    int id = SupLeg2W->joint(i)->jointId();
+    for(int j=3; j<6; j++){
+      out_J(j,id) = JSupLeg2W(j,i);
     }
   }
   
   //SupLeg2SwLeg
   for(int i = 0; i < SupLeg2SwLeg->numJoints(); i++) {
     int id = SupLeg2SwLeg->joint(i)->jointId();
-    for(int j=6;j<12;j++){
-      out_J(j,id)=JSupLeg2SwLeg(j-6,i);
+    for(int j = 6; j<12; j++){
+      out_J(j,id) = JSupLeg2SwLeg(j-6,i);
     }
   }
   
@@ -454,8 +448,8 @@ bool CalcIVK4Limbs(BodyPtr body, Vector3& CM_p, Vector3 *p_ref, Matrix3 *R_ref, 
   Link* SwLeg;
   JointPathPtr SupLeg2SwLeg,SupLeg2W;
   Vector3 cm=body->calcCenterOfMass();
-  Vector3  SwLeg_p; 
-  Matrix3 W_R,SwLeg_R; 
+  Vector3  SwLeg_p;
+  Matrix3 W_R,SwLeg_R;
   int dof = body->numJoints();
 
   Eigen::ColPivHouseholderQR<MatrixXd> QR;
@@ -473,12 +467,12 @@ bool CalcIVK4Limbs(BodyPtr body, Vector3& CM_p, Vector3 *p_ref, Matrix3 *R_ref, 
     SwLeg=body->link(end_link[LLEG]);
     swingLegId=1;
   }
-  SupLeg2SwLeg= getCustomJointPath(body, SupLeg, SwLeg);  
-  SupLeg2W= getCustomJointPath(body, SupLeg,body->link(end_link[WAIST]));   
+  SupLeg2SwLeg= getCustomJointPath(body, SupLeg, SwLeg);
+  SupLeg2W= getCustomJointPath(body, SupLeg,body->link(end_link[WAIST]));
 
   //new
   Vector3 SupLeg_p_Init;
-  Matrix3 SupLeg_R_Init; 
+  Matrix3 SupLeg_R_Init;
   SupLeg_p_Init=SupLeg->p();
   SupLeg_R_Init=SupLeg->R();
   
@@ -507,24 +501,24 @@ bool CalcIVK4Limbs(BodyPtr body, Vector3& CM_p, Vector3 *p_ref, Matrix3 *R_ref, 
       SwLeg_p = SwLeg->p();
       SwLeg_R = SwLeg->R();
 
-      Vector3 rarm_p= body->link(end_link[RARM])->p(); 
-      Matrix3 rarm_R= body->link(end_link[RARM])->R(); 
+      Vector3 rarm_p= body->link(end_link[RARM])->p();
+      Matrix3 rarm_R= body->link(end_link[RARM])->R();
 
-      Vector3 larm_p= body->link(end_link[LARM])->p(); 
-      Matrix3 larm_R= body->link(end_link[LARM])->R(); 
+      Vector3 larm_p= body->link(end_link[LARM])->p();
+      Matrix3 larm_R= body->link(end_link[LARM])->R();
       //tag
-      CalJo4Limbs(body, FT, Jacobian, end_link);        
+      CalJo4Limbs(body, FT, Jacobian, end_link);
       ///
       Vector3 CM_dp=CM_p- body->calcCenterOfMass();// + body->link("LLEG_JOINT5")->p);
       Vector3 W_omega=W_R* omegaFromRot(W_R.transpose() * R_ref[WAIST]);
       Vector3 SW_dp =p_ref[swingLegId] - SwLeg_p;
       Vector3 SW_omega = SwLeg_R* omegaFromRot(SwLeg_R.transpose() * R_ref[swingLegId]);
      
-      Vector3 RARM_dp =p_ref[RARM] - rarm_p;  
+      Vector3 RARM_dp =p_ref[RARM] - rarm_p;
       Vector3 RARM_omega = rarm_R* omegaFromRot(rarm_R.transpose() * R_ref[RARM]);
 
-      Vector3 LARM_dp =p_ref[LARM] - larm_p;  
-      Vector3 LARM_omega = larm_R* omegaFromRot(larm_R.transpose() * R_ref[LARM]); 
+      Vector3 LARM_dp =p_ref[LARM] - larm_p;
+      Vector3 LARM_omega = larm_R* omegaFromRot(larm_R.transpose() * R_ref[LARM]);
 
       //v<< CM_dp, W_omega, SW_dp, SW_omega;
       v.head<3>()=CM_dp;
@@ -571,7 +565,7 @@ bool CalcIVK4Limbs(BodyPtr body, Vector3& CM_p, Vector3 *p_ref, Matrix3 *R_ref, 
       body->calcForwardKinematics();
     }
     
-    return converged;          
+    return converged;
 }
 
 void CalJo4Limbs(BodyPtr body, FootType FT, Eigen::MatrixXd& out_J, string *end_link)
@@ -593,12 +587,12 @@ void CalJo4Limbs(BodyPtr body, FootType FT, Eigen::MatrixXd& out_J, string *end_
     SupLeg=body->link(end_link[RLEG]);
     SwLeg=body->link(end_link[LLEG]);
   }
-  SupLeg2SwLeg= getCustomJointPath(body, SupLeg, SwLeg);  
-  SupLeg2W= getCustomJointPath(body, SupLeg,body->link(end_link[WAIST]));   
+  SupLeg2SwLeg= getCustomJointPath(body, SupLeg, SwLeg);
+  SupLeg2W= getCustomJointPath(body, SupLeg,body->link(end_link[WAIST]));
 
-  Waist2RARM = getCustomJointPath(body, body->link("WAIST_R"), body->link(end_link[RARM]));  
-  Waist2LARM = getCustomJointPath(body, body->link("WAIST_R"), body->link(end_link[LARM])); 
- 
+  Waist2RARM = getCustomJointPath(body, body->link("WAIST_R"), body->link(end_link[RARM]));
+  Waist2LARM = getCustomJointPath(body, body->link("WAIST_R"), body->link(end_link[LARM]));
+
   body->calcCenterOfMass();
   calcCMJacobian(body, SupLeg, Jcom);
 

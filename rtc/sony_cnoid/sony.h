@@ -160,7 +160,6 @@ protected:
   MatrixXd body_ref;
   std::deque<MatrixXd> bodyDeque;
 
-  Link* pt;
   Link* pt_L;
   Link* pt_R;
 

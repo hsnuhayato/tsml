@@ -125,7 +125,6 @@ RTC::ReturnCode_t sony::onInitialize()
   velobj = Eigen::MatrixXd::Zero(6,1);
   yawTotal =0;
   object_ref = new Link(); //to be changed to Position
-  pt = new Link();
   pt_L = new Link();
   pt_R = new Link();
 
@@ -168,7 +167,6 @@ RTC::ReturnCode_t sony::onDeactivated(RTC::UniqueId ec_id)
   std::cerr << "[" << m_profile.instance_name<< "] onDeactivated(" << ec_id << ")" << std::endl;
 
   delete object_ref;
-  delete pt;
   delete pt_L;
   delete pt_R;
 
@@ -869,7 +867,6 @@ void sony::testMove()
   cm_ref(0) = m_robot -> link(end_link[RLEG]) -> p()(0) + cm_offset_x;
 
   if (CalcIVK_biped(m_robot, cm_ref, pose_now, FT, end_link)) {
-    cout<<"okok"<<endl;
     for(unsigned int i=0;i<dof;i++){
       body_ref(i) = m_robot->joint(i)->q();
       cout<<body_ref(i)<<", ";
