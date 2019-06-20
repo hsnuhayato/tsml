@@ -273,7 +273,7 @@ inline void sony::rzmp2st()
 inline void sony::calcWholeIVK()
 {
   if(usePivot){
-    if (CalcIVK_biped_toe(m_robot, cm_ref, pose_ref, FT, end_link)) {
+    if (CalcIVK_biped_ee(m_robot, cm_ref, pose_ref, FT, end_link)) {
       getIKResult();
     }
     //else { cerr<<"ivk err"<<endl;}
@@ -642,6 +642,19 @@ void sony::start()//todo change to initialize_wpg
     pt_L -> setJointType(cnoid::Link::FIXED_JOINT);
     m_robot -> link(end_link[RLEG]) -> appendChild(pt_R);
     m_robot -> link(end_link[LLEG]) -> appendChild(pt_L);
+
+    // LinkPtr endLink = m_robot -> link(end_link[RLEG]);
+    // while (endLink -> child()) {
+    //   endLink = endLink -> child();
+    // }
+    // endLink -> appendChild(pt_R);
+
+    // endLink = m_robot -> link(end_link[LLEG]);
+    // while (endLink -> child()) {
+    //   endLink = endLink -> child();
+    // }
+    // endLink -> appendChild(pt_L);
+
     m_robot -> updateLinkTree();
     m_robot -> calcForwardKinematics();
 

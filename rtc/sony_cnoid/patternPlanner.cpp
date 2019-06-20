@@ -69,7 +69,7 @@ void patternPlanner::planCP(const BodyPtr m_robot, const FootType& FT, Vector3 s
   Link *SwLeg = NULL;
 
   //for rfzmp
-  //////////parameter calculate/////////////////////
+  //////////parameter calculate////////////////////
   if ((FT==FSRFsw) || (FT==RFsw)) {
     SupLeg = m_robot->link(end_link[LLEG]);
     SwLeg = m_robot->link(end_link[RLEG]);
@@ -101,7 +101,7 @@ void patternPlanner::planCP(const BodyPtr m_robot, const FootType& FT, Vector3 s
     //for capture point// todo make function below
     Vector2 cp_cur(zmpInit);
     double b = exp(w*Tsup);
-    cZMP.head<2>() = (Sup_cur_p.head<2>() - b*cp_cur)/(1-b);
+    cZMP.head<2>() = (Sup_cur_p.head<2>() - b * cp_cur)/(1-b);
     for(int i=1; i<(int)(Tsup/dt+NEAR0)+1; i++){
       cp = cZMP.head<2>() + exp(w*i*dt) * (cp_cur - cZMP.head<2>());
       cp_deque.push_back(cp);
@@ -128,7 +128,7 @@ void patternPlanner::planCP(const BodyPtr m_robot, const FootType& FT, Vector3 s
     //vector2 cZMP_pre(cZMP);
     Vector2 cp_cur(cp);
     //double b=exp(w*(Tsup));
-    double b = exp(w*(Tsup+Tp));
+    double b = exp(w*(Tsup + Tp));
     //cZMP= (swLegRef_p_v2- b*cp_cur)/(1-b);
     cZMP.head<2>() = (cp_EOF.head<2>() - b*cp_cur)/(1-b);
 
@@ -185,21 +185,17 @@ void patternPlanner::getNextCom(Vector3 &cm_ref)
 {
   //if(cp_deque.empty())
   //  return;
-  Vector2 cm_cur, cp_cur, cm_vel, cm_out;
-  cm_cur<<cm_ref(0), cm_ref(1);
+  Vector2 cp_cur, cm_vel;
 
   if(!cp_deque.empty()){
-    cp_cur=cp_deque.at(0);
+    cp_cur = cp_deque.at(0);
     cp_deque.pop_front();
   }
   else{ 
     cp_cur = cp;
   }
-  cm_vel = w * (cp_cur - cm_cur);
-
-  cm_out = cm_cur + cm_vel*dt;
-  cm_ref[0] = cm_out[0];
-  cm_ref[1] = cm_out[1];
+  cm_vel = w * (cp_cur - cm_ref.head<2>());
+  cm_ref.head<2>() += cm_vel * dt;
 
   //ofszmp<<cp_cur[0]<<" "<<cp_cur[1]<<" "<<cm_out[0]<<" "<<cm_out[1]<<endl;
 }
@@ -207,22 +203,22 @@ void patternPlanner::getNextCom(Vector3 &cm_ref)
 
 Matrix3 patternPlanner::calcWaistR(const FootType& FT, const BodyPtr m_robot, const string *end_link)
 {
-  Link* SwLeg;
-  Link* SupLeg;
+  Link* SwLeg = NULL;
+  Link* SupLeg = NULL;
 
-  if((FT==FSRFsw)||(FT==RFsw)){
-    SwLeg=m_robot->link(end_link[RLEG]);
-    SupLeg=m_robot->link(end_link[LLEG]);
+  if (FT==FSRFsw || FT==RFsw) {
+    SwLeg = m_robot->link(end_link[RLEG]);
+    SupLeg = m_robot->link(end_link[LLEG]);
   }
-  else if((FT==FSLFsw)||(FT==LFsw)){
-    SwLeg=m_robot->link(end_link[LLEG]);
-    SupLeg=m_robot->link(end_link[RLEG]);
+  else if (FT==FSLFsw || FT==LFsw) {
+    SwLeg = m_robot -> link(end_link[LLEG]);
+    SupLeg = m_robot -> link(end_link[RLEG]);
   } 
-  Matrix3 sup_R=extractYow(SupLeg->R());
-  Matrix3 sw_R=extractYow(SwLeg->R());
+  Matrix3 sup_R = extractYow(SupLeg->R());
+  Matrix3 sw_R = extractYow(SwLeg->R());
 
-  Matrix3 Rmid( sup_R.transpose() * sw_R);//for toe
-  Vector3 omega( omegaFromRot(Rmid));
+  Matrix3 Rmid(sup_R.transpose() * sw_R);//for toe
+  Vector3 omega(omegaFromRot(Rmid));
   //R_ref[WAIST]= sup_R*rodrigues(omega, 0.5);
   Matrix3 R_ref_WAIST= sup_R*rodoriges(omega, 0.5);
 
@@ -259,11 +255,11 @@ void patternPlanner::planSwingLeg(const BodyPtr m_robot, const FootType& FT,cons
   //Matrix3 tar_R=extractYow(object_ref_R);
   //Matrix3 tar_R=object_ref_R;
 
-  if((FT==FSRFsw)||(FT==RFsw)){
+  if (FT==FSRFsw || FT==RFsw) {
     SwLeg = m_robot->link(end_link[RLEG]);
     SupLeg = m_robot->link(end_link[LLEG]);
   }
-  else if((FT==FSLFsw)||(FT==LFsw)){
+  else if(FT==FSLFsw || FT==LFsw) {
     SwLeg = m_robot->link(end_link[LLEG]);
     SupLeg = m_robot->link(end_link[RLEG]);
   }
@@ -286,7 +282,7 @@ void patternPlanner::planSwingLeg(const BodyPtr m_robot, const FootType& FT,cons
   Vector3 swPivotRef_p;
 
   //if((swLegRef_p_nomal(0)-swLegIni_p_nomal(0))>0.1){
-  if((swLegRef_p_nomal(0) - swLegIni_p_nomal(0)) > 0.05){
+  if ((swLegRef_p_nomal(0) - swLegIni_p_nomal(0)) > 0.05) {
     //go forward
     //cout<<"front "<<Tsup<<endl;
     Tsup = Tsup_in;
@@ -298,7 +294,7 @@ void patternPlanner::planSwingLeg(const BodyPtr m_robot, const FootType& FT,cons
     offsetZMPr(1) =  offsetZMPy;
     offsetZMPl(1) = -offsetZMPy;
   }
-  else if((swLegRef_p_nomal(0)-swLegIni_p_nomal(0)) < -0.08){
+  else if((swLegRef_p_nomal(0)-swLegIni_p_nomal(0)) < -0.08) {
     //back;
     //cout<<"back "<<endl;
     Tsup = Tsup_in;
@@ -335,7 +331,7 @@ void patternPlanner::planSwingLeg(const BodyPtr m_robot, const FootType& FT,cons
   // if((FT==FSRFsw)||(FT==FSLFsw)) {
   //   //foot no move during this span
   // }
-  if((FT==RFsw)||(FT==LFsw)) {
+  if (FT==RFsw || FT==LFsw) {
     // pivot x y
     extendDeque(swLeg_xy, (Vector2)swPivotIni_p.head<2>(), Tdbl+Tv);
     double tf = Tsup - 2*Tv;
@@ -343,7 +339,7 @@ void patternPlanner::planSwingLeg(const BodyPtr m_robot, const FootType& FT,cons
     x.setParams(swPivotIni_p(0), swPivotRef_p(0), tf);
     y.setParams(swPivotIni_p(1), swPivotRef_p(1), tf);
     int timeLength = (int)(tf/dt + NEAR0);
-    for(int i=1; i < timeLength+1; i++){
+    for (int i=1; i < timeLength+1; i++) {
       Vector2 temp;
       temp(0) = x.sampling(i*dt);
       temp(1) = y.sampling(i*dt);
@@ -362,7 +358,7 @@ void patternPlanner::planSwingLeg(const BodyPtr m_robot, const FootType& FT,cons
       //double cm_z_tgt = cm_z;
       cm_z_tgt = cm_z_cur;
       double err = 0.001;
-      if( SwLegNow_p(2) >swLegRef_p(2)){//downstair
+      if (SwLegNow_p(2) >swLegRef_p(2)) {//downstair
         height = SwLegNow_p(2);
         lower = swLegRef_p(2);
 
@@ -370,12 +366,13 @@ void patternPlanner::planSwingLeg(const BodyPtr m_robot, const FootType& FT,cons
         cm_z_tgt = lower + cm_z;
 
       }
-      else if( SwLegNow_p(2) <swLegRef_p(2)){//upstair
+      else if (SwLegNow_p(2) <swLegRef_p(2)) {//upstair
         height = swLegRef_p(2);
         lower = SwLegNow_p(2);
 
-        if( SwLegNow_p(2) < SupLegNow_p(2) && fabs(SwLegNow_p(2)-SupLegNow_p(2))>err )
+        if (SwLegNow_p(2) < SupLegNow_p(2) && fabs(SwLegNow_p(2)-SupLegNow_p(2)) > err) {
           cm_z_tgt = height + cm_z;
+        }
       }
 
       Zup= height + Zup_in;
@@ -407,16 +404,16 @@ void patternPlanner::planSwingLeg(const BodyPtr m_robot, const FootType& FT,cons
     }
 
     // contactState and groundAirRemaintime
-    for(int i=0;i<TdblNum;i++) {
+    for (int i=0; i<TdblNum; i++) {
       contactState_deque.push_back(1);
       groundAirRemainTime.push_back(Tdbl - (i+1)*dt);
     }
-    for(int i=0;i<TsupNum;i++) {
+    for (int i=0;i<TsupNum;i++) {
       contactState_deque.push_back(0);
       groundAirRemainTime.push_back(Tsup - (i+1)*dt);
 
     }
-    for(int i=0;i<TpNum;i++) {
+    for (int i=0;i<TpNum;i++) {
       contactState_deque.push_back(1);
       groundAirRemainTime.push_back(Tdbl+Tp - (i+1)*dt);
     }
@@ -431,9 +428,10 @@ void patternPlanner::planSwingLeg(const BodyPtr m_robot, const FootType& FT,cons
     // swLeg R
     Interplation5(index, 0.0, 0.0, 0.0 , 1.0, 0.0, 0.0, Tsup-2*Tv);
     int tem = (int)((Tdbl+Tv)/dt +NEAR0 );
-    for(int i=0;i<tem;i++)
+    for (int i=0; i<tem; i++) {
       swLeg_R.push_back(SwLeg->R());//Tdbl+tv
-    while(!index.empty()){
+    }
+    while (!index.empty()) {
       Matrix3 pushin(SwLeg->R() * rodoriges(omega, index.at(0)));
       swLeg_R.push_back (pushin);//Tsup-2tv
       index.pop_front();
@@ -450,7 +448,7 @@ void patternPlanner::planSwingLeg(const BodyPtr m_robot, const FootType& FT,cons
      
       int timeL = (int)(tf/dt+NEAR0);
       for(int i=1; i<timeL+1; i++){
-        Vector3 temp;
+        static Vector3 temp;
         temp << x.sampling(i*dt), 0.0, z.sampling(i*dt);
         link_b_deque.push_back(temp);
       }
@@ -473,7 +471,7 @@ void patternPlanner::planSwingLeg(const BodyPtr m_robot, const FootType& FT,cons
       tk::spline s;
       s.set_points(X,Y);    // currently it is required that X is already sorted
       int timeLength = (int)((Tsup + 2*Tp)/dt + NEAR0);
-      for(int i=0;i<timeLength;i++){
+      for (int i=0; i<timeLength; i++) {
         rot_pitch.push_back(s((i+1)*dt));
       }
     }

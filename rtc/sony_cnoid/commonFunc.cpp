@@ -269,7 +269,7 @@ Matrix3 rodoriges(Vector3 omega, double dt)
   return R;
 }
 
-bool CalcIVK_biped_toe(const BodyPtr body,const Vector3& CM_p, const Position* pose_ref,
+bool CalcIVK_biped_ee(const BodyPtr body,const Vector3& CM_p, const Position* pose_ref,
                        const FootType& FT, const string *end_link)
 {
   Link* SupLeg = NULL;
@@ -278,7 +278,7 @@ bool CalcIVK_biped_toe(const BodyPtr body,const Vector3& CM_p, const Position* p
   Vector3 cm = body->calcCenterOfMass();
   Vector3  SwLeg_p;
   Matrix3 W_R,SwLeg_R;
- 
+
   Eigen::ColPivHouseholderQR<MatrixXd> QR;
   //careful
   MatrixXd Jacobian = MatrixXd::Zero(12,12);//leg only
@@ -287,13 +287,20 @@ bool CalcIVK_biped_toe(const BodyPtr body,const Vector3& CM_p, const Position* p
   if (FT==FSRFsw || FT==RFsw) {
     SupLeg = body->link(end_link[LLEG]);
     SwLeg = body->link("pivot_R");
+    //SwLeg = body->link(end_link[RLEG]);
     swingLegId = RLEG;
   }
   else if(FT==FSLFsw || FT==LFsw) {
     SupLeg = body->link(end_link[RLEG]);
     SwLeg = body->link("pivot_L");
+    //SwLeg = body->link(end_link[LLEG]);
     swingLegId = LLEG;
   }
+
+  // while (SwLeg -> child()) {
+  //   SwLeg = SwLeg->child();
+  // }
+
   SupLeg2SwLeg = getCustomJointPath(body, SupLeg, SwLeg);
   SupLeg2W = getCustomJointPath(body, SupLeg,body->link(end_link[WAIST]));
 
@@ -328,8 +335,8 @@ bool CalcIVK_biped_toe(const BodyPtr body,const Vector3& CM_p, const Position* p
       W_R = body->link(end_link[WAIST])->R();
       SwLeg_p = SwLeg->p();
       SwLeg_R = SwLeg->R();
-      CalJo_biped_toe(body, FT, Jacobian, end_link);
-    
+      CalJo_biped_ee(body, FT, Jacobian, end_link);
+
       Vector3 CM_dp = CM_p - body->calcCenterOfMass();// + body->link("LLEG_JOINT5")->p);
       Vector3 W_omega = W_R* omegaFromRot(W_R.transpose() * pose_ref[WAIST].linear());
       Vector3 SW_dp = pose_ref[swingLegId].translation() - SwLeg_p;
@@ -358,10 +365,10 @@ bool CalcIVK_biped_toe(const BodyPtr body,const Vector3& CM_p, const Position* p
         body->joint(j)->q() += LAMBDA * dq(j);
       }
      
-      SupLeg->p()=SupLeg_p_Init;
-      SupLeg->R()=SupLeg_R_Init;
-      SupLeg2SwLeg->calcForwardKinematics();
-      body->calcForwardKinematics();
+      SupLeg->p() = SupLeg_p_Init;
+      SupLeg->R() = SupLeg_R_Init;
+      SupLeg2SwLeg -> calcForwardKinematics();
+      body -> calcForwardKinematics();
       
     }//for
     
@@ -381,7 +388,7 @@ bool CalcIVK_biped_toe(const BodyPtr body,const Vector3& CM_p, const Position* p
 
 
 //////ivk_jacobian/////////
-void CalJo_biped_toe(const BodyPtr body, const FootType& FT, Eigen::MatrixXd& out_J, const string* end_link)
+void CalJo_biped_ee(const BodyPtr body, const FootType& FT, Eigen::MatrixXd& out_J, const string* end_link)
 { 
   Link* SupLeg = NULL;
   Link* SwLeg = NULL;
@@ -392,11 +399,20 @@ void CalJo_biped_toe(const BodyPtr body, const FootType& FT, Eigen::MatrixXd& ou
   if ((FT==FSRFsw) || FT==RFsw) {
     SupLeg = body->link(end_link[LLEG]);
     SwLeg = body->link("pivot_R");
+    //SwLeg = body->link(end_link[RLEG]);
   }
   else if (FT==FSLFsw || FT==LFsw) {
     SupLeg = body->link(end_link[RLEG]);
     SwLeg = body->link("pivot_L");
+    //SwLeg = body->link(end_link[LLEG]);
   }
+
+  // while (SwLeg -> child()) {
+  //   SwLeg = SwLeg->child();
+  // }
+
+  // cout << SwLeg->name() << endl;
+
   SupLeg2SwLeg = getCustomJointPath(body, SupLeg, SwLeg);
   SupLeg2W = getCustomJointPath(body, SupLeg,body->link(end_link[WAIST]));
 

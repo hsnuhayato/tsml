@@ -128,8 +128,8 @@ bool CalcIVK_biped(const BodyPtr body, const Vector3& CM_p, const Position* pose
 void CalJo_biped(const BodyPtr body, const FootType& FT, Eigen::MatrixXd& out_J, const string *end_link);
 
 
-bool CalcIVK_biped_toe(const BodyPtr body,const Vector3& CM_p, const Position* pose_ref, const FootType& FT, const string *end_link);
-void CalJo_biped_toe(const BodyPtr body, const FootType& FT, Eigen::MatrixXd& out_J, const string *end_link);
+bool CalcIVK_biped_ee(const BodyPtr body,const Vector3& CM_p, const Position* pose_ref, const FootType& FT, const string *end_link);
+void CalJo_biped_ee(const BodyPtr body, const FootType& FT, Eigen::MatrixXd& out_J, const string *end_link);
 
 //deprecated
 bool CalcIVK4Limbs(BodyPtr body, Vector3& CM_p, Vector3 *p_ref, Matrix3 *R_ref, FootType FT, string *end_link);
