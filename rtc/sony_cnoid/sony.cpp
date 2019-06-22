@@ -458,10 +458,9 @@ inline void sony::getWalkingMotion()
   //swingLeg nomal mode
   if (!ptnP->swLeg_xy.empty()) {
     int swingLeg = swLeg(FT);
-    pose_ref[swingLeg].translation()(0) = ptnP->swLeg_xy.at(0)[0];
-    pose_ref[swingLeg].translation()(1) = ptnP->swLeg_xy.at(0)[1];
-    //p_ref[swingLeg](2)=p_Init[swingLeg][2]+ptnP->swLeg_z.at(0);
-    pose_ref[swingLeg].translation()(2) = ptnP->swLeg_z.at(0);
+    pose_ref[swingLeg].translation()[0] = ptnP->swLeg_xy.at(0)[0];
+    pose_ref[swingLeg].translation()[1] = ptnP->swLeg_xy.at(0)[1];
+    pose_ref[swingLeg].translation()[2] = ptnP->swLeg_z.at(0);
     pose_ref[swingLeg].linear() = ptnP->swLeg_R.at(0);
     pose_ref[WAIST].linear() = ptnP->calcWaistR(FT, m_robot, end_link);
     cm_ref(2) = ptnP->cm_z_deque.at(0);

@@ -48,7 +48,7 @@ Matrix3 rotationY(const double theta){
 void get_end_link_pose(Position* pose, const BodyPtr body, const string *end_link)
 {
   //RLEG, LLEG, RARM, LARM, WAIST,
-  for(int i=0; i<LINKNUM; i++) {
+  for(int i=0; i<LIMBNUM; i++) {
     pose[i].linear() = body->link(end_link[i])->R();
     pose[i].translation() = body->link(end_link[i])->p();
   }
@@ -87,7 +87,7 @@ Matrix3 extractYow(const Matrix3& Rin)
 
 void copy_poses(Position* pose_copy, const Position* const pose)
 {
-  for(int i=0; i<LINKNUM; i++) {
+  for(int i=0; i<LIMBNUM; i++) {
     pose_copy[i] = pose[i];
   }
 }

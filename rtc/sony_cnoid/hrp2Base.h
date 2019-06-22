@@ -175,16 +175,12 @@ class hrp2Base  : public RTC::DataFlowComponentBase
   Vector3 absZMP,relZMP;
   Vector3 cm_ref;
 
-  //std::vector<double> kgain;
-  //std::vector<double> fgain;
   FootType FT;
   
-  string end_link[LINKNUM];
+  string end_link[LIMBNUM];
   string HEAD_P,HEAD_Y;
-  Position pose_now[LINKNUM], pose_ref[LINKNUM];
+  Position pose_now[LIMBNUM], pose_ref[LIMBNUM];
 
-  //ForceSensor * fsensorRLEG;
-  //ForceSensor * fsensorLLEG;
   DeviceList<ForceSensor> forceSensors;
   DeviceList<AccelerationSensor> AccelSensors;
   DeviceList<RateGyroSensor> RateGyroSensors;

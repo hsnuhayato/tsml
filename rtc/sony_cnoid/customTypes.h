@@ -25,7 +25,7 @@ using namespace cnoid;
 using namespace Eigen;
 
 enum FootType {FSRFsw, FSLFsw, RFsw, LFsw};
-enum{RLEG, LLEG, RARM, LARM, WAIST, LINKNUM};
+enum{RLEG, LLEG, RARM, LARM, WAIST, LIMBNUM};
 enum StepDir {front,back};
 
 struct wpgParam
