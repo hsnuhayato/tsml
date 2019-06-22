@@ -146,7 +146,6 @@ RTC::ReturnCode_t sony::onInitialize()
   buttom_accept = true;
 
   Eigen::MatrixXd zero(Eigen::MatrixXd::Zero(dof,1));
-  body_cur = MatrixXd::Zero(dof,1);
   body_ref = MatrixXd::Zero(dof,1);
 
   m_mc.data.length(dof);
@@ -577,11 +576,8 @@ void sony::start()//todo change to initialize_wpg
 {
   //for expos
   m_mcIn.read();
-  //for(unsigned int i=0;i<m_mc.data.length();i++)
-  //m_refq.data[i]=body_cur(i)=m_mc.data[i];
-  for (int i=0;i<dof;i++) {
-    //m_refq.data[i]=body_cur(i)=halfpos[i];
-    m_refq.data[i] = body_cur(i) = m_mc.data[i];
+  for (int i=0; i<dof; i++) {
+    m_refq.data[i] = m_mc.data[i];
   }
   update_model(m_robot, m_mc, FT, end_link);
   get_end_link_pose(pose_now, m_robot, end_link);
@@ -684,7 +680,7 @@ void sony::stepping()
     if (!active_control_loop) {
       m_mcIn.read();
       for (int i=0;i<dof;i++) {
-        m_refq.data[i]=body_cur(i)=m_mc.data[i];
+        m_refq.data[i] = m_mc.data[i];
       }
       update_model(m_robot, m_mc, FT, end_link);
       setCurrentData();
@@ -714,8 +710,8 @@ void sony::setFootPosR()
 
   if( !active_control_loop ) {
     m_mcIn.read();
-    for(int i=0;i<dof;i++) {
-      m_refq.data[i]=body_cur(i)=m_mc.data[i];
+    for (int i=0; i<dof; i++) {
+      m_refq.data[i] = m_mc.data[i];
     }
     update_model(m_robot, m_mc, FT, end_link);
     setCurrentData();
@@ -769,10 +765,10 @@ void sony::setFootPosR(double x, double y, double z, double r, double p, double 
 {
   if (freeWalk) freeWalkSwitch();
 
-  if (!active_control_loop) {
+  if  (!active_control_loop) {
     m_mcIn.read();
-    for(int i=0;i<dof;i++) {
-      m_refq.data[i]=body_cur(i)=m_mc.data[i];
+    for (int i=0; i<dof; i++) {
+      m_refq.data[i] = m_mc.data[i];
     }
     update_model(m_robot, m_mc, FT, end_link);
     setCurrentData();
@@ -816,8 +812,8 @@ void sony::setFootPosL(double x, double y, double z, double r, double p, double 
 
   if (!active_control_loop) {
     m_mcIn.read();
-    for(int i=0;i<dof;i++) {
-      m_refq.data[i] = body_cur(i) = m_mc.data[i];
+    for (int i=0; i<dof; i++) {
+      m_refq.data[i] = m_mc.data[i];
     }
     update_model(m_robot, m_mc, FT, end_link);
     setCurrentData();
@@ -850,7 +846,8 @@ void sony::testMove()
   //vector32 zero;
   //zero=MatrixXd::Zero(dof,1);
   Eigen::MatrixXd zero(Eigen::MatrixXd::Zero(dof,1));
-  body_cur = MatrixXd::Zero(dof,1);
+
+  MatrixXd body_cur = MatrixXd::Zero(dof,1);
   m_mcIn.read();
   for(int i=0; i<dof; i++) {
     body_cur(i) = m_mc.data[i];
@@ -911,8 +908,8 @@ void sony::freeWalkSwitch()
   ///////////////////////
   if(!freeWalk){
     m_mcIn.read();
-    for(int i=0;i<dof;i++) {
-      m_refq.data[i]=body_cur(i)=m_mc.data[i];
+    for (int i=0;i<dof;i++) {
+      m_refq.data[i] = m_mc.data[i];
     }
     update_model(m_robot, m_mc, FT, end_link);
     setCurrentData();

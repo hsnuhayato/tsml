@@ -151,8 +151,6 @@ protected:
   bool step;
   double foot_distance_limit_y;
 
-
-  MatrixXd body_cur;//useless
   MatrixXd body_ref;
   std::deque<MatrixXd> bodyDeque;
 
