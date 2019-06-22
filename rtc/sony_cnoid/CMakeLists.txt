@@ -33,3 +33,11 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ggdb3 -fno-schedule-insns -fno-schedule-insns2 -fno-strict-aliasing")
 
 install(TARGETS ${comp_name} LIBRARY DESTINATION lib CONFIGURATIONS)
+
+find_package(GTest REQUIRED)
+include(GoogleTest)
+include_directories(${GTEST_INCLUDE_DIRS})
+add_executable(sony_test sony_test.cpp commonFunc.cpp)
+target_link_libraries(sony_test GTest::GTest GTest::Main
+                      ${OPENRTM_LIBRARIES}
+                      ${CHOREONOID_LIBRARIES})
