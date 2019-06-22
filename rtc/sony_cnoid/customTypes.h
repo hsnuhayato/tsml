@@ -13,13 +13,15 @@
 #include <cnoid/EigenUtil>
 #include <cnoid/Sensor>
 #include <cnoid/Link>
-using std::cout; using std::endl;
+
+using std::cout;
+using std::endl;
 using std::cerr;
 using namespace std;
 //using namespace hrp;
 // TODO: get rid of using namespaces below
 using namespace cnoid;
-using namespace RTC;
+//using namespace RTC;
 using namespace Eigen;
 
 enum FootType {FSRFsw, FSLFsw, RFsw, LFsw};

@@ -464,31 +464,28 @@ inline void sony::getWalkingMotion()
     //p_ref[swingLeg](2)=p_Init[swingLeg][2]+ptnP->swLeg_z.at(0);
     pose_ref[swingLeg].translation()(2) = ptnP->swLeg_z.at(0);
     pose_ref[swingLeg].linear() = ptnP->swLeg_R.at(0);
-    //ptnP->calcWaistR(FT,  R_ref);
     pose_ref[WAIST].linear() = ptnP->calcWaistR(FT, m_robot, end_link);
     cm_ref(2) = ptnP->cm_z_deque.at(0);
     //cout<<  FT<<" "<< p_ref[swingLeg](2)<<endl;
     /////////toe mode////////////
     bool pivot_rot_swLeg = 0;
     if (usePivot) {
-      /*
-      for(int i=0;i<3;i++){
-      m_localEEpos.data[i]=pivot_localposIni(i);
-      m_localEEpos.data[i+3]=pivot_localposIni(i);
-      }
-      */
-      Position T;
-      T.linear() = Eigen::MatrixXd::Identity(3,3);
-      T.translation() = Vector3(ptnP->link_b_deque.at(0));
-      if ((FT==FSRFsw) || (FT==RFsw)) {
-        pt_R -> setOffsetPosition(T);
+      // for(int i=0;i<3;i++){
+      //   m_localEEpos.data[i]=pivot_localposIni(i);
+      //   m_localEEpos.data[i+3]=pivot_localposIni(i);
+      // }
 
+      //ee_offset.linear() = Eigen::MatrixXd::Identity(3,3);
+      //ee_offset.translation() = Vector3(ptnP->link_b_deque.at(0));
+      // endeffecor only move in x direction
+      ee_offset.translation()[0] = ptnP->link_b_deque.at(0)[0];
+      if ((FT==FSRFsw) || (FT==RFsw)) {
+        pt_R -> setOffsetPosition(ee_offset);
         //for(int i=0;i<3;i++)//right end effect
         //m_localEEpos.data[i]=T.translation()(i);
-
       }
       else if ((FT==FSLFsw) || (FT==LFsw)) {
-        pt_L -> setOffsetPosition(T);
+        pt_L -> setOffsetPosition(ee_offset);
         //for(int i=0;i<3;i++)//left end effect
         //m_localEEpos.data[i+3]=T.translation()(i);
       }
@@ -626,42 +623,38 @@ void sony::start()//todo change to initialize_wpg
     object_ref->p().format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
   //for pivot///////////////////////////////////////////////
   if(usePivot){
-    Position T;
-    T.linear() = Eigen::MatrixXd::Identity(3,3);
-    //foot cm offset
-    // double ankle_height;
-    // RTC::Properties& prop = getProperties();
-    // coil::stringTo(ankle_height, prop["ankle_height"].c_str());
-    // T.translation() = Vector3(cm_offset_x, 0.0, -ankle_height);
-    T.translation() = Vector3(cm_offset_x, 0.0, -param.ankle_height);
-    pt_R -> setOffsetPosition(T);
-    pt_L -> setOffsetPosition(T);
+    Vector3 bush_height = Vector3d::Zero();
+    LinkPtr endLink = m_robot -> link(end_link[RLEG]);
+    // add right ee
+    while (endLink -> child()) {
+      endLink = endLink -> child();
+      bush_height += endLink->b();
+    }
+
+    ee_offset.linear() = Eigen::MatrixXd::Identity(3,3);
+    ee_offset.translation() =
+      Vector3(cm_offset_x, 0.0, -param.ankle_height-bush_height[2]);
+    pt_R -> setOffsetPosition(ee_offset);
+    pt_L -> setOffsetPosition(ee_offset);
     pt_R -> setName("pivot_R");
     pt_L -> setName("pivot_L");
     pt_R -> setJointType(cnoid::Link::FIXED_JOINT);
     pt_L -> setJointType(cnoid::Link::FIXED_JOINT);
-    m_robot -> link(end_link[RLEG]) -> appendChild(pt_R);
-    m_robot -> link(end_link[LLEG]) -> appendChild(pt_L);
-
-    // LinkPtr endLink = m_robot -> link(end_link[RLEG]);
-    // while (endLink -> child()) {
-    //   endLink = endLink -> child();
-    // }
-    // endLink -> appendChild(pt_R);
-
-    // endLink = m_robot -> link(end_link[LLEG]);
-    // while (endLink -> child()) {
-    //   endLink = endLink -> child();
-    // }
-    // endLink -> appendChild(pt_L);
+    endLink -> appendChild(pt_R);
+    // add left ee
+    endLink = m_robot -> link(end_link[LLEG]);
+    while (endLink -> child()) {
+      endLink = endLink -> child();
+    }
+    endLink -> appendChild(pt_L);
 
     m_robot -> updateLinkTree();
     m_robot -> calcForwardKinematics();
-
     pose_ref[RLEG] = m_robot -> link("pivot_R") -> T();
     pose_ref[LLEG] = m_robot -> link("pivot_L") -> T();
   }
-  //cout<<m_profile.instance_name<<":pivot "<<m_robot->link("pivot_R")->p()<<endl;
+  cout<<m_profile.instance_name<<":pivotR\n "<<m_robot->link("pivot_R")->p()<<endl;
+  cout<<m_profile.instance_name<<":pivotL\n "<<m_robot->link("pivot_L")->p()<<endl;
   //cout<<m_robot->link("RLEG_JOINT5")->p()<<endl;
   //////////////////////////////////////////////////////////////
 
@@ -866,7 +859,7 @@ void sony::testMove()
   body_ref = MatrixXd::Zero(dof,1);
   for(int i=0;i<dof;i++) {
     //m_mc.data[i]=body_ref(i)=halfpos[i];
-    body_ref(i)=halfpos[i];
+    body_ref(i) = halfpos[i];
   }
   
   for (int i=0; i<dof; i++) {

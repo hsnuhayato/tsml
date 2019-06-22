@@ -2,8 +2,8 @@
 #define MYFUNC_H 
 
 #define NEAR0 1e-8
-
 #include <rtm/idl/BasicDataTypeSkel.h>
+#include <rtm/idl/ExtendedDataTypesSkel.h>
 #include <rtm/Manager.h>
 #include <rtm/DataFlowComponentBase.h>
 #include <rtm/CorbaPort.h>
@@ -11,17 +11,12 @@
 #include <rtm/DataOutPort.h>
 
 #include <rtm/CorbaNaming.h>
-// OpenHRP
-//#include "hrpModel/Body.h"
-//#include "hrpModel/Link.h"
-//#include "hrpModel/JointPath.h"
-//#include "hrpModel/ModelLoaderUtil.h"
-//#include "hrpUtil/MatrixSolvers.h"
-//#include "hrpUtil/EigenTypes.h" 
 
 #include "customTypes.h"
 #include <iostream>
 #include <deque>
+
+using namespace RTC;
 
 template<class T>
 void extendDeque(std::deque<T>& input, const T val, const double tf, const double dt=0.005)

@@ -286,27 +286,25 @@ bool CalcIVK_biped_ee(const BodyPtr body,const Vector3& CM_p, const Position* po
 
   if (FT==FSRFsw || FT==RFsw) {
     SupLeg = body->link(end_link[LLEG]);
-    SwLeg = body->link("pivot_R");
-    //SwLeg = body->link(end_link[RLEG]);
+    SwLeg = body->link(end_link[RLEG]);
     swingLegId = RLEG;
   }
   else if(FT==FSLFsw || FT==LFsw) {
     SupLeg = body->link(end_link[RLEG]);
-    SwLeg = body->link("pivot_L");
-    //SwLeg = body->link(end_link[LLEG]);
+    SwLeg = body->link(end_link[LLEG]);
     swingLegId = LLEG;
   }
-
-  // while (SwLeg -> child()) {
-  //   SwLeg = SwLeg->child();
-  // }
+  // for endeffecor appended at tail link
+  while (SwLeg -> child()) {
+    SwLeg = SwLeg->child();
+  }
 
   SupLeg2SwLeg = getCustomJointPath(body, SupLeg, SwLeg);
   SupLeg2W = getCustomJointPath(body, SupLeg,body->link(end_link[WAIST]));
 
   SupLeg2SwLeg -> calcForwardKinematics();
 
-  //new
+  //new change to T()
   Vector3 SupLeg_p_Init;
   Matrix3 SupLeg_R_Init;
   SupLeg_p_Init = SupLeg->p();
@@ -398,24 +396,21 @@ void CalJo_biped_ee(const BodyPtr body, const FootType& FT, Eigen::MatrixXd& out
   
   if ((FT==FSRFsw) || FT==RFsw) {
     SupLeg = body->link(end_link[LLEG]);
-    SwLeg = body->link("pivot_R");
-    //SwLeg = body->link(end_link[RLEG]);
+    SwLeg = body->link(end_link[RLEG]);
   }
   else if (FT==FSLFsw || FT==LFsw) {
     SupLeg = body->link(end_link[RLEG]);
-    SwLeg = body->link("pivot_L");
-    //SwLeg = body->link(end_link[LLEG]);
+    SwLeg = body->link(end_link[LLEG]);
   }
-
-  // while (SwLeg -> child()) {
-  //   SwLeg = SwLeg->child();
-  // }
+  // for endeffecor appended at tail link
+  while (SwLeg -> child()) {
+    SwLeg = SwLeg->child();
+  }
 
   // cout << SwLeg->name() << endl;
 
   SupLeg2SwLeg = getCustomJointPath(body, SupLeg, SwLeg);
   SupLeg2W = getCustomJointPath(body, SupLeg,body->link(end_link[WAIST]));
-
   body -> calcCenterOfMass();
   calcCMJacobian(body, SupLeg, Jcom);//jcom size (3 x dof)
 

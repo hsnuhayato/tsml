@@ -151,10 +151,6 @@ protected:
   bool step;
   double foot_distance_limit_y;
 
-  //test para
-  //std::deque<vector32> bodyDeque;
-  //vector32 body_cur;
-  //vector32 body_ref;
 
   MatrixXd body_cur;//useless
   MatrixXd body_ref;
@@ -162,8 +158,7 @@ protected:
 
   Link* pt_L;
   Link* pt_R;
-
-  Position toe_pose[LINKNUM];
+  Position ee_offset;
  
   bool usePivot;
   double cm_offset_x;
