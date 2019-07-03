@@ -29,7 +29,10 @@ protected:
 BodyPtr sonyTest::m_robot;
 string sonyTest::end_link[LIMBNUM];
 
-TEST_F(sonyTest, modelTest) {
+
+
+/////////test cases//////////////
+TEST_F(sonyTest, wholeBodyIkTest) {
   ASSERT_TRUE(m_robot);
   cout << m_robot->numJoints() << endl;
 
@@ -40,6 +43,7 @@ TEST_F(sonyTest, modelTest) {
   }
   
   JointPathPtr Rf2Lf = getCustomJointPath(m_robot, m_robot->link(end_link[RLEG]), m_robot->link(end_link[LLEG]));
+  cout << "legs :" <<  Rf2Lf->numJoints() << endl;
   Rf2Lf -> calcForwardKinematics();
   m_robot -> calcForwardKinematics();
   Vector3 cm = m_robot -> calcCenterOfMass();
@@ -84,19 +88,39 @@ TEST_F(sonyTest, modelTest) {
   JointPathPtr Lf2R = getCustomJointPath(m_robot, m_robot->link(end_link[RLEG]), m_robot->link(end_link[LLEG]));
   FootType FT = RFsw;
   Vector3 cm_ref = m_robot->calcCenterOfMass();
+  cout <<"com\n" << cm_ref << endl;
+
   Position pose_ref[LIMBNUM];
   get_end_link_pose(pose_ref, m_robot, end_link);
   pose_ref[RLEG] = m_robot -> link("pivot_R") -> T();
-  pose_ref[LLEG] = m_robot -> link("pivot_R") -> T();
+  pose_ref[LLEG] = m_robot -> link("pivot_L") -> T();
   pose_ref[RLEG].translation()[2] += 0.01;
   if (CalcIVK_biped_ee(m_robot, cm_ref, pose_ref, FT, end_link)) {
     cout <<"pr\n" << m_robot -> link("pivot_R") -> p() << endl;
     cout <<"pl\n" << m_robot -> link("pivot_L") -> p() << endl;
-    
+    Vector3 cm_post = m_robot -> calcCenterOfMass();
+
+    EXPECT_LE((m_robot -> link("pivot_R") -> p() -  pose_ref[RLEG].translation()).norm(), 1e-6);
+    {
+      cnoid::AngleAxis aa(m_robot -> link("pivot_R") -> R().transpose() * pose_ref[RLEG].linear());
+      EXPECT_LE(aa.angle(), 1e-6);
+    }
+
+    EXPECT_LE((m_robot -> link("pivot_L") -> p() -  pose_ref[LLEG].translation()).norm(), 1e-6);
+    {
+      cnoid::AngleAxis aa(m_robot -> link("pivot_L") -> R().transpose() * pose_ref[LLEG].linear());
+      EXPECT_LE(aa.angle(), 1e-6);
+    }
+
+    EXPECT_LE((m_robot->calcCenterOfMass() - cm_ref).norm(), 1e-6);
+    {
+      cnoid::AngleAxis aa(m_robot -> rootLink() -> R().transpose() * pose_ref[WAIST].linear());
+      EXPECT_LE(aa.angle(), 1e-6);
+    }
+
   } else {
     EXPECT_TRUE(false);
   }
-  
-  
+
   EXPECT_TRUE(true);
 }
