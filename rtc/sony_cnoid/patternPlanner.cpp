@@ -11,6 +11,27 @@ patternPlanner::patternPlanner()
 {
   //capture point init
   cp << 0.0, 0.0;
+
+  Tsup_in = 0.8;
+  Tsup_stepping_in = 0.7;
+  Tp = Tdbl_in = 0.2;
+  dt = 0.005;
+  offsetZMPy = 0.0;
+  offsetZMPy_stepping = 0.0;
+  offsetZMPx = 0.0;
+  Zup_in = 0.05;
+  Tv = 0.0;
+  pitch_angle = 10 * M_PI/180;
+  link_b_front << 0.137,0.0,-0.1;
+  link_b_rear <<  -0.107,0.0,-0.1;
+  link_b_ee << 0.015,0.0,-0.1;
+  ankle_height = 0.1;
+
+  //new from ankle to zmp
+  offsetZMPr = offsetZMPl = link_b_ee;
+  offsetZMPr(0) = offsetZMPl(0) = offsetZMPx;
+  offsetZMPr(1) = offsetZMPy;
+  offsetZMPl(1) = -offsetZMPy;
 }
  
 void patternPlanner::setWpgParam(const wpgParam& param)
@@ -49,7 +70,7 @@ void patternPlanner::setZmpOffsetX(double &cm_offset_x)
   offsetZMPr(0)=offsetZMPl(0)=offsetZMPx;
 }
 //////////////
-void patternPlanner::setw(double &cm_z_in, double groundHeight)
+void patternPlanner::setw(double &cm_z_in, const double groundHeight)
 {
   cm_z_cur = cm_z = cm_z_in;
   cm_z -= groundHeight;
@@ -112,9 +133,7 @@ void patternPlanner::planCP(const BodyPtr m_robot, const FootType& FT, Vector3 s
     extendDeque(absZMP_deque, cZMP, Tsup);
     //Interplation5(cZMP, zero, zero, cZMP, zero, zero,  Tsup, rfzmp);
     //Interplation5(abszmp_z_mid, 0.0, 0.0, abszmp_z_mid, 0.0, 0.0, Tsup, absZMP_z_deque);
-  }
-  if ((FT==RFsw)||(FT==LFsw)) {
-
+  } else if ((FT==RFsw)||(FT==LFsw)) {
     Vector3 cp_EOF;
     if (!ifLastStep) {
       cp_EOF = swLegRef_p;
@@ -134,7 +153,7 @@ void patternPlanner::planCP(const BodyPtr m_robot, const FootType& FT, Vector3 s
 
     //int timeLength=(int)((Tsup)/0.005+NEAR0);
     int timeLength = (int)((Tsup+Tp)/dt + NEAR0);
-    for(int i=1; i<timeLength+1; i++){
+    for (int i=1; i<timeLength+1; i++) {
       cp = cZMP.head<2>() + exp(w*i*dt) * (cp_cur - cZMP.head<2>());
       cp_deque.push_back(cp);
     }
