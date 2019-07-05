@@ -1,5 +1,5 @@
-#ifndef ZMPPLANER_H
-#define ZMPPLANER_H
+#ifndef PATTERNPLANER_H
+#define PATTERNPLANER_H
 
 #include <deque>
 
@@ -28,7 +28,7 @@ class patternPlanner {
   void planSwingLeg(const BodyPtr m_robot, const FootType& FT,const Vector3& swLegRef_p, const Matrix3& tar_R,
                       const bool usePivot, const string *end_link);
 
-  void setw(double &cm_z_in, double groundHeight=0.0);
+  void setw(double &cm_z_in, const double groundHeight=0.0);
   void setZmpOffsetX(double &cm_offset_x);
 
   void getNextCom(Vector3 &cm_ref);

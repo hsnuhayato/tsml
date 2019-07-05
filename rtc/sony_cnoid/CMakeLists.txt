@@ -36,7 +36,7 @@ install(TARGETS ${comp_name} LIBRARY DESTINATION lib CONFIGURATIONS)
 
 find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
-add_executable(sony_test sony_test.cpp commonFunc.cpp)
+add_executable(sony_test sony_test.cpp commonFunc.cpp patternPlanner.cpp)
 target_link_libraries(sony_test GTest::GTest GTest::Main
                       ${OPENRTM_LIBRARIES}
                       ${CHOREONOID_LIBRARIES})

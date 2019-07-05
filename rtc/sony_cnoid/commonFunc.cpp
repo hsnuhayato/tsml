@@ -49,8 +49,7 @@ void get_end_link_pose(Position* pose, const BodyPtr body, const string *end_lin
 {
   //RLEG, LLEG, RARM, LARM, WAIST,
   for(int i=0; i<LIMBNUM; i++) {
-    pose[i].linear() = body->link(end_link[i])->R();
-    pose[i].translation() = body->link(end_link[i])->p();
+    pose[i] = body->link(end_link[i])->T();
   }
 }
 
