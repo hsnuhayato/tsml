@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 #include "commonFunc.h"
-
+#include "patternPlanner.h"
 
 class sonyTest : public ::testing::Test {
 protected:
@@ -124,3 +124,28 @@ TEST_F(sonyTest, wholeBodyIkTest) {
 
   EXPECT_TRUE(true);
 }
+
+
+TEST_F(sonyTest, capturePointPlanTest) {
+  patternPlanner* ptnP;
+  ptnP = new patternPlanner();
+  double z = 0.8;
+  ptnP -> setw(z);
+  ptnP -> setInit(Vector3(0.0, 0.0, 0.0));
+  FootType FT = RFsw;
+  bool usePivot = true;
+  Vector3 cm(0.0, 0.0, 0.0);
+  Vector3 cp(1.0, -0.5, 0.0);
+  ptnP -> planCP(m_robot, FT, cp,
+                 Eigen::MatrixXd::Identity(3,3), usePivot, end_link);
+  int iter = 0;
+  while((cm-cp).norm() > 1e-6) {
+    ptnP -> getNextCom(cm);
+    iter++;
+
+    if(iter > 1000) {
+      EXPECT_TRUE(false);
+      break;
+    }
+  }
+ }
