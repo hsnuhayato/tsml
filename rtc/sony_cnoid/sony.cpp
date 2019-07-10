@@ -548,14 +548,15 @@ inline bool sony::walkJudge()
   omega_err_R = temR_R * omegaFromRot(temR_R.transpose() * LEG_ref_R);
   omega_err_L = temR_L * omegaFromRot(temR_L.transpose() * LEG_ref_R);
 
-  bool start2walk=0;
+  if ((sqrt(FErr_L(0)*FErr_L(0)+FErr_L(1)*FErr_L(1))>0.03) ||
+      (sqrt(FErr_R(0)*FErr_R(0)+FErr_R(1)*FErr_R(1))>0.03) ||
+      omega_err_R.dot(omega_err_R)>0.03 ||
+      omega_err_L.dot(omega_err_L)>0.03) {
+    return true; //start to walk
+  } else {
+    return false;
+  }
 
-  if ((sqrt(FErr_L(0)*FErr_L(0)+FErr_L(1)*FErr_L(1))>0.03)||(sqrt(FErr_R(0)*FErr_R(0)+FErr_R(1)*FErr_R(1))>0.03))
-    start2walk=1;//start to walk
-  if (omega_err_R.dot(omega_err_R)>0.03||(omega_err_L.dot(omega_err_L)>0.03))
-    start2walk=1;//start to walk
-
-  return start2walk;
 }
 
 inline void sony::IniNewStep() {
@@ -563,7 +564,7 @@ inline void sony::IniNewStep() {
   if (pattern == STOP) {
     idle = 1;
        
-    if ( FT == RFsw)
+    if (FT == RFsw)
       FT = FSRFsw;
     else if(FT == LFsw)
       FT = FSLFsw;
@@ -582,8 +583,9 @@ void sony::start()//todo change to initialize_wpg
   get_end_link_pose(pose_now, m_robot, end_link);
 
   cm_ref = m_robot -> calcCenterOfMass();// 
-  cout<<"sony: cm "<<cm_ref<<endl;
-  cout<<"RLEG_p\n "<< m_robot->link(end_link[RLEG])->p()<<endl;
+  cout<<  "[" << m_profile.instance_name << "] cm: " << cm_ref <<endl;
+  cout<< "[" << m_profile.instance_name << "] RLEG_p\n "<<
+    m_robot->link(end_link[RLEG])->p()<<endl;
   //cout<<"inipos"<<'\n'<<m_robot->link("RLEG_JOINT5")->R()<<'\n'<<m_robot->link("LLEG_JOINT5")->R()<<endl;
   std::cout << "sony : robot pos = " << m_robot->rootLink()->p().format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
 
@@ -617,7 +619,7 @@ void sony::start()//todo change to initialize_wpg
   std::cout << "[ " << m_profile.instance_name << "] object pos = " <<
     object_ref->p().format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
   //for pivot///////////////////////////////////////////////
-  if(usePivot){
+  if (usePivot) {
     Vector3 bush_height = Vector3d::Zero();
     LinkPtr endLink = m_robot -> link(end_link[RLEG]);
     // add right ee

@@ -11,7 +11,7 @@ add_definitions(-std=c++11)
 ##
 include(FindPkgConfig)
 include(CheckIncludeFiles)
-set(ENV{PKG_CONFIG_PATH} "/usr/lib/x86_64-linux-gnu/pkgconfig/:$ENV{PKG_CONFIG_PATH}")
+set(ENV{PKG_CONFIG_PATH} "/usr/local/lib/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig/:$ENV{PKG_CONFIG_PATH}")
 
 pkg_check_modules(OPENRTM REQUIRED openrtm-aist)
 include_directories(${OPENRTM_INCLUDE_DIRS})

@@ -95,12 +95,13 @@ RTC::ReturnCode_t hrp2Base::onInitialize()
   RTC::Properties& prop = getProperties();
   cnoid::BodyLoader bl;
   m_robot = bl.load( prop["model"].c_str());
+  if (!m_robot) {
+    std::cout << m_profile.instance_name << " body load fail " << std::endl;
+    return RTC::BAD_PARAMETER;
+  }
   dof = m_robot->numJoints();
   std::cout << m_profile.instance_name << " :dof robot " << m_robot -> numJoints() << std::endl;
 
-  //coil::stringTo(m_waist_height, prop["waist_height"].c_str());
-  //std::cout<<"sony waist_height "<<m_waist_height<<std::endl;
-  //m_robot->rootLink()->p()<<0.0, 0.0, m_waist_height;
   std::vector<double> tmp;
   coil::stringTo(tmp, prop["initBasePos"].c_str());
   m_robot -> rootLink() -> p() << tmp[0], tmp[1], tmp[2];
