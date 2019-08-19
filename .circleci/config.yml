@@ -1,0 +1,13 @@
+version: 2
+jobs:
+  build:
+    docker: # Executor タイプです。他に machine、macOS という実行タイプを指定できます
+      - image: hsnuhayato/choreonoid1.7 # プライマリコンテナです。このなかでジョブコマンドが実行されます
+    steps:
+      - checkout # プロジェクトのディレクトリにあるコードをチェックアウトします
+      - run:
+	name: checkout and build
+	command: git checkout wu_branch;cmake -H. -Bbuild;cd build;make install
+      - run:
+      	name: test
+	command: cd build/rtc/sony_cnoid;./sony_test
