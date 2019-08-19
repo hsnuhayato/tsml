@@ -6,8 +6,8 @@ jobs:
     steps:
       - checkout # プロジェクトのディレクトリにあるコードをチェックアウトします
       - run:
-	name: checkout and build
-	command: git checkout wu_branch;cmake -H. -Bbuild;cd build;make install
+      name: checkout and build
+      command: git checkout wu_branch;cmake -H. -Bbuild;cd build;make install
       - run:
-      	name: test
-	command: cd build/rtc/sony_cnoid;./sony_test
+      name: test
+      command: cd build/rtc/sony_cnoid;./sony_test
