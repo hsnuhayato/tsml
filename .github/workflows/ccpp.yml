@@ -12,6 +12,6 @@ jobs:
   build:
     runs-on: docker://hsnuhayato/choreonoid1.7:latest
     steps:
-      - name: make
-        uses: actions/checkout@wu_branch
+      - uses: actions/checkout@wu_branch
+      - name: "make"
         run: cmake -H. -Bbuild;cd build;make install
