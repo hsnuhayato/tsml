@@ -3,17 +3,15 @@ name: C/C++ CI
 on:
   pull_request:
     branches:
-    - wu_branch
+      - wu_branch
   push:
     branches:
-    - wu_branch
+      - wu_branch
 
 jobs:
   build:
-
     runs-on: docker://hsnuhayato/choreonoid1.7:latest
-    
     steps:
-    - uses: actions/checkout@wu_branch
-    - name: make
-      run: cmake -H. -Bbuild;cd build;make install
+      - name: make
+        uses: actions/checkout@wu_branch
+        run: cmake -H. -Bbuild;cd build;make install
