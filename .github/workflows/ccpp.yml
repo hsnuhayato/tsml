@@ -10,8 +10,10 @@ on:
 
 jobs:
   build:
+    name: wutest
     runs-on: ubuntu-16.04
+    container:
+      image: docker://hsnuhayato/choreonoid1.7:latest
     steps:
       - name: "make"
-        uses: docker://hsnuhayato/choreonoid1.7:latest
-        run: gitcheckout wu_branch;cmake -H. -Bbuild;cd build;make install
+        run: git checkout wu_branch;cmake -H. -Bbuild;cd build;make install
