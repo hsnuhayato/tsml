@@ -149,7 +149,3 @@ TEST_F(sonyTest, capturePointPlanTest) {
     }
   }
  }
-
-TEST_F(sonyTest, fail_test_heiheihei) {
-  EXPECT_TRUE(false);
-}
