@@ -188,23 +188,23 @@ RTC::ReturnCode_t creekPointCloudViewer::onActivated(RTC::UniqueId ec_id)
       cnoid::Vector3 view = m_robot->rootLink()->p() + m_robot->rootLink()->R() * cnoid::Vector3(2,0,1);
       cnoid::Vector3 top = m_robot->rootLink()->R() * cnoid::Vector3(0,0,1);
       m_viewer->setCameraPosition(camera[0], camera[1], camera[2],
-				  view[0], view[1], view[2],
-				  top[0], top[1], top[2]);
+                                  view[0], view[1], view[2],
+                                  top[0], top[1], top[2]);
     }
 
     // test
     if( false ) {
       pcl::PointCloud<pcl::PointXYZRGB>::Ptr floor(new pcl::PointCloud<pcl::PointXYZRGB>);
       for(int i=-50; i<=50; i++) {
-	for(int j=-50; j<=50; j++) {
-	  pcl::PointXYZRGB point;
-	  point.x = i*0.1;
-	  point.y = j*0.1;
-	  point.z = 0.0;
-	  point.b = 255;
-	  point.g = 120;
-	  floor->push_back(point);
-	}
+        for(int j=-50; j<=50; j++) {
+          pcl::PointXYZRGB point;
+          point.x = i*0.1;
+          point.y = j*0.1;
+          point.z = 0.0;
+          point.b = 255;
+          point.g = 120;
+          floor->push_back(point);
+        }
       }
       m_viewer->addPointCloud(floor, "floor");
     }
@@ -281,27 +281,27 @@ RTC::ReturnCode_t creekPointCloudViewer::onExecute(RTC::UniqueId ec_id)
     if( m_detectMode ) {
       // RFOOT
       {
-	cnoid::Vector3 vec(-m_axes.data[3], -m_axes.data[2], 0.0);
-	cnoid::Vector3 omg(0.0, 0.0, m_buttons.data[9]-m_buttons.data[11]);
-	//std::cout << "RFOOT : " << vec.format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
-	if( vec.norm() > 0.001 ) {
-	  m_rsole.translation() += 0.005 * m_robot->rootLink()->R() * vec;
-	}
-	if( omg.norm() > 0.001 ) {
-	  m_rsole.linear() = cnoid::rotFromRpy( 0.01*omg ) * m_rsole.linear();
-	}
+        cnoid::Vector3 vec(-m_axes.data[3], -m_axes.data[2], 0.0);
+        cnoid::Vector3 omg(0.0, 0.0, m_buttons.data[9]-m_buttons.data[11]);
+        //std::cout << "RFOOT : " << vec.format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
+        if( vec.norm() > 0.001 ) {
+          m_rsole.translation() += 0.005 * m_robot->rootLink()->R() * vec;
+        }
+        if( omg.norm() > 0.001 ) {
+          m_rsole.linear() = cnoid::rotFromRpy( 0.01*omg ) * m_rsole.linear();
+        }
       }
       // LFOOT
       {
-	cnoid::Vector3 vec(-m_axes.data[1], -m_axes.data[0], 0.0);
-	cnoid::Vector3 omg(0.0, 0.0, m_buttons.data[8]-m_buttons.data[10]);
-	//std::cout << "LFOOT : " << vec.format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
-	if( vec.norm() > 0.001 ) {
-	  m_lsole.translation() += 0.005 * m_robot->rootLink()->R() * vec;
-	}
-	if( omg.norm() > 0.001 ) {
-	  m_lsole.linear() = cnoid::rotFromRpy( 0.01*omg ) * m_lsole.linear();
-	}
+        cnoid::Vector3 vec(-m_axes.data[1], -m_axes.data[0], 0.0);
+        cnoid::Vector3 omg(0.0, 0.0, m_buttons.data[8]-m_buttons.data[10]);
+        //std::cout << "LFOOT : " << vec.format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
+        if( vec.norm() > 0.001 ) {
+          m_lsole.translation() += 0.005 * m_robot->rootLink()->R() * vec;
+        }
+        if( omg.norm() > 0.001 ) {
+          m_lsole.linear() = cnoid::rotFromRpy( 0.01*omg ) * m_lsole.linear();
+        }
       } 
     }
   }
@@ -326,16 +326,16 @@ RTC::ReturnCode_t creekPointCloudViewer::onExecute(RTC::UniqueId ec_id)
       bool detect(false);
       double tm = toSec(m_ranger.tm);
       for( std::deque<TimedCoordinateSystem>::reverse_iterator it = m_tcsSeq.rbegin(); it != m_tcsSeq.rend(); it++) {
-	if( it->tm <= tm ) {
-	  sp = it->p;
-	  sR = it->R;
-	  m_tcsSeq.erase(m_tcsSeq.begin(), it.base());
-	  detect = true;
-	  break;
-	}
+        if( it->tm <= tm ) {
+          sp = it->p;
+          sR = it->R;
+          m_tcsSeq.erase(m_tcsSeq.begin(), it.base());
+          detect = true;
+          break;
+        }
       }
       if( !detect )
-	return RTC::RTC_OK;
+        return RTC::RTC_OK;
 
 
       // calc point (on world)
@@ -346,29 +346,29 @@ RTC::ReturnCode_t creekPointCloudViewer::onExecute(RTC::UniqueId ec_id)
       double minRange = m_ranger.config.minRange;
       double maxRange = m_ranger.config.maxRange;
       for(int i=0; i<num; i++) {
-	if( data[i] >= minRange && data[i] <= maxRange) {
-	  double angle = minAngle + i*step;
-	  cnoid::Vector3 p_local( data[i]*sin(-angle), 0.0, -data[i]*cos(angle));
-	  cnoid::Vector3 p_world = sp + sR * p_local;
+        if( data[i] >= minRange && data[i] <= maxRange) {
+          double angle = minAngle + i*step;
+          cnoid::Vector3 p_local( data[i]*sin(-angle), 0.0, -data[i]*cos(angle));
+          cnoid::Vector3 p_world = sp + sR * p_local;
 
-	  cnoid::Vector3 dXY(p_world-m_robot->rootLink()->p());
-	  dXY(2) = 0.0;
+          cnoid::Vector3 dXY(p_world-m_robot->rootLink()->p());
+          dXY(2) = 0.0;
 
-	  if( dXY.norm() > 0.3 ) {
-	    pcl::PointXYZRGB point;
-	    point.x = p_world[0];
-	    point.y = p_world[1];
-	    point.z = p_world[2];
-	    point.r = 255;
-	    point.g = 255;
-	    point.b = 255;
-	    m_cloud->push_back(point);
-	  }
-	}
+          if( dXY.norm() > 0.3 ) {
+            pcl::PointXYZRGB point;
+            point.x = p_world[0];
+            point.y = p_world[1];
+            point.z = p_world[2];
+            point.r = 255;
+            point.g = 255;
+            point.b = 255;
+            m_cloud->push_back(point);
+          }
+        }
       }
       if( m_immediately ) {
-	//m_viewer->showCloud(m_cloud->makeShared());
-	m_viewer->updatePointCloud(m_cloud, "cloud");
+        //m_viewer->showCloud(m_cloud->makeShared());
+        m_viewer->updatePointCloud(m_cloud, "cloud");
       }
     }
   }
@@ -388,15 +388,15 @@ void creekPointCloudViewer::start()
   //std::cout << m_robot->rootLink()->R().format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", "]\n", "", "", "[", "]")) << std::endl;
 
   /* 
-  cnoid::Vector3 camera = m_robot->rootLink()->p() + m_robot->rootLink()->R() * cnoid::Vector3(-2,0,1);
-  cnoid::Vector3 view = m_robot->rootLink()->p() + m_robot->rootLink()->R() * cnoid::Vector3(2,0,1);
-  cnoid::Vector3 top = m_robot->rootLink()->R() * cnoid::Vector3(0,0,1);
-  //std::cout << "set camera = " << camera.format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
-  //std::cout << "set view = " << view.format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
+     cnoid::Vector3 camera = m_robot->rootLink()->p() + m_robot->rootLink()->R() * cnoid::Vector3(-2,0,1);
+     cnoid::Vector3 view = m_robot->rootLink()->p() + m_robot->rootLink()->R() * cnoid::Vector3(2,0,1);
+     cnoid::Vector3 top = m_robot->rootLink()->R() * cnoid::Vector3(0,0,1);
+     //std::cout << "set camera = " << camera.format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
+     //std::cout << "set view = " << view.format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
   
-  m_viewer->setCameraPosition(camera[0], camera[1], camera[2],
-			      view[0], view[1], view[2],
-			      top[0], top[1], top[2]);
+     m_viewer->setCameraPosition(camera[0], camera[1], camera[2],
+     view[0], view[1], view[2],
+     top[0], top[1], top[2]);
   */
 }
 
@@ -556,11 +556,11 @@ bool creekPointCloudViewer::detectLandingPoint(double x, double y, double w, int
       pcl::compute3DCentroid(*area, inliers->indices, center);
       cnoid::Vector3 dist(center[0]-x, center[1]-y, center[2]-z);
       if( dist.norm() > minRange ) {
-	dist *= ( minRange/dist.norm() );
+        dist *= ( minRange/dist.norm() );
       }
       landP += dist;
       std::cout << "creekPointCloudViewer : move landing point,  move = " 
-		<< dist.format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
+                << dist.format(Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]")) << std::endl;
     }
   }
 
@@ -729,13 +729,13 @@ bool creekPointCloudViewer::fittingFootPosition(std::vector<int> &indices, cnoid
     }
     else {
       if( direction.squaredNorm() < 1.0e-6 ) {
-	std::cout << "creekPointCloudViewer : exception !!!  trial num = " << i << ",  flag = " << bitflag << std::endl;
-	return false;
+        std::cout << "creekPointCloudViewer : exception !!!  trial num = " << i << ",  flag = " << bitflag << std::endl;
+        return false;
       }
       else {
-	direction.normalize();
-	std::cout << "creekPointCloudViewer : fitting trial " << i << ",  direction = " << direction.format(creek::IOvec()) << std::endl;
-	adjust += scale*direction;
+        direction.normalize();
+        std::cout << "creekPointCloudViewer : fitting trial " << i << ",  direction = " << direction.format(creek::IOvec()) << std::endl;
+        adjust += scale*direction;
       }
     }
   }
@@ -783,7 +783,7 @@ bool creekPointCloudViewer::matchingMap()
     cnoid::Vector3 vec, rpy;
     for(int i=0; i<3; i++) {
       for(int j=0; j<3; j++) {
-	rot(i,j) = tf(i,j);
+        rot(i,j) = tf(i,j);
       }
       vec(i) = tf(i,3);
     }
@@ -803,7 +803,7 @@ bool creekPointCloudViewer::matchingMap()
     m_basePosOut.write();
     m_baseRpyOut.write();
 
-     m_viewer->updatePointCloud(m_cloud, "cloud");
+    m_viewer->updatePointCloud(m_cloud, "cloud");
 
     std::cout << "creekPointCloudViewer : matching map OK" << std::endl;
     std::cout << "  pos = " << m_robot->rootLink()->p().format( Eigen::IOFormat(Eigen::StreamPrecision, 0, ", ", ", ", "", "", "[", "]") ) << std::endl;

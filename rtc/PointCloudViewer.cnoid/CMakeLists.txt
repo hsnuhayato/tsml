@@ -1,39 +1,3 @@
-cmake_minimum_required(VERSION 2.6)
-
-set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
-if (NOT CMAKE_MODULE_PATH)
-  set(CMAKE_MODULE_PATH /home/player/tsml/share/hrpsys/cmake_modules/ CACHE STRING "set path to cmake_modules")
-  #set(CMAKE_MODULE_PATH /opt/grx/share/hrpsys/cmake_modules/ CACHE STRING "set path to cmake_modules")
-endif (NOT CMAKE_MODULE_PATH)
-
-add_definitions(-std=c++11)
-####
-## settings for OpenRTM
-##
-include(FindPkgConfig)
-include(CheckIncludeFiles)
-pkg_check_modules(OPENRTM REQUIRED openrtm-aist)
-
-include_directories(${OPENRTM_INCLUDE_DIRS})
-link_directories(${OPENRTM_LIBRARY_DIRS})
-
-# for GenerateStubSkel
-execute_process(
-  COMMAND $ENV{RTM_ROOT}/bin/rtm-config --rtm-idldir
-  OUTPUT_VARIABLE OPENRTM_IDL_DIR
-  RESULT_VARIABLE RESULT
-  OUTPUT_STRIP_TRAILING_WHITESPACE)
-include(GenerateStubSkel)
-
-
-####
-## setting choreonoid
-##
-pkg_check_modules(CHOREONOID REQUIRED choreonoid choreonoid-body-plugin)
-include_directories(${CHOREONOID_INCLUDE_DIRS})
-link_directories(${CHOREONOID_LIBRARY_DIRS})
-
-
 ####
 ## settings for PCL
 ##
@@ -43,12 +7,11 @@ link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 list(REMOVE_ITEM PCL_LIBRARIES "vtkproj4")
 
-include_directories(${CMAKE_MODULE_PATH})
 
 ####
 ## for each component
 ##
-set(comp_name ${COMP_NAME})
+set(comp_name creekPointCloudViewer)
 set(comp_sources ${comp_name}.cpp)
 
 generate_stub_skel(${comp_name}Service)
@@ -72,7 +35,4 @@ endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ggdb3 -fno-schedule-insns -fno-schedule-insns2 -fno-strict-aliasing")
 
-#install(TARGETS ${target}
-#install(TARGETS ${comp_name} LIBRARY DESTINATION rtc CONFIGURATIONS)
 install(TARGETS ${comp_name} LIBRARY DESTINATION lib CONFIGURATIONS)
-#install(FILES connect.conf DESTINATION rtc)
