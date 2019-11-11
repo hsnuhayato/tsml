@@ -1,0 +1,19 @@
+name: C/C++ CI
+
+on:
+  pull_request:
+    branches:
+      - wu_branch
+  push:
+    branches:
+      - wu_branch
+
+jobs:
+  build:
+    name: wutest
+    runs-on: ubuntu-16.04
+    container:
+      image: docker://hsnuhayato/choreonoid1.7:latest
+    steps:
+      - name: "make"
+        run: git checkout wu_branch;cmake -H. -Bbuild;cd build;make install
