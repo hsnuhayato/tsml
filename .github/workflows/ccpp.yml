@@ -17,7 +17,6 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: "make"
-        uses: hsnuhayato/tsml@wu_branch
         run: |
           pwd;ls;
           cmake -H. -Bbuild;cd build;make install
