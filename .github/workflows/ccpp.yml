@@ -15,8 +15,7 @@ jobs:
     container:
       image: docker://hsnuhayato/choreonoid1.7:latest
     steps:
-      - uses: hsnuhayato/tsml
-        with: wu_branch
+      - uses: hsnuhayato/tsml@wu_branch
       - name: "make"
         run: |
           pwd;ls;
