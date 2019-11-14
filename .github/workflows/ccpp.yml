@@ -15,5 +15,9 @@ jobs:
     container:
       image: docker://hsnuhayato/choreonoid1.7:latest
     steps:
+      - uses: hsnuhayato/tsml
+        with: wu_branch
       - name: "make"
-        run: git checkout wu_branch;cmake -H. -Bbuild;cd build;make install
+        run: |
+          pwd;ls;
+          cmake -H. -Bbuild;cd build;make install
